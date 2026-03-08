@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { authenticateApi } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreEmbedding } from "@/lib/embedding";
+import { autoTagEntry } from "@/lib/auto-tag";
 
 export async function GET(request: Request) {
   const authed = await authenticateApi(request);
@@ -98,6 +99,11 @@ export async function POST(request: Request) {
 
   // Fire-and-forget embedding generation (don't block response)
   generateAndStoreEmbedding(entry).catch(() => {});
+
+  // Auto-tag if no manual tags provided (fire-and-forget)
+  if (!tags || tags.length === 0) {
+    autoTagEntry(entry.id, title, content || summary || '', source).catch(() => {});
+  }
 
   return NextResponse.json(entry, { status: 201 });
 }
