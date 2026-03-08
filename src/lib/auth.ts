@@ -62,12 +62,7 @@ export async function authenticateApi(request: Request): Promise<boolean> {
   const session = await auth();
   if (session?.user) return true;
 
-  // Check Bearer token
-  const authHeader = request.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.substring(7);
-    return token === process.env.API_TOKEN;
-  }
-
-  return false;
+  // Check Bearer token against DB-stored hashed tokens
+  const { verifyApiToken } = await import("./auth-token");
+  return verifyApiToken(request);
 }
