@@ -39,13 +39,13 @@ export default function Sidebar({ userName }: { userName?: string }) {
       {/* Logo */}
       <div className="sidebar-logo">
         <Image
-          src="/logo-clawkb.png"
+          src="/logo-clawkb-wordmark.png"
           alt="ClawKB"
-          width={32}
-          height={32}
-          className="sidebar-logo-img"
+          width={160}
+          height={44}
+          className="sidebar-logo-wordmark"
+          priority
         />
-        <span className="sidebar-logo-text">ClawKB</span>
       </div>
 
       {/* Nav links */}
@@ -144,6 +144,8 @@ export default function Sidebar({ userName }: { userName?: string }) {
           .sidebar.collapsed {
             width: 68px;
           }
+          .sidebar.collapsed .sidebar-logo-wordmark { display: none; }
+          .sidebar.collapsed .sidebar-logo-icon-only { display: block; }
           .sidebar.collapsed .sidebar-logo-text,
           .sidebar.collapsed .sidebar-link-label,
           .sidebar.collapsed .sidebar-username,
@@ -194,15 +196,10 @@ export default function Sidebar({ userName }: { userName?: string }) {
           border-bottom: 1px solid var(--border);
           min-height: 65px;
         }
-        .sidebar-logo-img {
-          flex-shrink: 0;
-          border-radius: 6px;
-        }
-        .sidebar-logo-text {
-          font-family: var(--font-heading);
-          font-size: 1.1rem;
-          color: var(--accent);
-          letter-spacing: -0.01em;
+        .sidebar-logo-wordmark {
+          height: 28px;
+          width: auto;
+          object-fit: contain;
         }
 
         /* ═══ Nav ═══ */
