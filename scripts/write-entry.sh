@@ -3,7 +3,7 @@
 # 也可以用 stdin 傳 content: echo "報告" | write-entry.sh --type report --source nightly-recon --title "..."
 
 API="http://localhost:3500/api/entries"
-TOKEN="kh-api-t0k3n-Xq7Wr9Bm2Pv4Nj8Lc1Fs"
+TOKEN="${CLAWKB_TOKEN:-}"
 
 TYPE="report"
 SOURCE=""
@@ -14,6 +14,7 @@ STATUS="new"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --token) TOKEN="$2"; shift 2;;
     --type) TYPE="$2"; shift 2;;
     --source) SOURCE="$2"; shift 2;;
     --title) TITLE="$2"; shift 2;;
@@ -23,6 +24,11 @@ while [[ $# -gt 0 ]]; do
     *) shift;;
   esac
 done
+
+if [ -z "$TOKEN" ]; then
+  echo "Error: --token is required (or set CLAWKB_TOKEN env var)"
+  exit 1
+fi
 
 # Read from stdin if no content
 if [ -z "$CONTENT" ] && [ ! -t 0 ]; then

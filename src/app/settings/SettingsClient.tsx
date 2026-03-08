@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Settings, Database, HardDrive, Type, Plus, Trash2, Edit2, Check, X, Loader2, Wifi, WifiOff } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Settings, Database, HardDrive, Type, Plus, Trash2, Edit2, Check, X, Loader2, Wifi, WifiOff, KeyRound, Copy } from "lucide-react";
 import type { AllSettings, EntryTypeOption, StatusOption, EmbeddingConfig, StorageConfig } from "@/lib/settings";
 
 // ─── Style constants ──────────────────────────────────────────────────────
@@ -646,8 +646,195 @@ function StorageTab({ settings, onToast }: {
   );
 }
 
+// ─── API Tokens Tab ──────────────────────────────────────────────────────
+interface ApiToken {
+  id: number;
+  name: string;
+  token_prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked: boolean;
+}
+
+function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void }) {
+  const [tokens, setTokens] = useState<ApiToken[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newName, setNewName] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [revealedToken, setRevealedToken] = useState<string | null>(null);
+
+  const fetchTokens = useCallback(async () => {
+    try {
+      const res = await fetch("/api/tokens");
+      if (res.ok) setTokens(await res.json());
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchTokens(); }, [fetchTokens]);
+
+  async function createToken() {
+    if (!newName.trim()) return;
+    setCreating(true);
+    try {
+      const res = await fetch("/api/tokens", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRevealedToken(data.token);
+        setNewName("");
+        onToast("Token created", true);
+        fetchTokens();
+      } else {
+        onToast("Failed to create token", false);
+      }
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function revokeToken(id: number) {
+    const res = await fetch(`/api/tokens/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      onToast("Token revoked", true);
+      fetchTokens();
+    } else {
+      onToast("Failed to revoke token", false);
+    }
+  }
+
+  function copyToken() {
+    if (revealedToken) {
+      navigator.clipboard.writeText(revealedToken);
+      onToast("Copied to clipboard", true);
+    }
+  }
+
+  const fmtDate = (d: string | null) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Never";
+
+  return (
+    <div>
+      {/* New token created modal */}
+      {revealedToken && (
+        <div style={{
+          ...card,
+          background: "rgba(74,222,128,0.06)",
+          border: "1px solid rgba(74,222,128,0.25)",
+          marginBottom: 24,
+        }}>
+          <div style={{ ...sectionTitle, color: "var(--success)", marginBottom: 8 }}>
+            <KeyRound style={{ width: 16, height: 16 }} />
+            Token Created — Copy Now!
+          </div>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 12 }}>
+            This token will only be shown once. Store it securely.
+          </p>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <code style={{
+              flex: 1,
+              padding: "10px 12px",
+              background: "var(--background)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              fontSize: "0.75rem",
+              fontFamily: "var(--font-mono)",
+              color: "var(--text)",
+              wordBreak: "break-all",
+            }}>
+              {revealedToken}
+            </code>
+            <button onClick={copyToken} style={btnPrimary}>
+              <Copy style={{ width: 14, height: 14 }} /> Copy
+            </button>
+            <button onClick={() => setRevealedToken(null)} style={btnGhost}>
+              <X style={{ width: 14, height: 14 }} /> Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create new token */}
+      <div style={card}>
+        <div style={sectionTitle}>
+          <KeyRound style={{ width: 16, height: 16, color: "var(--accent)" }} />
+          API Tokens
+        </div>
+        <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 16 }}>
+          Create tokens for cron agents and scripts to write entries via the API.
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && createToken()}
+            style={{ ...inputStyle, flex: 1 }}
+            placeholder="Token name (e.g. nightly-recon-agent)"
+          />
+          <button onClick={createToken} disabled={creating} style={{ ...btnPrimary, opacity: creating ? 0.6 : 1 }}>
+            {creating ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Plus style={{ width: 14, height: 14 }} />}
+            Generate
+          </button>
+        </div>
+      </div>
+
+      {/* Token list */}
+      <div style={card}>
+        <div style={sectionTitle}>
+          Active Tokens
+          {loading && <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />}
+        </div>
+
+        {!loading && tokens.length === 0 && (
+          <p style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>No tokens yet.</p>
+        )}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {tokens.map(t => (
+            <div key={t.id} style={{
+              display: "flex", alignItems: "center", gap: 12,
+              padding: "10px 14px",
+              background: "var(--background)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              opacity: t.revoked ? 0.5 : 1,
+            }}>
+              <KeyRound style={{ width: 14, height: 14, color: t.revoked ? "var(--text-dim)" : "var(--accent)", flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--text)" }}>{t.name}</div>
+                <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)", marginTop: 2 }}>
+                  {t.token_prefix}...
+                </div>
+              </div>
+              <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", textAlign: "right", flexShrink: 0 }}>
+                <div>Created: {fmtDate(t.created_at)}</div>
+                <div>Last used: {fmtDate(t.last_used_at)}</div>
+              </div>
+              {t.revoked ? (
+                <span style={{
+                  fontSize: "0.7rem", color: "var(--danger)", padding: "2px 8px",
+                  background: "rgba(248,113,113,0.1)", borderRadius: 12,
+                }}>
+                  Revoked
+                </span>
+              ) : (
+                <button onClick={() => revokeToken(t.id)} style={btnDanger}>
+                  <Trash2 style={{ width: 12, height: 12 }} /> Revoke
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────
-type Tab = "types" | "embedding" | "storage";
+type Tab = "types" | "embedding" | "storage" | "tokens";
 
 export default function SettingsClient({ initialSettings }: { initialSettings: AllSettings }) {
   const [activeTab, setActiveTab] = useState<Tab>("types");
@@ -666,7 +853,7 @@ export default function SettingsClient({ initialSettings }: { initialSettings: A
           Settings
         </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-          Configure entry types, embedding provider, and object storage.
+          Configure entry types, embedding provider, object storage, and API tokens.
         </p>
       </div>
 
@@ -689,12 +876,16 @@ export default function SettingsClient({ initialSettings }: { initialSettings: A
         <button onClick={() => setActiveTab("storage")} style={tabBtn(activeTab === "storage")}>
           <HardDrive style={{ width: 14, height: 14 }} /> Storage
         </button>
+        <button onClick={() => setActiveTab("tokens")} style={tabBtn(activeTab === "tokens")}>
+          <KeyRound style={{ width: 14, height: 14 }} /> API Tokens
+        </button>
       </div>
 
       {/* Tab content */}
       {activeTab === "types"     && <EntryTypesTab settings={initialSettings} onToast={showToast} />}
       {activeTab === "embedding" && <EmbeddingTab  settings={initialSettings} onToast={showToast} />}
       {activeTab === "storage"   && <StorageTab    settings={initialSettings} onToast={showToast} />}
+      {activeTab === "tokens"    && <ApiTokensTab  onToast={showToast} />}
 
       {/* Toast */}
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
