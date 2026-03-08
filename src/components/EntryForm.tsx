@@ -231,7 +231,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
         <button type="submit" disabled={saving} style={{
           display: "flex", alignItems: "center", gap: 8,
           padding: "10px 20px",
-          background: "var(--accent)", color: "#0C0C0E",
+          background: "var(--accent)", color: "var(--accent-contrast)",
           fontSize: "0.875rem", fontWeight: 600,
           borderRadius: "var(--radius-md)", border: "none", cursor: "pointer",
           opacity: saving ? 0.5 : 1,

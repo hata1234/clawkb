@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "rgba(255,255,255,0.04)",
+    background: "var(--surface)",
     border: "1px solid var(--border)",
     borderRadius: "var(--radius-md)",
     padding: "12px 16px",
@@ -165,7 +165,7 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 background: "var(--accent)",
-                color: "#0C0C0E",
+                color: "var(--accent-contrast)",
                 borderRadius: "var(--radius-md)",
                 padding: "13px 16px",
                 fontSize: "0.9rem",
