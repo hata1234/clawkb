@@ -1,0 +1,20 @@
+{
+  "name": "ClawKB",
+  "short_name": "ClawKB",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0C0C0E",
+  "theme_color": "#C9A96E",
+  "icons": [
+    {
+      "src": "/logo-clawkb-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-clawkb-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
