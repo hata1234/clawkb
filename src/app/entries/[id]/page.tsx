@@ -145,7 +145,7 @@ export default function EntryDetailPage() {
               <button onClick={() => setEditing(false)} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                 <X style={{ width: 14, height: 14 }} /> Cancel
               </button>
-              <button onClick={saveEdit} disabled={saving} style={{ ...btnBase, background: "var(--accent)", color: "#0C0C0E", opacity: saving ? 0.6 : 1 }}>
+              <button onClick={saveEdit} disabled={saving} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", opacity: saving ? 0.6 : 1 }}>
                 {saving ? <Loader2 style={{ width: 14, height: 14 }} /> : <Check style={{ width: 14, height: 14 }} />} Save
               </button>
             </>

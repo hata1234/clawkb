@@ -102,7 +102,7 @@ function EntriesPageInner() {
         </div>
         <Link href="/entries/new" style={{
           display: "inline-flex", alignItems: "center", gap: 8,
-          background: "var(--accent)", color: "#0C0C0E",
+          background: "var(--accent)", color: "var(--accent-contrast)",
           borderRadius: "var(--radius-md)", padding: "10px 16px",
           fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap",
         }}>
