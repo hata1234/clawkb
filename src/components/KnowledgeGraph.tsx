@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   forceSimulation,
   forceLink,
@@ -11,6 +11,7 @@ import {
   type SimulationLinkDatum,
 } from "d3-force";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 
 /* ═══ Types ═══ */
@@ -62,6 +63,12 @@ export default function KnowledgeGraph() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<ReturnType<typeof forceSimulation<GraphNode>> | null>(null);
   const rafRef = useRef<number>(0);
+  const searchParams = useSearchParams();
+  const focusId = useMemo(() => {
+    const raw = searchParams.get("focus");
+    return raw ? parseInt(raw, 10) : null;
+  }, [searchParams]);
+  const focusAppliedRef = useRef(false);
 
   // Data
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -133,7 +140,7 @@ export default function KnowledgeGraph() {
 
       setNodes(graphNodes);
       setEdges(graphEdges);
-      setSelectedNode(null);
+      if (!focusId) setSelectedNode(null);
     } catch (err) {
       console.error("Graph fetch error:", err);
     } finally {
@@ -184,6 +191,59 @@ export default function KnowledgeGraph() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges]);
+
+  /* ═══ Focus Node from URL ═══ */
+
+  useEffect(() => {
+    if (!focusId || nodes.length === 0 || focusAppliedRef.current) return;
+    const target = nodes.find((n) => n.id === focusId);
+    if (!target) return;
+
+    // Wait for simulation to settle a bit before focusing
+    const timer = setTimeout(() => {
+      if (target.x == null || target.y == null) return;
+      focusAppliedRef.current = true;
+      setSelectedNode(target);
+
+      // Animate zoom to node
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width / dpr;
+      const h = canvas.height / dpr;
+      const targetK = 1.5;
+
+      const startT = { ...transformRef.current };
+      const endT = {
+        x: w / 2 - target.x! * targetK,
+        y: h / 2 - target.y! * targetK,
+        k: targetK,
+      };
+      const duration = 600;
+      const startTime = performance.now();
+
+      const animate = (now: number) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // ease-out cubic
+        const t = 1 - Math.pow(1 - progress, 3);
+
+        transformRef.current = {
+          x: startT.x + (endT.x - startT.x) * t,
+          y: startT.y + (endT.y - startT.y) * t,
+          k: startT.k + (endT.k - startT.k) * t,
+        };
+        drawCanvasRef.current();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      requestAnimationFrame(animate);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [focusId, nodes]);
 
   /* ═══ Canvas Resize ═══ */
 
