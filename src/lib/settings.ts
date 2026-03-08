@@ -26,7 +26,7 @@ export const DEFAULT_STATUS_OPTIONS = [
 
 export const DEFAULT_EMBEDDING = {
   provider: "ollama" as "ollama" | "openai" | "disabled",
-  ollamaUrl: process.env.OLLAMA_URL ?? "http://192.168.0.85:11434",
+  ollamaUrl: process.env.OLLAMA_URL ?? "http://localhost:11434",
   ollamaModel: "bge-m3",
   openaiApiKey: "",
   openaiModel: "text-embedding-3-small",

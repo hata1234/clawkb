@@ -4,9 +4,9 @@ import { defineConfig } from "prisma/config";
 export default defineConfig({
   schema: path.join(__dirname, "prisma", "schema.prisma"),
   datasource: {
-    url: "postgresql://hata1234@localhost:5432/knowledge_hub",
+    url: process.env.DATABASE_URL ?? "postgresql://localhost:5432/clawkb",
   },
   migrate: {
-    url: "postgresql://hata1234@localhost:5432/knowledge_hub",
+    url: process.env.DATABASE_URL ?? "postgresql://localhost:5432/clawkb",
   },
 });

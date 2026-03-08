@@ -1,6 +1,6 @@
 import { pool } from "./prisma";
 
-const OLLAMA_URL = "http://192.168.0.85:11434";
+const OLLAMA_URL = process.env.EMBEDDING_URL ?? process.env.OLLAMA_URL ?? "http://localhost:11434";
 
 export async function autoTagEntry(entryId: number, title: string, content: string, source: string): Promise<string[]> {
   try {

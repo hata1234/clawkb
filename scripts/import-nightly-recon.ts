@@ -1,9 +1,9 @@
 import pg from "pg";
 import fs from "fs";
 
-const DB_URL = process.env.DATABASE_URL ?? "postgresql://hata1234@localhost:5432/knowledge_hub";
-const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://192.168.0.85:11434";
-const RECON_FILE = process.env.RECON_FILE ?? "/Users/hata1234/clawd/memory/nightly-recon-log.md";
+const DB_URL = process.env.DATABASE_URL ?? "postgresql://localhost:5432/clawkb";
+const OLLAMA_URL = process.env.EMBEDDING_URL ?? process.env.OLLAMA_URL ?? "http://localhost:11434";
+const RECON_FILE = process.env.RECON_FILE ?? "./data/nightly-recon-log.md";
 const DELAY_MS = 100;
 
 interface ReconEntry {
