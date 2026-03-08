@@ -7,6 +7,7 @@ import MarkdownRenderer from "@/components/MarkdownRenderer";
 import StatusBadge from "@/components/StatusBadge";
 import TypeBadge from "@/components/TypeBadge";
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
+import { useSettings } from "@/lib/useSettings";
 import {
   ArrowLeft, Edit2, Trash2, ExternalLink, Tag, Clock, Globe,
   Check, X, Loader2
@@ -44,6 +45,10 @@ export default function EntryDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [entry, setEntry] = useState<Entry | null>(null);
+  const settings = useSettings();
+  const statusOpts = settings?.status_options?.map(s => s.id) ?? [...STATUS_OPTIONS];
+  const statusLabels: Record<string, string> = {};
+  if (settings?.status_options) { for (const s of settings.status_options) statusLabels[s.id] = s.label; }
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -168,14 +173,14 @@ export default function EntryDetailPage() {
           <TypeBadge type={entry.type} />
           {editing ? (
             <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ ...inputStyle, width: "auto", padding: "4px 8px", fontSize: "0.75rem" }}>
-              {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+              {statusOpts.map((s) => <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>)}
             </select>
           ) : (
             <div style={{ position: "relative" }}>
               <StatusBadge status={entry.status} />
               <select value={entry.status} onChange={(e) => updateStatus(e.target.value)}
                 style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer", width: "100%" }} title="Change status">
-                {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                {statusOpts.map((s) => <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>)}
               </select>
             </div>
           )}

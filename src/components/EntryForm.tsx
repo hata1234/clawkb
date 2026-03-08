@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
+import { useSettings } from "@/lib/useSettings";
 import MarkdownRenderer from "./MarkdownRenderer";
 import { Save, Eye, EyeOff } from "lucide-react";
 import ImageUpload from "./ImageUpload";
@@ -68,18 +69,32 @@ const labelStyle: React.CSSProperties = {
 
 export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const router = useRouter();
+  const settings = useSettings();
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [images, setImages] = useState<UploadedImage[]>(initialData?.images || []);
 
+  // Dynamic options from DB settings, with hardcoded fallback
+  const typeOptions = settings?.entry_types?.map(t => t.id) ?? [...TYPE_OPTIONS];
+  const typeLabels: Record<string, string> = {};
+  if (settings?.entry_types) {
+    for (const t of settings.entry_types) typeLabels[t.id] = t.label;
+  }
+  const sourceOptions = settings?.source_options ?? [...SOURCE_OPTIONS];
+  const statusOptions = settings?.status_options?.map(s => s.id) ?? [...STATUS_OPTIONS];
+  const statusLabels: Record<string, string> = {};
+  if (settings?.status_options) {
+    for (const s of settings.status_options) statusLabels[s.id] = s.label;
+  }
+
   const [form, setForm] = useState<EntryFormData>({
-    type: initialData?.type || "opportunity",
-    source: initialData?.source || "manual",
+    type: initialData?.type || typeOptions[0] || "opportunity",
+    source: initialData?.source || sourceOptions[0] || "manual",
     title: initialData?.title || "",
     summary: initialData?.summary || "",
     content: initialData?.content || "",
-    status: initialData?.status || "new",
+    status: initialData?.status || statusOptions[0] || "new",
     url: initialData?.url || "",
     tags: initialData?.tags || "",
   });
@@ -148,13 +163,15 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
         <div>
           <label style={labelStyle}>Type</label>
           <select name="type" value={form.type} onChange={handleChange} style={selectStyle}>
-            {TYPE_OPTIONS.map((t) => (<option key={t} value={t}>{t.replace(/_/g, " ")}</option>))}
+            {typeOptions.map((t) => (
+              <option key={t} value={t}>{typeLabels[t] || t.replace(/_/g, " ")}</option>
+            ))}
           </select>
         </div>
         <div>
           <label style={labelStyle}>Source</label>
           <select name="source" value={form.source} onChange={handleChange} style={selectStyle}>
-            {SOURCE_OPTIONS.map((s) => (<option key={s} value={s}>{s}</option>))}
+            {sourceOptions.map((s) => (<option key={s} value={s}>{s}</option>))}
           </select>
         </div>
       </div>
@@ -196,7 +213,9 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
         <div>
           <label style={labelStyle}>Status</label>
           <select name="status" value={form.status} onChange={handleChange} style={selectStyle}>
-            {STATUS_OPTIONS.map((s) => (<option key={s} value={s}>{s.replace(/_/g, " ")}</option>))}
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>
+            ))}
           </select>
         </div>
       </div>

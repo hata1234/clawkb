@@ -28,6 +28,9 @@ model Entry {
   updatedAt DateTime @updatedAt
   tags      Tag[]    @relation("EntryTags")
   images    EntryImage[]
+  // Vector search (managed via raw SQL, not Prisma migrations)
+  // embedding Unsupported("vector(1024)")?
+  // tsv       Unsupported("tsvector")?
 }
 
 model EntryImage {
@@ -50,4 +53,10 @@ model Tag {
   id      Int     @id @default(autoincrement())
   name    String  @unique
   entries Entry[] @relation("EntryTags")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }
