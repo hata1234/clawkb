@@ -70,16 +70,26 @@ export default function LoginPage() {
       }} />
 
       <div style={{ width: "100%", maxWidth: 380, position: "relative", zIndex: 1 }}>
-        {/* Logo */}
+        {/* Logo: icon + CSS text */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 40 }}>
           <Image
-            src="/logo-clawkb-wordmark.png"
+            src="/logo-clawkb-icon.png"
             alt="ClawKB"
-            width={240}
-            height={80}
-            style={{ objectFit: "contain", marginBottom: 16 }}
+            width={72}
+            height={72}
+            style={{ marginBottom: 20 }}
             priority
           />
+          <h1 style={{
+            fontSize: "2rem",
+            fontWeight: 700,
+            letterSpacing: "-0.02em",
+            marginBottom: 8,
+            lineHeight: 1,
+          }}>
+            <span style={{ color: "var(--text)" }}>Claw</span>
+            <span style={{ color: "var(--accent)" }}>KB</span>
+          </h1>
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Sign in to continue</p>
         </div>
 

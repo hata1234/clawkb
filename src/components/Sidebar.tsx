@@ -39,13 +39,17 @@ export default function Sidebar({ userName }: { userName?: string }) {
       {/* Logo */}
       <div className="sidebar-logo">
         <Image
-          src="/logo-clawkb-wordmark.png"
+          src="/logo-clawkb-icon.png"
           alt="ClawKB"
-          width={160}
-          height={44}
-          className="sidebar-logo-wordmark"
+          width={36}
+          height={36}
+          className="sidebar-logo-icon"
           priority
         />
+        <span className="sidebar-logo-text">
+          <span className="sidebar-logo-claw">Claw</span>
+          <span className="sidebar-logo-kb">KB</span>
+        </span>
       </div>
 
       {/* Nav links */}
@@ -144,8 +148,6 @@ export default function Sidebar({ userName }: { userName?: string }) {
           .sidebar.collapsed {
             width: 68px;
           }
-          .sidebar.collapsed .sidebar-logo-wordmark { display: none; }
-          .sidebar.collapsed .sidebar-logo-icon-only { display: block; }
           .sidebar.collapsed .sidebar-logo-text,
           .sidebar.collapsed .sidebar-link-label,
           .sidebar.collapsed .sidebar-username,
@@ -191,15 +193,27 @@ export default function Sidebar({ userName }: { userName?: string }) {
         .sidebar-logo {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 12px;
           padding: 16px 16px;
           border-bottom: 1px solid var(--border);
           min-height: 65px;
         }
-        .sidebar-logo-wordmark {
-          height: 28px;
-          width: auto;
-          object-fit: contain;
+        .sidebar-logo-icon {
+          flex-shrink: 0;
+          width: 36px;
+          height: 36px;
+        }
+        .sidebar-logo-text {
+          font-size: 1.25rem;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1;
+        }
+        .sidebar-logo-claw {
+          color: var(--text);
+        }
+        .sidebar-logo-kb {
+          color: var(--accent);
         }
 
         /* ═══ Nav ═══ */
