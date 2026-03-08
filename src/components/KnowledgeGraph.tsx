@@ -78,6 +78,13 @@ export default function KnowledgeGraph() {
   const [activeTypes, setActiveTypes] = useState<Set<string>>(new Set(TYPE_OPTIONS));
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  // Touch state
+  const touchRef = useRef<{
+    lastPinchDist: number | null;
+    startX: number;
+    startY: number;
+  }>({ lastPinchDist: null, startX: 0, startY: 0 });
+
   // Transform (zoom/pan)
   const transformRef = useRef({ x: 0, y: 0, k: 1 });
   const dragRef = useRef<{
@@ -168,7 +175,7 @@ export default function KnowledgeGraph() {
 
     sim.on("tick", () => {
       cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => drawCanvas());
+      rafRef.current = requestAnimationFrame(() => drawCanvasRef.current());
     });
 
     return () => {
@@ -193,7 +200,7 @@ export default function KnowledgeGraph() {
       canvas.style.height = `${rect.height}px`;
       const ctx = canvas.getContext("2d");
       if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawCanvas();
+      drawCanvasRef.current();
     };
     resize();
     window.addEventListener("resize", resize);
@@ -202,6 +209,8 @@ export default function KnowledgeGraph() {
   }, []);
 
   /* ═══ Canvas Draw ═══ */
+
+  const drawCanvasRef = useRef<() => void>(() => {});
 
   const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -235,19 +244,17 @@ export default function KnowledgeGraph() {
       const tgt = e.target as GraphNode;
       if (s.x == null || s.y == null || tgt.x == null || tgt.y == null) return;
 
-      let alpha = 0.25;
       let lineWidth = 0.5 + e.similarity * 2;
-      let color = "var(--border)";
+      let color = "rgba(113, 113, 122, 0.25)";
 
       if (sel) {
         const isConnected =
           s.id === sel.id || tgt.id === sel.id;
         if (isConnected) {
-          alpha = 0.8;
-          color = "#C9A96E"; // accent
+          color = "rgba(201, 169, 110, 0.8)";
           lineWidth = 1 + e.similarity * 3;
         } else {
-          alpha = 0.06;
+          color = "rgba(113, 113, 122, 0.06)";
         }
       }
 
@@ -255,7 +262,7 @@ export default function KnowledgeGraph() {
       ctx.moveTo(s.x, s.y);
       ctx.lineTo(tgt.x, tgt.y);
       ctx.strokeStyle = color;
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = 1;
       ctx.lineWidth = lineWidth / t.k;
       ctx.stroke();
     });
@@ -304,6 +311,9 @@ export default function KnowledgeGraph() {
     ctx.restore();
   }, [nodes, edges, selectedNode, hoveredNode]);
 
+  // Keep ref in sync so simulation tick always uses latest drawCanvas
+  drawCanvasRef.current = drawCanvas;
+
   // Redraw when selection or hover changes
   useEffect(() => {
     drawCanvas();
@@ -320,16 +330,17 @@ export default function KnowledgeGraph() {
   }, []);
 
   const findNodeAt = useCallback(
-    (sx: number, sy: number): GraphNode | null => {
+    (sx: number, sy: number, touch = false): GraphNode | null => {
       const { x, y } = screenToWorld(sx, sy);
       const t = transformRef.current;
+      const hitScale = touch ? 2.5 : 1.5;
       for (let i = nodes.length - 1; i >= 0; i--) {
         const n = nodes[i];
         if (n.x == null || n.y == null) continue;
         const r = nodeRadius(n.degree) / t.k;
         const dx = n.x - x;
         const dy = n.y - y;
-        if (dx * dx + dy * dy <= r * r * 1.5) return n;
+        if (dx * dx + dy * dy <= r * r * hitScale) return n;
       }
       return null;
     },
@@ -456,6 +467,130 @@ export default function KnowledgeGraph() {
     [drawCanvas]
   );
 
+  /* ═══ Touch Events ═══ */
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const sx = touch.clientX - rect.left;
+        const sy = touch.clientY - rect.top;
+        touchRef.current.startX = sx;
+        touchRef.current.startY = sy;
+        touchRef.current.lastPinchDist = null;
+
+        const node = findNodeAt(sx, sy, true);
+        if (node) {
+          dragRef.current = { node, panning: false, startX: sx, startY: sy, startTx: 0, startTy: 0 };
+          node.fx = node.x;
+          node.fy = node.y;
+          simRef.current?.alphaTarget(0.3).restart();
+        } else {
+          const t = transformRef.current;
+          dragRef.current = {
+            node: null,
+            panning: true,
+            startX: touch.clientX,
+            startY: touch.clientY,
+            startTx: t.x,
+            startTy: t.y,
+          };
+        }
+      } else if (e.touches.length === 2) {
+        // Start pinch
+        dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        touchRef.current.lastPinchDist = Math.sqrt(dx * dx + dy * dy);
+      }
+    },
+    [findNodeAt]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const sx = touch.clientX - rect.left;
+        const sy = touch.clientY - rect.top;
+        const drag = dragRef.current;
+
+        if (drag.node) {
+          const { x, y } = screenToWorld(sx, sy);
+          drag.node.fx = x;
+          drag.node.fy = y;
+        } else if (drag.panning) {
+          const dx = touch.clientX - drag.startX;
+          const dy = touch.clientY - drag.startY;
+          transformRef.current.x = drag.startTx + dx;
+          transformRef.current.y = drag.startTy + dy;
+          drawCanvas();
+        }
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const last = touchRef.current.lastPinchDist;
+
+        if (last != null) {
+          const t = transformRef.current;
+          const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+          const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+          const factor = dist / last;
+          const newK = Math.max(0.1, Math.min(5, t.k * factor));
+
+          t.x = midX - ((midX - t.x) / t.k) * newK;
+          t.y = midY - ((midY - t.y) / t.k) * newK;
+          t.k = newK;
+          drawCanvas();
+        }
+        touchRef.current.lastPinchDist = dist;
+      }
+    },
+    [screenToWorld, drawCanvas]
+  );
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      const drag = dragRef.current;
+
+      if (e.touches.length === 0) {
+        if (drag.node) {
+          const dx = (e.changedTouches[0]?.clientX ?? 0) - (canvasRef.current?.getBoundingClientRect().left ?? 0) - drag.startX;
+          const dy = (e.changedTouches[0]?.clientY ?? 0) - (canvasRef.current?.getBoundingClientRect().top ?? 0) - drag.startY;
+          if (dx * dx + dy * dy < 100) {
+            // Tap on node
+            setSelectedNode((prev) => (prev?.id === drag.node!.id ? null : drag.node));
+          }
+          drag.node.fx = null;
+          drag.node.fy = null;
+          simRef.current?.alphaTarget(0);
+        } else if (drag.panning) {
+          const touch = e.changedTouches[0];
+          if (touch) {
+            const dx = touch.clientX - drag.startX;
+            const dy = touch.clientY - drag.startY;
+            if (dx * dx + dy * dy < 100) {
+              setSelectedNode(null);
+            }
+          }
+        }
+        dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+        touchRef.current.lastPinchDist = null;
+      }
+    },
+    []
+  );
+
   /* ═══ Filter Handlers ═══ */
 
   const toggleType = (type: string) => {
@@ -488,6 +623,9 @@ export default function KnowledgeGraph() {
           dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
         }}
         onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       />
 
       {/* Loading */}
@@ -653,6 +791,7 @@ export default function KnowledgeGraph() {
           width: 100%;
           height: 100%;
           cursor: grab;
+          touch-action: none;
         }
         .kg-canvas:active {
           cursor: grabbing;
