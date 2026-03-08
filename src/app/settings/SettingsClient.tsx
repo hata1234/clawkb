@@ -38,7 +38,7 @@ const btnPrimary: React.CSSProperties = {
   gap: 6,
   padding: "8px 16px",
   background: "var(--accent)",
-  color: "#0C0C0E",
+  color: "var(--accent-contrast)",
   fontSize: "0.8rem",
   fontWeight: 600,
   borderRadius: "var(--radius-md)",
@@ -598,7 +598,7 @@ function StorageTab({ settings, onToast }: {
               <div style={{
                 position: "absolute", top: 2, left: cfg.useSSL ? 18 : 2,
                 width: 16, height: 16, borderRadius: "50%",
-                background: "#fff", transition: "left 0.15s",
+                background: "var(--text)", transition: "left 0.15s",
               }} />
             </div>
             {cfg.useSSL ? "HTTPS enabled" : "HTTP (no SSL)"}

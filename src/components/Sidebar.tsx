@@ -15,8 +15,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useTheme } from "./ThemeProvider";
 
 const navItems = [
   { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
@@ -30,6 +33,7 @@ export default function Sidebar({ userName }: { userName?: string }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -74,14 +78,24 @@ export default function Sidebar({ userName }: { userName?: string }) {
         })}
       </nav>
 
-      {/* Collapse toggle (desktop only) */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="sidebar-collapse-btn"
-        title={collapsed ? "Expand" : "Collapse"}
-      >
-        {collapsed ? <ChevronRight className="sidebar-chevron" /> : <ChevronLeft className="sidebar-chevron" />}
-      </button>
+      {/* Theme toggle + Collapse toggle */}
+      <div className="sidebar-bottom-actions">
+        <button
+          onClick={toggleTheme}
+          className="sidebar-theme-btn"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? <Sun className="sidebar-theme-icon" /> : <Moon className="sidebar-theme-icon" />}
+          <span className="sidebar-link-label">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+        </button>
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="sidebar-collapse-btn"
+          title={collapsed ? "Expand" : "Collapse"}
+        >
+          {collapsed ? <ChevronRight className="sidebar-chevron" /> : <ChevronLeft className="sidebar-chevron" />}
+        </button>
+      </div>
 
       {/* User section */}
       <div className="sidebar-user">
@@ -252,12 +266,41 @@ export default function Sidebar({ userName }: { userName?: string }) {
           flex-shrink: 0;
         }
 
+        /* ═══ Bottom Actions ═══ */
+        .sidebar-bottom-actions {
+          padding: 0 8px 4px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        /* ═══ Theme Toggle ═══ */
+        .sidebar-theme-btn {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--text-secondary);
+          background: none;
+          border: none;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          width: 100%;
+        }
+        .sidebar-theme-btn:hover {
+          color: var(--text);
+          background: var(--surface-hover);
+        }
+        .sidebar-theme-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
         /* ═══ Collapse Button ═══ */
         .sidebar-collapse-btn {
           display: none;
           align-items: center;
           justify-content: center;
-          margin: 0 12px 8px;
           padding: 8px;
           border-radius: 8px;
           background: none;
