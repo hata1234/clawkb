@@ -189,7 +189,7 @@ export default async function DashboardPage() {
           align-items: center;
           gap: 8px;
           background: var(--accent);
-          color: #0C0C0E;
+          color: var(--accent-contrast);
           border-radius: var(--radius-md);
           padding: 10px 16px;
           font-size: 0.875rem;
