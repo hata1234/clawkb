@@ -8,13 +8,14 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
 ## Features
 
-- 📝 **Structured entries** — Classify as opportunity, report, reference, or project note
-- 🔍 **Hybrid search** — Vector (pgvector + bge-m3), full-text (tsvector), and fuzzy (ILIKE) in a cascading pipeline
+- 📝 **Customizable entry types** — Default types included (opportunity, report, reference, project note); add, rename, or remove types via Settings
+- 🔍 **Hybrid search** — Vector (pgvector), full-text (tsvector), and fuzzy (ILIKE) in a cascading pipeline
 - 🏷️ **Tags & status tracking** — Filter, organize, and track entry lifecycle
 - 🤖 **Agent-friendly API** — Bearer-token authenticated REST endpoints for cron jobs and AI agents to write/query entries
-- 🖼️ **Image attachments** — Upload and attach images to entries via MinIO-compatible object storage
+- 🖼️ **Image attachments** — Upload and attach images via any S3-compatible object storage (MinIO, AWS S3, Cloudflare R2, etc.)
 - 📊 **Dashboard** — Stats overview with charts and recent entries
 - 📤 **Export** — CSV and JSON export from the UI or API
+- ⚙️ **Settings** — Configure entry types, embedding provider, object storage, and more from the web UI
 - 🔒 **Auth** — Session-based login (NextAuth.js credentials provider)
 - 🌙 **Dark theme** — Editorial dark UI, responsive on mobile and desktop
 
@@ -23,11 +24,11 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 | Layer | Choice |
 |-------|--------|
 | Framework | Next.js 16 (App Router) |
-| Database | PostgreSQL 16 + pgvector |
+| Database | PostgreSQL 17+ with [pgvector](https://github.com/pgvector/pgvector) |
 | ORM | Prisma |
-| Embedding | Ollama bge-m3 (1024d) |
+| Embedding | Configurable — Ollama (bge-m3, nomic-embed, etc.), OpenAI, or any compatible endpoint |
 | Auth | NextAuth.js (Credentials) |
-| Object Storage | MinIO (S3-compatible) |
+| Object Storage | Any S3-compatible (MinIO, AWS S3, Cloudflare R2, etc.) |
 | Styling | Tailwind CSS + CSS variables |
 | Process Manager | PM2 |
 
@@ -36,8 +37,8 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 ### Prerequisites
 
 - Node.js 20+
-- PostgreSQL 16 with [pgvector](https://github.com/pgvector/pgvector) extension
-- Ollama running `bge-m3` model (or any embedding endpoint)
+- PostgreSQL 17+ with [pgvector](https://github.com/pgvector/pgvector) extension
+- An embedding provider (Ollama, OpenAI, or compatible endpoint)
 
 ### Install
 
@@ -70,10 +71,26 @@ npm start
 | `NEXTAUTH_SECRET` | Session encryption secret | (random string) |
 | `NEXTAUTH_URL` | Public URL | `https://kb.example.com` |
 | `API_TOKEN` | Bearer token for agent API access | (random string) |
-| `OLLAMA_URL` | Ollama embedding endpoint | `http://localhost:11434` |
-| `MINIO_ENDPOINT` | MinIO/S3 endpoint | `minio.example.com` |
-| `MINIO_ACCESS_KEY` | MinIO access key | |
-| `MINIO_SECRET_KEY` | MinIO secret key | |
+| **Embedding** | | |
+| `EMBEDDING_PROVIDER` | Provider type | `ollama` or `openai` |
+| `EMBEDDING_URL` | Embedding API endpoint | `http://localhost:11434` |
+| `EMBEDDING_MODEL` | Model name | `bge-m3` or `text-embedding-3-small` |
+| `EMBEDDING_API_KEY` | API key (required for OpenAI) | `sk-...` |
+| **Object Storage (S3-compatible)** | | |
+| `S3_ENDPOINT` | S3-compatible endpoint | `minio.example.com` or `s3.amazonaws.com` |
+| `S3_ACCESS_KEY` | Access key | |
+| `S3_SECRET_KEY` | Secret key | |
+| `S3_BUCKET` | Bucket name | `clawkb` |
+| `S3_PUBLIC_URL` | Public URL prefix for uploaded files | `https://minio.example.com/clawkb` |
+| `S3_REGION` | Region (required for AWS S3) | `us-east-1` |
+
+## Settings
+
+ClawKB includes a built-in Settings page (`/settings`) where you can configure:
+
+- **Entry Types** — Add, rename, or remove entry type categories
+- **Embedding** — Switch between Ollama, OpenAI, or other providers; change model
+- **Object Storage** — Configure S3-compatible storage connection
 
 ## API
 
@@ -91,6 +108,8 @@ All API endpoints are under `/api/`. Agent/cron access requires `Authorization: 
 | `GET` | `/api/tags` | List all tags |
 | `GET` | `/api/export` | Export entries as CSV or JSON |
 | `POST` | `/api/upload` | Upload image attachment |
+| `GET` | `/api/settings` | Get current settings |
+| `PATCH` | `/api/settings` | Update settings |
 
 ### Example: Create an Entry
 
@@ -123,8 +142,8 @@ curl -X POST http://localhost:3500/api/search \
 ```
 Browser/Mobile → Reverse Proxy (Caddy/Nginx) → Next.js :3500 → PostgreSQL + pgvector
                                                     ↑                    ↑
-                                              AI Agent / Cron      Ollama bge-m3
-                                              (REST API)           (embedding)
+                                              AI Agent / Cron    Embedding Provider
+                                              (REST API)         (Ollama / OpenAI)
 ```
 
 ## Roadmap

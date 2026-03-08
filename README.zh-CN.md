@@ -8,13 +8,14 @@ ClawKB 让人类和 AI Agent 共同创建、搜索和管理知识条目，提供
 
 ## 功能特性
 
-- 📝 **结构化条目** — 分类为机会、报告、参考资料或项目笔记
-- 🔍 **混合搜索** — 向量搜索（pgvector + bge-m3）、全文搜索（tsvector）、模糊匹配（ILIKE）三级级联
+- 📝 **可自定义条目类型** — 内置默认类型（机会、报告、参考资料、项目笔记）；可在设置中添加、重命名或删除类型
+- 🔍 **混合搜索** — 向量搜索（pgvector）、全文搜索（tsvector）、模糊匹配（ILIKE）三级级联
 - 🏷️ **标签与状态管理** — 筛选、组织、追踪条目生命周期
 - 🤖 **Agent 友好的 API** — Bearer Token 认证的 REST 端点，供定时任务和 AI Agent 写入/查询
-- 🖼️ **图片附件** — 通过兼容 MinIO/S3 的对象存储上传和关联图片
+- 🖼️ **图片附件** — 通过任意 S3 兼容对象存储（MinIO、AWS S3、Cloudflare R2 等）上传和关联图片
 - 📊 **仪表盘** — 统计概览，含图表和最新条目
 - 📤 **导出** — 支持 CSV 和 JSON 格式导出
+- ⚙️ **设置** — 在 Web 界面中配置条目类型、Embedding 提供商、对象存储等
 - 🔒 **认证** — 基于会话的登录（NextAuth.js 凭证提供者）
 - 🌙 **暗色主题** — 编辑器风格暗色 UI，手机和桌面自适应
 
@@ -23,11 +24,11 @@ ClawKB 让人类和 AI Agent 共同创建、搜索和管理知识条目，提供
 | 层级 | 选型 |
 |------|------|
 | 框架 | Next.js 16 (App Router) |
-| 数据库 | PostgreSQL 16 + pgvector |
+| 数据库 | PostgreSQL 17+ + [pgvector](https://github.com/pgvector/pgvector) |
 | ORM | Prisma |
-| Embedding | Ollama bge-m3 (1024维) |
+| Embedding | 可配置 — Ollama（bge-m3、nomic-embed 等）、OpenAI 或任意兼容端点 |
 | 认证 | NextAuth.js (Credentials) |
-| 对象存储 | MinIO (S3 兼容) |
+| 对象存储 | 任意 S3 兼容（MinIO、AWS S3、Cloudflare R2 等） |
 | 样式 | Tailwind CSS + CSS 变量 |
 | 进程管理 | PM2 |
 
@@ -36,8 +37,8 @@ ClawKB 让人类和 AI Agent 共同创建、搜索和管理知识条目，提供
 ### 前置条件
 
 - Node.js 20+
-- PostgreSQL 16 并安装 [pgvector](https://github.com/pgvector/pgvector) 扩展
-- Ollama 运行 `bge-m3` 模型（或任意 embedding 端点）
+- PostgreSQL 17+ 并安装 [pgvector](https://github.com/pgvector/pgvector) 扩展
+- Embedding 提供商（Ollama、OpenAI 或兼容端点）
 
 ### 安装
 
@@ -70,10 +71,26 @@ npm start
 | `NEXTAUTH_SECRET` | 会话加密密钥 | (随机字符串) |
 | `NEXTAUTH_URL` | 公开访问 URL | `https://kb.example.com` |
 | `API_TOKEN` | Agent API 的 Bearer Token | (随机字符串) |
-| `OLLAMA_URL` | Ollama embedding 端点 | `http://localhost:11434` |
-| `MINIO_ENDPOINT` | MinIO/S3 端点 | `minio.example.com` |
-| `MINIO_ACCESS_KEY` | MinIO 访问密钥 | |
-| `MINIO_SECRET_KEY` | MinIO 私密密钥 | |
+| **Embedding** | | |
+| `EMBEDDING_PROVIDER` | 提供商类型 | `ollama` 或 `openai` |
+| `EMBEDDING_URL` | Embedding API 端点 | `http://localhost:11434` |
+| `EMBEDDING_MODEL` | 模型名称 | `bge-m3` 或 `text-embedding-3-small` |
+| `EMBEDDING_API_KEY` | API 密钥（OpenAI 必填） | `sk-...` |
+| **对象存储（S3 兼容）** | | |
+| `S3_ENDPOINT` | S3 兼容端点 | `minio.example.com` 或 `s3.amazonaws.com` |
+| `S3_ACCESS_KEY` | 访问密钥 | |
+| `S3_SECRET_KEY` | 私密密钥 | |
+| `S3_BUCKET` | 存储桶名称 | `clawkb` |
+| `S3_PUBLIC_URL` | 上传文件的公开 URL 前缀 | `https://minio.example.com/clawkb` |
+| `S3_REGION` | 区域（AWS S3 必填） | `us-east-1` |
+
+## 设置
+
+ClawKB 内置设置页面（`/settings`），可配置：
+
+- **条目类型** — 添加、重命名或删除条目分类
+- **Embedding** — 切换 Ollama、OpenAI 或其他提供商；更改模型
+- **对象存储** — 配置 S3 兼容存储连接
 
 ## API
 
@@ -91,6 +108,8 @@ npm start
 | `GET` | `/api/tags` | 列出所有标签 |
 | `GET` | `/api/export` | 导出条目（CSV 或 JSON） |
 | `POST` | `/api/upload` | 上传图片附件 |
+| `GET` | `/api/settings` | 获取当前设置 |
+| `PATCH` | `/api/settings` | 更新设置 |
 
 ### 示例：创建条目
 
@@ -123,8 +142,8 @@ curl -X POST http://localhost:3500/api/search \
 ```
 浏览器/手机 → 反向代理 (Caddy/Nginx) → Next.js :3500 → PostgreSQL + pgvector
                                             ↑                    ↑
-                                      AI Agent / 定时任务    Ollama bge-m3
-                                      (REST API)           (向量嵌入)
+                                      AI Agent / 定时任务    Embedding 提供商
+                                      (REST API)           (Ollama / OpenAI)
 ```
 
 ## 路线图
