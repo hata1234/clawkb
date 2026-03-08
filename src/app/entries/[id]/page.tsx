@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import RelatedEntries from "@/components/RelatedEntries";
 import StatusBadge from "@/components/StatusBadge";
 import TypeBadge from "@/components/TypeBadge";
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
@@ -296,6 +297,9 @@ export default function EntryDetailPage() {
           )}
         </div>
       )}
+
+      {/* Related Entries */}
+      {!editing && entry.id && <RelatedEntries entryId={entry.id} />}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
