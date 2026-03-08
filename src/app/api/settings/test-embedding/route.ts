@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
 
   try {
     if (provider === "ollama") {
-      const url = ollamaUrl ?? "http://192.168.0.85:11434";
+      const url = ollamaUrl ?? "http://localhost:11434";
       const model = ollamaModel ?? "bge-m3";
       const res = await fetch(`${url}/api/embed`, {
         method: "POST",
