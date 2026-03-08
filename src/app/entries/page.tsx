@@ -1,0 +1,242 @@
+"use client";
+
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import EntryCard from "@/components/EntryCard";
+import Pagination from "@/components/Pagination";
+import Link from "next/link";
+import { Search, Filter, PlusCircle, FileText, X, Download } from "lucide-react";
+import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
+
+interface Entry {
+  id: number;
+  type: string;
+  source: string;
+  title: string;
+  summary?: string | null;
+  status: string;
+  createdAt: string;
+  tags: { id: number; name: string }[];
+}
+
+interface ApiResponse {
+  entries: Entry[];
+  total: number;
+  totalPages: number;
+}
+
+const selectFilterStyle: React.CSSProperties = {
+  background: "var(--background)",
+  border: "1px solid var(--border)",
+  borderRadius: 8,
+  padding: "8px 12px",
+  fontSize: "0.875rem",
+  color: "var(--text)",
+  outline: "none",
+  width: "100%",
+};
+
+function EntriesPageInner() {
+  const searchParams = useSearchParams();
+  const [entries, setEntries] = useState<Entry[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState(searchParams.get("type") || "");
+  const [status, setStatus] = useState("");
+  const [source, setSource] = useState("");
+  const [tag, setTag] = useState(searchParams.get("tag") || "");
+  const [sort, setSort] = useState("newest");
+  const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([]);
+
+  // Load available tags for filter dropdown
+  useEffect(() => {
+    fetch("/api/tags").then((r) => r.json()).then(setAllTags).catch(() => {});
+  }, []);
+
+  const fetchEntries = useCallback(async () => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (type) params.set("type", type);
+    if (status) params.set("status", status);
+    if (source) params.set("source", source);
+    if (tag) params.set("tag", tag);
+    if (sort === "oldest") params.set("sort", "oldest");
+    params.set("page", String(page));
+    params.set("limit", "20");
+    const res = await fetch(`/api/entries?${params}`);
+    const data: ApiResponse = await res.json();
+    setEntries(data.entries);
+    setTotal(data.total);
+    setTotalPages(data.totalPages);
+    setLoading(false);
+  }, [search, type, status, source, tag, sort, page]);
+
+  useEffect(() => {
+    const t = setTimeout(fetchEntries, 300);
+    return () => clearTimeout(t);
+  }, [fetchEntries]);
+
+  const clearFilters = () => {
+    setSearch(""); setType(""); setStatus(""); setSource(""); setTag(""); setSort("newest"); setPage(1);
+  };
+
+  const hasFilters = search || type || status || source || tag || sort !== "newest";
+
+  return (
+    <div>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Library</p>
+          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>Entries</h1>
+          <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: 2 }}>{total} total</p>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => { const params = new URLSearchParams(); if (type) params.set("type", type); if (status) params.set("status", status); if (source) params.set("source", source); if (tag) params.set("tag", tag); params.set("format", "csv"); window.open("/api/export?" + params.toString()); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface-hover)", color: "var(--text-secondary)", borderRadius: "var(--radius-md)", padding: "10px 12px", fontSize: "0.8rem", fontWeight: 500, border: "1px solid var(--border)", cursor: "pointer", whiteSpace: "nowrap" }}><Download style={{ width: 14, height: 14 }} />CSV</button>
+          <button onClick={() => { const params = new URLSearchParams(); if (type) params.set("type", type); if (status) params.set("status", status); if (source) params.set("source", source); if (tag) params.set("tag", tag); params.set("format", "json"); window.open("/api/export?" + params.toString()); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface-hover)", color: "var(--text-secondary)", borderRadius: "var(--radius-md)", padding: "10px 12px", fontSize: "0.8rem", fontWeight: 500, border: "1px solid var(--border)", cursor: "pointer", whiteSpace: "nowrap" }}><Download style={{ width: 14, height: 14 }} />JSON</button>
+        </div>
+        <Link href="/entries/new" style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          background: "var(--accent)", color: "#0C0C0E",
+          borderRadius: "var(--radius-md)", padding: "10px 16px",
+          fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap",
+        }}>
+          <PlusCircle style={{ width: 16, height: 16 }} />
+          New
+        </Link>
+      </div>
+
+      {/* Search + Filter bar */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        <div style={{ position: "relative", flex: 1 }}>
+          <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "var(--text-muted)", pointerEvents: "none" }} />
+          <input
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Search entries..."
+            style={{ width: "100%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", paddingLeft: 36, paddingRight: 16, paddingTop: 10, paddingBottom: 10, fontSize: "0.875rem", color: "var(--text)", outline: "none", boxSizing: "border-box" }}
+          />
+        </div>
+        <button onClick={() => setShowFilters(!showFilters)} style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "10px 14px", borderRadius: "var(--radius-md)",
+          border: hasFilters ? "1px solid var(--accent)" : "1px solid var(--border)",
+          background: hasFilters ? "var(--accent-muted)" : "var(--surface)",
+          color: hasFilters ? "var(--accent)" : "var(--text-secondary)",
+          fontSize: "0.875rem", fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap",
+        }}>
+          <Filter style={{ width: 16, height: 16 }} />
+        </button>
+        {hasFilters && (
+          <button onClick={clearFilters} style={{
+            display: "flex", alignItems: "center", gap: 6,
+            padding: "10px 14px", borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border)", background: "var(--surface)",
+            color: "var(--text-secondary)", fontSize: "0.875rem", cursor: "pointer",
+          }}>
+            <X style={{ width: 14, height: 14 }} />
+          </button>
+        )}
+      </div>
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="entries-filter-grid" style={{
+          marginBottom: 16, padding: 16,
+          background: "var(--surface)", border: "1px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+        }}>
+          <select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }} style={selectFilterStyle}>
+            <option value="">All Types</option>
+            {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
+          </select>
+          <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} style={selectFilterStyle}>
+            <option value="">All Statuses</option>
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+          </select>
+          <select value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }} style={selectFilterStyle}>
+            <option value="">All Sources</option>
+            {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select value={tag} onChange={(e) => { setTag(e.target.value); setPage(1); }} style={selectFilterStyle}>
+            <option value="">All Tags</option>
+            {allTags.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
+          </select>
+          <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} style={selectFilterStyle}>
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+          </select>
+        </div>
+      )}
+
+      {/* Active tag badge */}
+      {tag && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Filtered by tag:</span>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "0.8rem", background: "var(--accent-muted)", color: "var(--accent)", padding: "4px 12px", borderRadius: 999 }}>
+            #{tag}
+            <button onClick={() => { setTag(""); setPage(1); }} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", padding: 0, display: "flex" }}>
+              <X style={{ width: 12, height: 12 }} />
+            </button>
+          </span>
+        </div>
+      )}
+
+      {/* Entries */}
+      {loading ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="skeleton" style={{
+              background: "var(--surface)", border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)", padding: 16, height: 80,
+            }} />
+          ))}
+        </div>
+      ) : entries.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
+          <FileText style={{ width: 40, height: 40, margin: "0 auto 12px", opacity: 0.3 }} />
+          <p style={{ fontSize: "0.875rem" }}>No entries found.</p>
+          {hasFilters && (
+            <button onClick={clearFilters} style={{ color: "var(--accent)", fontSize: "0.875rem", marginTop: 8, background: "none", border: "none", cursor: "pointer" }}>
+              Clear filters
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {entries.map((entry) => <EntryCard key={entry.id} entry={entry} />)}
+        </div>
+      )}
+
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+
+      <style>{`
+        .entries-filter-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        @media (min-width: 640px) {
+          .entries-filter-grid {
+            grid-template-columns: repeat(5, 1fr);
+          }
+        }
+        select { color-scheme: dark; }
+        input:focus { border-color: var(--accent) !important; }
+      `}</style>
+    </div>
+  );
+}
+
+export default function EntriesPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-center" style={{color:"var(--text-muted)"}}>載入中...</div>}>
+      <EntriesPageInner />
+    </Suspense>
+  );
+}
