@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
 
 export const metadata = {
@@ -5,5 +6,9 @@ export const metadata = {
 };
 
 export default function GraphPage() {
-  return <KnowledgeGraph />;
+  return (
+    <Suspense>
+      <KnowledgeGraph />
+    </Suspense>
+  );
 }

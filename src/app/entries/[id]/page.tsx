@@ -11,7 +11,7 @@ import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import {
   ArrowLeft, Edit2, Trash2, ExternalLink, Tag, Clock, Globe,
-  Check, X, Loader2
+  Check, X, Loader2, Network
 } from "lucide-react";
 
 interface Entry {
@@ -134,6 +134,9 @@ export default function EntryDetailPage() {
         <div style={{ display: "flex", gap: 8 }}>
           {!editing ? (
             <>
+              <Link href={`/graph?focus=${entry.id}`} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+                <Network style={{ width: 14, height: 14 }} /> Graph
+              </Link>
               <button onClick={startEdit} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                 <Edit2 style={{ width: 14, height: 14 }} /> Edit
               </button>
