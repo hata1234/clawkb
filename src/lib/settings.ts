@@ -1,0 +1,103 @@
+import { prisma } from "./prisma";
+
+// ─── Default values (mirrors the old hardcoded constants) ─────────────────
+export const DEFAULT_ENTRY_TYPES = [
+  { id: "opportunity", label: "Opportunity", icon: "💡" },
+  { id: "report",      label: "Report",      icon: "📊" },
+  { id: "reference",   label: "Reference",   icon: "📚" },
+  { id: "project_note",label: "Project Note",icon: "📝" },
+];
+
+export const DEFAULT_SOURCE_OPTIONS = [
+  "nightly-recon",
+  "stock-daily",
+  "reddit",
+  "web",
+  "manual",
+];
+
+export const DEFAULT_STATUS_OPTIONS = [
+  { id: "new",         label: "New" },
+  { id: "interested",  label: "Interested" },
+  { id: "in_progress", label: "In Progress" },
+  { id: "done",        label: "Done" },
+  { id: "dismissed",   label: "Dismissed" },
+];
+
+export const DEFAULT_EMBEDDING = {
+  provider: "ollama" as "ollama" | "openai" | "disabled",
+  ollamaUrl: process.env.OLLAMA_URL ?? "http://192.168.0.85:11434",
+  ollamaModel: "bge-m3",
+  openaiApiKey: "",
+  openaiModel: "text-embedding-3-small",
+};
+
+export const DEFAULT_STORAGE = {
+  endpoint:  process.env.S3_ENDPOINT  ?? process.env.MINIO_ENDPOINT  ?? "192.168.1.62",
+  port:      parseInt(process.env.S3_PORT      ?? process.env.MINIO_PORT      ?? "9000"),
+  useSSL:    (process.env.S3_USE_SSL ?? "false") === "true",
+  accessKey: process.env.S3_ACCESS_KEY ?? process.env.MINIO_ACCESS_KEY ?? "minioadmin",
+  secretKey: process.env.S3_SECRET_KEY ?? process.env.MINIO_SECRET_KEY ?? "minioadmin",
+  bucket:    process.env.S3_BUCKET    ?? process.env.MINIO_BUCKET    ?? "knowledge-hub",
+  publicUrl: process.env.S3_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL ?? "https://minio.cellar.men/knowledge-hub",
+};
+
+// ─── Types ────────────────────────────────────────────────────────────────
+export interface EntryTypeOption { id: string; label: string; icon: string }
+export interface StatusOption    { id: string; label: string }
+export interface EmbeddingConfig {
+  provider: "ollama" | "openai" | "disabled";
+  ollamaUrl?: string;
+  ollamaModel?: string;
+  openaiApiKey?: string;
+  openaiModel?: string;
+}
+export interface StorageConfig {
+  endpoint: string;
+  port: number;
+  useSSL: boolean;
+  accessKey: string;
+  secretKey: string;
+  bucket: string;
+  publicUrl: string;
+}
+export interface AllSettings {
+  entry_types:    EntryTypeOption[];
+  source_options: string[];
+  status_options: StatusOption[];
+  embedding:      EmbeddingConfig;
+  storage:        StorageConfig;
+}
+
+// ─── Server-side helpers ──────────────────────────────────────────────────
+export async function getSetting<T>(key: string, defaultValue: T): Promise<T> {
+  try {
+    const row = await prisma.setting.findUnique({ where: { key } });
+    if (!row) return defaultValue;
+    return row.value as T;
+  } catch {
+    return defaultValue;
+  }
+}
+
+export async function setSetting(key: string, value: unknown): Promise<void> {
+  await prisma.setting.upsert({
+    where: { key },
+    update: { value: value as never },
+    create: { key, value: value as never },
+  });
+}
+
+export async function getAllSettings(): Promise<AllSettings> {
+  const rows = await prisma.setting.findMany();
+  const map: Record<string, unknown> = {};
+  for (const r of rows) map[r.key] = r.value;
+
+  return {
+    entry_types:    (map.entry_types    as EntryTypeOption[]) ?? DEFAULT_ENTRY_TYPES,
+    source_options: (map.source_options as string[])          ?? DEFAULT_SOURCE_OPTIONS,
+    status_options: (map.status_options as StatusOption[])    ?? DEFAULT_STATUS_OPTIONS,
+    embedding:      (map.embedding      as EmbeddingConfig)   ?? DEFAULT_EMBEDDING,
+    storage:        (map.storage        as StorageConfig)      ?? DEFAULT_STORAGE,
+  };
+}

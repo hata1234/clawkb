@@ -1,14 +1,18 @@
 import { pool } from "./prisma";
+import { getSetting, DEFAULT_EMBEDDING, type EmbeddingConfig } from "./settings";
 
-const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://192.168.0.85:11434";
-const EMBED_MODEL = "bge-m3";
+// ─── Embedding generation ──────────────────────────────────────────────────
 
-export async function generateEmbedding(text: string): Promise<number[] | null> {
+async function getEmbeddingConfig(): Promise<EmbeddingConfig> {
+  return getSetting<EmbeddingConfig>("embedding", DEFAULT_EMBEDDING);
+}
+
+async function generateEmbeddingOllama(text: string, ollamaUrl: string, model: string): Promise<number[] | null> {
   try {
-    const res = await fetch(`${OLLAMA_URL}/api/embed`, {
+    const res = await fetch(`${ollamaUrl}/api/embed`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: EMBED_MODEL, input: [text] }),
+      body: JSON.stringify({ model, input: [text] }),
     });
     if (!res.ok) {
       console.error(`Ollama embed error: ${res.status} ${res.statusText}`);
@@ -20,6 +24,46 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
     console.error("Ollama embed failed:", err);
     return null;
   }
+}
+
+async function generateEmbeddingOpenAI(text: string, apiKey: string, model: string): Promise<number[] | null> {
+  try {
+    const res = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ model, input: text }),
+    });
+    if (!res.ok) {
+      console.error(`OpenAI embed error: ${res.status}`);
+      return null;
+    }
+    const data = await res.json();
+    return data.data?.[0]?.embedding ?? null;
+  } catch (err) {
+    console.error("OpenAI embed failed:", err);
+    return null;
+  }
+}
+
+export async function generateEmbedding(text: string): Promise<number[] | null> {
+  const config = await getEmbeddingConfig();
+
+  if (config.provider === "disabled") return null;
+
+  if (config.provider === "openai") {
+    const key = config.openaiApiKey ?? "";
+    const model = config.openaiModel ?? "text-embedding-3-small";
+    if (!key) { console.error("OpenAI embedding: no API key configured"); return null; }
+    return generateEmbeddingOpenAI(text, key, model);
+  }
+
+  // default: ollama
+  const url = config.ollamaUrl ?? DEFAULT_EMBEDDING.ollamaUrl;
+  const model = config.ollamaModel ?? DEFAULT_EMBEDDING.ollamaModel;
+  return generateEmbeddingOllama(text, url, model);
 }
 
 export function buildEmbeddingInput(entry: { title: string; summary?: string | null; content?: string | null }): string {

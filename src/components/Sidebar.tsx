@@ -9,6 +9,7 @@ import {
   FileText,
   PlusCircle,
   Tag,
+  Settings,
   LogOut,
   Menu,
   X,
@@ -18,10 +19,11 @@ import {
 import { signOut } from "next-auth/react";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/entries", label: "Entries", icon: FileText },
-  { href: "/tags", label: "Tags", icon: Tag },
-  { href: "/entries/new", label: "New Entry", icon: PlusCircle },
+  { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/entries",     label: "Entries",    icon: FileText },
+  { href: "/tags",        label: "Tags",       icon: Tag },
+  { href: "/entries/new", label: "New Entry",  icon: PlusCircle },
+  { href: "/settings",    label: "Settings",   icon: Settings },
 ];
 
 export default function Sidebar({ userName }: { userName?: string }) {
