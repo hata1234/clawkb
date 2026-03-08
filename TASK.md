@@ -5,7 +5,7 @@ Build a Knowledge Hub web application — a personal knowledge management system
 
 ## Tech Stack (already installed)
 - Next.js 16 (App Router, TypeScript, Tailwind CSS 4)
-- PostgreSQL 17 + pgvector 0.8.2 (running on localhost:5432, database: `knowledge_hub`, user: `hata1234`, no password)
+- PostgreSQL 17 + pgvector 0.8.2 (running on localhost:5432, database: `clawkb`)
 - Prisma ORM
 - NextAuth.js v5 (beta) with Credentials provider
 - bcryptjs for password hashing
@@ -14,7 +14,7 @@ Build a Knowledge Hub web application — a personal knowledge management system
 
 ## Database Connection
 ```
-postgresql://hata1234@localhost:5432/knowledge_hub
+postgresql://user:password@localhost:5432/clawkb
 ```
 
 ## Database Schema (use Prisma)
@@ -47,7 +47,7 @@ Note: Skip the vector/embedding column for now in Prisma schema. We'll add it vi
 - entries: Entry[] (many-to-many)
 
 ### Seed Data
-Create user `boss` with password `Kn0wl3dg3Hub!2026` (bcrypt hash it).
+Create a default admin user (username/password from `SEED_USERNAME`/`SEED_PASSWORD` env vars, bcrypt hash it).
 
 ## Auth Requirements
 - NextAuth.js v5 Credentials provider
@@ -174,9 +174,10 @@ Modern, clean, dark-themed dashboard. Think Linear, Vercel Dashboard, or Raycast
 - Main content area with proper padding
 - Sidebar: dark, icons + labels, active state highlight
 
-## Environment Variables (.env.local)
+## Environment Variables
+See `.env.example` for all available variables.
 ```
-DATABASE_URL="postgresql://hata1234@localhost:5432/knowledge_hub"
+DATABASE_URL="postgresql://user:password@localhost:5432/clawkb"
 NEXTAUTH_SECRET="generate-a-random-32-char-string"
 NEXTAUTH_URL="http://localhost:3500"
 API_TOKEN="generate-a-random-token"
