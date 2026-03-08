@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/logo-clawkb-wordmark.png" alt="ClawKB" width="320" />
+  <img src="./public/logo-clawkb-icon.png" alt="ClawKB" width="120" />
 </p>
 
 # ClawKB
