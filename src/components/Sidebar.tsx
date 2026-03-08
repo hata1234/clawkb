@@ -10,6 +10,7 @@ import {
   PlusCircle,
   Tag,
   Settings,
+  Clock,
   LogOut,
   Menu,
   X,
@@ -24,6 +25,7 @@ import { useTheme } from "./ThemeProvider";
 const navItems = [
   { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
   { href: "/entries",     label: "Entries",    icon: FileText },
+  { href: "/timeline",    label: "Timeline",   icon: Clock },
   { href: "/tags",        label: "Tags",       icon: Tag },
   { href: "/entries/new", label: "New Entry",  icon: PlusCircle },
   { href: "/settings",    label: "Settings",   icon: Settings },
