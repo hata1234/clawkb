@@ -4,7 +4,7 @@ import SessionProvider from "@/components/SessionProvider";
 import AppShell from "@/components/AppShell";
 
 export const metadata: Metadata = {
-  title: "Knowledge Hub",
+  title: "ClawKB",
   description: "Personal knowledge management system",
 };
 

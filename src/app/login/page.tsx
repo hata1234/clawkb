@@ -89,7 +89,7 @@ export default function LoginPage() {
             color: "var(--text)",
             marginBottom: 6,
           }}>
-            Knowledge Hub
+            ClawKB
           </h1>
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Sign in to continue</p>
         </div>

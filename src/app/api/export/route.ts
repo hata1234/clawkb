@@ -41,7 +41,7 @@ export async function GET(request: Request) {
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="knowledge-hub-export-${new Date().toISOString().slice(0,10)}.csv"`,
+        "Content-Disposition": `attachment; filename="clawkb-export-${new Date().toISOString().slice(0,10)}.csv"`,
       },
     });
   }
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
   return new NextResponse(JSON.stringify(entries, null, 2), {
     headers: {
       "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="knowledge-hub-export-${new Date().toISOString().slice(0,10)}.json"`,
+      "Content-Disposition": `attachment; filename="clawkb-export-${new Date().toISOString().slice(0,10)}.json"`,
     },
   });
 }

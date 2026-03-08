@@ -41,7 +41,7 @@ export default function Sidebar({ userName }: { userName?: string }) {
         <div className="sidebar-logo-icon">
           <Sparkles className="sidebar-icon-sparkle" />
         </div>
-        <span className="sidebar-logo-text">Knowledge Hub</span>
+        <span className="sidebar-logo-text">ClawKB</span>
       </div>
 
       {/* Nav links */}
