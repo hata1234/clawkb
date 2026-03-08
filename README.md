@@ -1,4 +1,8 @@
-# 🧠 ClawKB
+<p align="center">
+  <img src="./public/logo-clawkb-wordmark.png" alt="ClawKB" width="320" />
+</p>
+
+# ClawKB
 
 **A knowledge base built for Human–AI Agent collaboration.**
 

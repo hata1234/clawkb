@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -11,7 +12,6 @@ import {
   LogOut,
   Menu,
   X,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -38,9 +38,13 @@ export default function Sidebar({ userName }: { userName?: string }) {
     <>
       {/* Logo */}
       <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">
-          <Sparkles className="sidebar-icon-sparkle" />
-        </div>
+        <Image
+          src="/logo-clawkb.png"
+          alt="ClawKB"
+          width={32}
+          height={32}
+          className="sidebar-logo-img"
+        />
         <span className="sidebar-logo-text">ClawKB</span>
       </div>
 
@@ -190,16 +194,9 @@ export default function Sidebar({ userName }: { userName?: string }) {
           border-bottom: 1px solid var(--border);
           min-height: 65px;
         }
-        .sidebar-logo-icon {
-          padding: 6px;
-          background: var(--accent-muted);
-          border-radius: 8px;
+        .sidebar-logo-img {
           flex-shrink: 0;
-        }
-        .sidebar-icon-sparkle {
-          width: 20px;
-          height: 20px;
-          color: var(--accent);
+          border-radius: 6px;
         }
         .sidebar-logo-text {
           font-family: var(--font-heading);
