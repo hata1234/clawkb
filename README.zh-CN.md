@@ -1,4 +1,8 @@
-# 🧠 ClawKB
+<p align="center">
+  <img src="./public/logo-clawkb-wordmark.png" alt="ClawKB" width="320" />
+</p>
+
+# ClawKB
 
 **为人类与 AI Agent 协作而生的知识库。**
 

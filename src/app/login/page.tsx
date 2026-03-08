@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkles } from "lucide-react";
+import Image from "next/image";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -71,26 +72,14 @@ export default function LoginPage() {
       <div style={{ width: "100%", maxWidth: 380, position: "relative", zIndex: 1 }}>
         {/* Logo */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 40 }}>
-          <div style={{
-            width: 56, height: 56,
-            background: "var(--accent-muted)",
-            border: "1px solid rgba(201,169,110,0.25)",
-            borderRadius: 16,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            marginBottom: 20,
-            boxShadow: "0 0 40px rgba(201,169,110,0.1)",
-          }}>
-            <Sparkles style={{ width: 28, height: 28, color: "var(--accent)" }} />
-          </div>
-          <h1 style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: "1.75rem",
-            fontWeight: 400,
-            color: "var(--text)",
-            marginBottom: 6,
-          }}>
-            ClawKB
-          </h1>
+          <Image
+            src="/logo-clawkb-wordmark.png"
+            alt="ClawKB"
+            width={240}
+            height={80}
+            style={{ objectFit: "contain", marginBottom: 16 }}
+            priority
+          />
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Sign in to continue</p>
         </div>
 
@@ -200,7 +189,7 @@ export default function LoginPage() {
           color: "var(--text-dim)",
           marginTop: 24,
         }}>
-          Personal knowledge management system
+          Knowledge base for Human–AI Agent collaboration
         </p>
       </div>
 
