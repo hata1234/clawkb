@@ -163,12 +163,19 @@ export default function Sidebar({ userName }: { userName?: string }) {
           }
           .sidebar.collapsed {
             width: 68px;
+            overflow: hidden;
           }
           .sidebar.collapsed .sidebar-logo-text,
           .sidebar.collapsed .sidebar-link-label,
           .sidebar.collapsed .sidebar-username,
           .sidebar.collapsed .sidebar-logout {
             display: none;
+          }
+          .sidebar.collapsed .sidebar-theme-btn {
+            justify-content: center;
+          }
+          .sidebar.collapsed .sidebar-user-inner {
+            justify-content: center;
           }
           .sidebar.collapsed .sidebar-link {
             justify-content: center;

@@ -35,6 +35,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         @media (min-width: 768px) {
           #main-content {
             margin-left: 240px;
+            transition: margin-left 0.2s ease;
+          }
+          .sidebar.collapsed ~ #main-content {
+            margin-left: 68px;
           }
           #main-inner {
             padding: 32px 32px;
