@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧠 ClawKB
 
-## Getting Started
+**A knowledge base built for Human–AI Agent collaboration.**
 
-First, run the development server:
+ClawKB lets humans and AI agents co-create, search, and manage knowledge entries through a clean web UI and a headless API. Designed for the [OpenClaw](https://github.com/openclaw/openclaw) ecosystem but works standalone.
+
+English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+
+## Features
+
+- 📝 **Structured entries** — Classify as opportunity, report, reference, or project note
+- 🔍 **Hybrid search** — Vector (pgvector + bge-m3), full-text (tsvector), and fuzzy (ILIKE) in a cascading pipeline
+- 🏷️ **Tags & status tracking** — Filter, organize, and track entry lifecycle
+- 🤖 **Agent-friendly API** — Bearer-token authenticated REST endpoints for cron jobs and AI agents to write/query entries
+- 🖼️ **Image attachments** — Upload and attach images to entries via MinIO-compatible object storage
+- 📊 **Dashboard** — Stats overview with charts and recent entries
+- 📤 **Export** — CSV and JSON export from the UI or API
+- 🔒 **Auth** — Session-based login (NextAuth.js credentials provider)
+- 🌙 **Dark theme** — Editorial dark UI, responsive on mobile and desktop
+
+## Tech Stack
+
+| Layer | Choice |
+|-------|--------|
+| Framework | Next.js 16 (App Router) |
+| Database | PostgreSQL 16 + pgvector |
+| ORM | Prisma |
+| Embedding | Ollama bge-m3 (1024d) |
+| Auth | NextAuth.js (Credentials) |
+| Object Storage | MinIO (S3-compatible) |
+| Styling | Tailwind CSS + CSS variables |
+| Process Manager | PM2 |
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL 16 with [pgvector](https://github.com/pgvector/pgvector) extension
+- Ollama running `bge-m3` model (or any embedding endpoint)
+
+### Install
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/hata1234/clawkb.git
+cd clawkb
+
+npm install
+
+# Set up environment
+cp .env.example .env
+# Edit .env with your database URL, auth secret, etc.
+
+# Run migrations
+npx prisma migrate deploy
+
+# Seed initial user
+npm run seed
+
+# Build & start
+npm run build
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user@localhost:5432/clawkb` |
+| `NEXTAUTH_SECRET` | Session encryption secret | (random string) |
+| `NEXTAUTH_URL` | Public URL | `https://kb.example.com` |
+| `API_TOKEN` | Bearer token for agent API access | (random string) |
+| `OLLAMA_URL` | Ollama embedding endpoint | `http://localhost:11434` |
+| `MINIO_ENDPOINT` | MinIO/S3 endpoint | `minio.example.com` |
+| `MINIO_ACCESS_KEY` | MinIO access key | |
+| `MINIO_SECRET_KEY` | MinIO secret key | |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API
 
-## Learn More
+All API endpoints are under `/api/`. Agent/cron access requires `Authorization: Bearer <API_TOKEN>`.
 
-To learn more about Next.js, take a look at the following resources:
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/entries` | List entries (filter by type, status, tags; pagination) |
+| `POST` | `/api/entries` | Create entry (auto-generates embedding) |
+| `GET` | `/api/entries/[id]` | Get single entry |
+| `PATCH` | `/api/entries/[id]` | Update entry fields |
+| `DELETE` | `/api/entries/[id]` | Delete entry |
+| `POST` | `/api/search` | Hybrid search (vector + full-text + fuzzy) |
+| `GET` | `/api/stats` | Dashboard statistics |
+| `GET` | `/api/tags` | List all tags |
+| `GET` | `/api/export` | Export entries as CSV or JSON |
+| `POST` | `/api/upload` | Upload image attachment |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Example: Create an Entry
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+curl -X POST http://localhost:3500/api/entries \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -d '{
+    "type": "opportunity",
+    "source": "nightly-recon",
+    "title": "New POD platform discovered",
+    "summary": "A brief summary",
+    "content": "Full markdown content here...",
+    "status": "new",
+    "tags": ["pod", "automation"]
+  }'
+```
 
-## Deploy on Vercel
+### Example: Search
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+curl -X POST http://localhost:3500/api/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -d '{"query": "passive income automation"}'
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture
+
+```
+Browser/Mobile → Reverse Proxy (Caddy/Nginx) → Next.js :3500 → PostgreSQL + pgvector
+                                                    ↑                    ↑
+                                              AI Agent / Cron      Ollama bge-m3
+                                              (REST API)           (embedding)
+```
+
+## Roadmap
+
+- [ ] Multi-user support
+- [ ] RAG query endpoint (query → retrieve → synthesize)
+- [ ] Webhook on new entry (notify agents)
+- [ ] Plugin system for custom entry types
+- [ ] Public sharing mode for selected entries
+
+## License
+
+MIT
+
+---
+
+Built by humans and AI agents, for humans and AI agents. 🤖🤝🧑
