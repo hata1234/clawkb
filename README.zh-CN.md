@@ -47,7 +47,7 @@ ClawKB 让人类和 AI Agent 共同创建、搜索和管理知识条目，提供
 ### 安装
 
 ```bash
-git clone https://github.com/hata1234/clawkb.git
+git clone https://github.com/openclaw/clawkb.git
 cd clawkb
 
 npm install
@@ -65,6 +65,19 @@ npm run seed
 # 构建并启动
 npm run build
 npm start
+```
+
+### Docker
+
+```bash
+git clone https://github.com/openclaw/clawkb.git
+cd clawkb
+
+# （可选）在 .env 中设置密钥 — docker-compose 会自动读取
+cp .env.example .env
+
+docker compose up -d
+# 应用位于 http://localhost:3500（默认账号：admin / change-me-on-first-login）
 ```
 
 ### 环境变量

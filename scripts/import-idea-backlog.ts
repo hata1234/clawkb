@@ -2,8 +2,8 @@ import * as fs from "fs";
 import pg from "pg";
 import { generateEmbedding } from "../src/lib/embedding";
 
-const pool = new pg.Pool({ connectionString: "postgresql://hata1234@localhost:5432/knowledge_hub" });
-const FILE = "/Users/hata1234/clawd/projects/idea-backlog/README.md";
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL ?? "postgresql://localhost:5432/clawkb" });
+const FILE = process.env.IDEA_BACKLOG_FILE ?? "./data/idea-backlog.md";
 
 async function main() {
   const raw = fs.readFileSync(FILE, "utf-8");

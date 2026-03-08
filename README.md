@@ -47,7 +47,7 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 ### Install
 
 ```bash
-git clone https://github.com/hata1234/clawkb.git
+git clone https://github.com/openclaw/clawkb.git
 cd clawkb
 
 npm install
@@ -65,6 +65,19 @@ npm run seed
 # Build & start
 npm run build
 npm start
+```
+
+### Docker
+
+```bash
+git clone https://github.com/openclaw/clawkb.git
+cd clawkb
+
+# (Optional) set secrets in .env — docker-compose reads from it
+cp .env.example .env
+
+docker compose up -d
+# App at http://localhost:3500  (default user: admin / change-me-on-first-login)
 ```
 
 ### Environment Variables

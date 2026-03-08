@@ -3,9 +3,9 @@ import * as path from "path";
 import pg from "pg";
 import { generateEmbedding } from "../src/lib/embedding";
 
-const pool = new pg.Pool({ connectionString: "postgresql://hata1234@localhost:5432/knowledge_hub" });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL ?? "postgresql://localhost:5432/clawkb" });
 
-const DIR = "/Users/hata1234/clawd/reports/stock-daily";
+const DIR = process.env.STOCK_DAILY_DIR ?? "./data/stock-daily";
 
 async function main() {
   const files = fs.readdirSync(DIR).filter(f => f.endsWith(".json")).sort();

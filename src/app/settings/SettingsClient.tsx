@@ -444,7 +444,7 @@ function EmbeddingTab({ settings, onToast }: {
           <div>
             <label style={labelStyle}>Ollama URL</label>
             <input value={cfg.ollamaUrl ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaUrl: e.target.value }))}
-              style={inputStyle} placeholder="http://192.168.0.85:11434" />
+              style={inputStyle} placeholder="http://localhost:11434" />
           </div>
           <div>
             <label style={labelStyle}>Model</label>
