@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Download, FileText, FileSpreadsheet, FileCode, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Download, FileText, FileSpreadsheet, FileCode, Loader2, ChevronDown, X, Search } from "lucide-react";
+
+/* ─── types ─── */
 
 interface Stats {
   count: number;
@@ -10,19 +12,21 @@ interface Stats {
   statuses: Record<string, number>;
 }
 
+interface OptionItem {
+  value: string;
+  count: number;
+}
+
+interface FilterOptions {
+  types: OptionItem[];
+  sources: OptionItem[];
+  statuses: OptionItem[];
+  tags: OptionItem[];
+}
+
 type Format = "json" | "csv" | "markdown";
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "var(--background)",
-  border: "1px solid var(--border)",
-  borderRadius: "var(--radius-md)",
-  padding: "10px 12px",
-  fontSize: "0.875rem",
-  color: "var(--text)",
-  outline: "none",
-  boxSizing: "border-box",
-};
+/* ─── styles ─── */
 
 const labelStyle: React.CSSProperties = {
   display: "block",
@@ -39,6 +43,182 @@ const sectionStyle: React.CSSProperties = {
   padding: 24,
 };
 
+/* ─── Combobox ─── */
+
+function Combobox({
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: OptionItem[];
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const filtered = options.filter(
+    (o) => o.value.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      {/* trigger */}
+      <button
+        type="button"
+        onClick={() => { setOpen((v) => !v); setTimeout(() => inputRef.current?.focus(), 50); }}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
+          background: "var(--background)",
+          border: open ? "1px solid var(--accent)" : "1px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+          padding: "10px 12px",
+          fontSize: "0.875rem",
+          color: value ? "var(--text)" : "var(--text-dim)",
+          cursor: "pointer",
+          boxSizing: "border-box",
+          textAlign: "left",
+          transition: "border-color 0.15s ease",
+        }}
+      >
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {value || placeholder}
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          {value && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onChange(""); setSearch(""); }}
+              style={{ display: "flex", padding: 2, borderRadius: 4, cursor: "pointer" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+            >
+              <X style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
+            </span>
+          )}
+          <ChevronDown style={{ width: 14, height: 14, color: "var(--text-muted)", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s ease" }} />
+        </span>
+      </button>
+
+      {/* dropdown */}
+      {open && (
+        <div style={{
+          position: "absolute",
+          top: "100%",
+          left: 0,
+          right: 0,
+          marginTop: 4,
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius-md)",
+          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+          zIndex: 50,
+          overflow: "hidden",
+        }}>
+          {/* search input */}
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "6px 10px" }}>
+              <Search style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+              <input
+                ref={inputRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search..."
+                style={{
+                  flex: 1,
+                  background: "none",
+                  border: "none",
+                  outline: "none",
+                  fontSize: "0.82rem",
+                  color: "var(--text)",
+                  padding: 0,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* options list */}
+          <div style={{ maxHeight: 200, overflowY: "auto" }}>
+            {/* All option */}
+            <button
+              onClick={() => { onChange(""); setSearch(""); setOpen(false); }}
+              style={{
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "8px 14px",
+                fontSize: "0.82rem",
+                color: !value ? "var(--accent)" : "var(--text-secondary)",
+                fontWeight: !value ? 600 : 400,
+                background: "none",
+                border: "none",
+                borderBottom: "1px solid var(--border)",
+                cursor: "pointer",
+                textAlign: "left",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "none"; }}
+            >
+              All
+            </button>
+
+            {filtered.length === 0 ? (
+              <div style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--text-dim)" }}>
+                No matches
+              </div>
+            ) : (
+              filtered.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => { onChange(opt.value); setSearch(""); setOpen(false); }}
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 14px",
+                    fontSize: "0.82rem",
+                    color: value === opt.value ? "var(--accent)" : "var(--text-secondary)",
+                    fontWeight: value === opt.value ? 600 : 400,
+                    background: "none",
+                    border: "none",
+                    borderBottom: "1px solid var(--border)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "none"; }}
+                >
+                  <span>{opt.value}</span>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>{opt.count}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── ExportClient ─── */
+
 export default function ExportClient() {
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
@@ -52,8 +232,17 @@ export default function ExportClient() {
   const [includeImages, setIncludeImages] = useState(true);
   const [includeMetadata, setIncludeMetadata] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [options, setOptions] = useState<FilterOptions | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  // Load filter options once
+  useEffect(() => {
+    fetch("/api/plugins/export/options")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => setOptions(data))
+      .catch(() => {});
+  }, []);
 
   const buildParams = useCallback(() => {
     const p = new URLSearchParams();
@@ -125,6 +314,18 @@ export default function ExportClient() {
     { value: "markdown", label: "Markdown", icon: FileText },
   ];
 
+  const dateInputStyle: React.CSSProperties = {
+    width: "100%",
+    background: "var(--background)",
+    border: "1px solid var(--border)",
+    borderRadius: "var(--radius-md)",
+    padding: "10px 12px",
+    fontSize: "0.875rem",
+    color: "var(--text)",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
   return (
     <div style={{ maxWidth: 720 }}>
       {/* Header */}
@@ -149,27 +350,27 @@ export default function ExportClient() {
           <div className="export-filter-grid">
             <div>
               <label style={labelStyle}>Type</label>
-              <input value={type} onChange={(e) => setType(e.target.value)} placeholder="e.g. design" style={inputStyle} />
+              <Combobox value={type} onChange={setType} options={options?.types || []} placeholder="All types" />
             </div>
             <div>
               <label style={labelStyle}>Status</label>
-              <input value={status} onChange={(e) => setStatus(e.target.value)} placeholder="e.g. active" style={inputStyle} />
+              <Combobox value={status} onChange={setStatus} options={options?.statuses || []} placeholder="All statuses" />
             </div>
             <div>
               <label style={labelStyle}>Source</label>
-              <input value={source} onChange={(e) => setSource(e.target.value)} placeholder="e.g. moltbook" style={inputStyle} />
+              <Combobox value={source} onChange={setSource} options={options?.sources || []} placeholder="All sources" />
             </div>
             <div>
               <label style={labelStyle}>Tag</label>
-              <input value={tag} onChange={(e) => setTag(e.target.value)} placeholder="e.g. important" style={inputStyle} />
+              <Combobox value={tag} onChange={setTag} options={options?.tags || []} placeholder="All tags" />
             </div>
             <div>
               <label style={labelStyle}>From</label>
-              <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={inputStyle} />
+              <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={dateInputStyle} />
             </div>
             <div>
               <label style={labelStyle}>To</label>
-              <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={inputStyle} />
+              <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={dateInputStyle} />
             </div>
           </div>
         </div>
@@ -341,8 +542,8 @@ export default function ExportClient() {
           }
         }
         input[type="date"] { color-scheme: dark; }
-        select { color-scheme: dark; }
         input:focus { border-color: var(--accent) !important; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

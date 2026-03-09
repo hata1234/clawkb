@@ -261,5 +261,29 @@ export const api = {
         return { body: { count, types, sources, statuses } };
       },
     },
+    {
+      method: "GET",
+      path: "/options",
+      description: "Get distinct filter values for combobox dropdowns",
+      async handler({ context }) {
+        const where = { deletedAt: null };
+
+        const [byType, bySource, byStatus, tags] = await Promise.all([
+          context.prisma.entry.groupBy({ by: ["type"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
+          context.prisma.entry.groupBy({ by: ["source"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
+          context.prisma.entry.groupBy({ by: ["status"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
+          context.prisma.tag.findMany({ select: { name: true, _count: { select: { entries: true } } }, orderBy: { entries: { _count: "desc" } }, take: 100 }),
+        ]);
+
+        return {
+          body: {
+            types: byType.map((t) => ({ value: t.type, count: t._count.id })),
+            sources: bySource.map((s) => ({ value: s.source, count: s._count.id })),
+            statuses: byStatus.map((s) => ({ value: s.status, count: s._count.id })),
+            tags: tags.map((t) => ({ value: t.name, count: t._count.entries })),
+          },
+        };
+      },
+    },
   ],
 };
