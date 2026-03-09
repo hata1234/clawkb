@@ -195,10 +195,8 @@ export function canDeleteEntry(principal: AppPrincipal, entryAuthorId: number | 
   return canEditEntry(principal, entryAuthorId) && principal.effectiveRole === "admin";
 }
 
-export function canCreateComment(principal: AppPrincipal, entryAuthorId: number | null) {
-  if (principal.effectiveRole === "admin") return true;
-  if (principal.effectiveRole !== "editor") return false;
-  return principal.id !== null && principal.id !== entryAuthorId;
+export function canCreateComment(principal: AppPrincipal, _entryAuthorId: number | null) {
+  return principal.effectiveRole === "admin" || principal.effectiveRole === "editor";
 }
 
 export async function issueUserToken(userId: number, name: string, tokenType: ApiTokenType = "user") {

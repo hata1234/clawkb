@@ -103,3 +103,17 @@ model Setting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+model ApiToken {
+  id         Int       @id @default(autoincrement())
+  name       String?   @db.VarChar(100)
+  tokenHash  String    @unique @map("token_hash") @db.VarChar(64)
+  tokenPrefix String   @map("token_prefix") @db.VarChar(12)
+  userId     Int?      @map("user_id")
+  tokenType  String    @default("legacy") @map("token_type") @db.VarChar(32)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastUsedAt DateTime? @map("last_used_at")
+  revoked    Boolean   @default(false)
+
+  @@map("api_tokens")
+}

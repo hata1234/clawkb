@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       id: token.id,
       prefix: token.token_prefix,
       type: token.token_type,
-      createdAt: token.created_at.toISOString(),
+      
     },
   }, { status: 201 });
 }
