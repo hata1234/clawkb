@@ -30,12 +30,13 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         Settings
       </h1>
 
-      <nav style={{
+      <nav className="settings-tabs" style={{
         display: "flex",
         gap: 4,
         borderBottom: "1px solid var(--border)",
         marginBottom: 24,
         overflowX: "auto",
+        scrollbarWidth: "none",
       }}>
         {tabs.map((tab) => {
           const active = isActive(tab);
@@ -67,6 +68,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </nav>
 
       {children}
+      <style>{".settings-tabs::-webkit-scrollbar { display: none; }"}</style>
     </div>
   );
 }
