@@ -8,26 +8,47 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  username     String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id                       Int            @id @default(autoincrement())
+  username                 String         @unique
+  email                    String?        @unique
+  displayName              String?
+  passwordHash             String
+  avatarUrl                String?
+  bio                      String?
+  role                     String         @default("viewer")
+  groupId                  Int?
+  approvalStatus           String         @default("approved")
+  emailVerifiedAt          DateTime?
+  emailVerificationToken   String?        @unique
+  emailVerificationExpires DateTime?
+  agent                    Boolean        @default(false)
+  createdById              Int?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+  group                    RoleGroup?     @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdBy                User?          @relation("UserProvisioning", fields: [createdById], references: [id], onDelete: SetNull)
+  createdUsers             User[]         @relation("UserProvisioning")
+  entries                  Entry[]        @relation("EntryAuthor")
+  comments                 EntryComment[]
 }
 
 model Entry {
-  id        Int      @id @default(autoincrement())
-  type      String   // opportunity | report | reference | project_note
-  source    String   // nightly-recon | stock-daily | reddit | web | manual
+  id        Int            @id @default(autoincrement())
+  type      String // opportunity | report | reference | project_note
+  source    String // nightly-recon | stock-daily | reddit | web | manual
   title     String
   summary   String?
   content   String?
-  status    String   @default("new") // new | interested | in_progress | done | dismissed
+  status    String         @default("new") // new | interested | in_progress | done | dismissed
   url       String?
-  metadata  Json     @default("{}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tags      Tag[]    @relation("EntryTags")
+  metadata  Json           @default("{}")
+  authorId  Int?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  tags      Tag[]          @relation("EntryTags")
   images    EntryImage[]
+  author    User?          @relation("EntryAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  comments  EntryComment[]
   // Vector search (managed via raw SQL, not Prisma migrations)
   // embedding Unsupported("vector(1024)")?
   // tsv       Unsupported("tsvector")?
@@ -36,12 +57,12 @@ model Entry {
 model EntryImage {
   id        Int      @id @default(autoincrement())
   entryId   Int
-  url       String   // public URL (MinIO)
-  key       String   // MinIO object key
-  filename  String   // original filename
+  url       String // public URL (MinIO)
+  key       String // MinIO object key
+  filename  String // original filename
   mimeType  String   @default("image/png")
   size      Int      @default(0) // bytes
-  caption   String?  // optional description
+  caption   String? // optional description
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
@@ -55,8 +76,44 @@ model Tag {
   entries Entry[] @relation("EntryTags")
 }
 
+model RoleGroup {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  role        String  @default("viewer")
+  users       User[]
+}
+
+model EntryComment {
+  id        Int      @id @default(autoincrement())
+  entryId   Int
+  authorId  Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([entryId, createdAt])
+  @@index([authorId])
+}
+
 model Setting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+model ApiToken {
+  id         Int       @id @default(autoincrement())
+  name       String?   @db.VarChar(100)
+  tokenHash  String    @unique @map("token_hash") @db.VarChar(64)
+  tokenPrefix String   @map("token_prefix") @db.VarChar(12)
+  userId     Int?      @map("user_id")
+  tokenType  String    @default("legacy") @map("token_type") @db.VarChar(32)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  lastUsedAt DateTime? @map("last_used_at")
+  revoked    Boolean   @default(false)
+
+  @@map("api_tokens")
 }

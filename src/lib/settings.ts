@@ -42,6 +42,17 @@ export const DEFAULT_STORAGE = {
   publicUrl: process.env.S3_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL ?? "https://minio.cellar.men/knowledge-hub",
 };
 
+export const DEFAULT_AUTH = {
+  allowRegistration: true,
+  requireAdminApproval: true,
+  requireEmailVerification: false,
+  allowAgentRegistration: true,
+};
+
+export const DEFAULT_PLUGIN_SETTINGS = {
+  states: {} as Record<string, { enabled: boolean }>,
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────
 export interface EntryTypeOption { id: string; label: string; icon: string }
 export interface StatusOption    { id: string; label: string }
@@ -67,6 +78,8 @@ export interface AllSettings {
   status_options: StatusOption[];
   embedding:      EmbeddingConfig;
   storage:        StorageConfig;
+  auth:           typeof DEFAULT_AUTH;
+  plugins:        typeof DEFAULT_PLUGIN_SETTINGS;
 }
 
 // ─── Server-side helpers ──────────────────────────────────────────────────
@@ -98,6 +111,8 @@ export async function getAllSettings(): Promise<AllSettings> {
     source_options: (map.source_options as string[])          ?? DEFAULT_SOURCE_OPTIONS,
     status_options: (map.status_options as StatusOption[])    ?? DEFAULT_STATUS_OPTIONS,
     embedding:      (map.embedding      as EmbeddingConfig)   ?? DEFAULT_EMBEDDING,
-    storage:        (map.storage        as StorageConfig)      ?? DEFAULT_STORAGE,
+    storage:        (map.storage        as StorageConfig)     ?? DEFAULT_STORAGE,
+    auth:           (map.auth           as typeof DEFAULT_AUTH) ?? DEFAULT_AUTH,
+    plugins:        (map.plugins        as typeof DEFAULT_PLUGIN_SETTINGS) ?? DEFAULT_PLUGIN_SETTINGS,
   };
 }

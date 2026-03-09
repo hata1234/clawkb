@@ -1,26 +1,16 @@
 import crypto from "crypto";
-import { pool } from "./prisma";
+import { prisma } from "./prisma";
 
-// ─── Ensure api_tokens table exists ──────────────────────────────────────
-let tableReady = false;
+export type ApiTokenType = "legacy" | "user" | "agent";
 
-export async function ensureApiTokensTable() {
-  if (tableReady) return;
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS api_tokens (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(100),
-      token_hash VARCHAR(64) NOT NULL UNIQUE,
-      token_prefix VARCHAR(8) NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      last_used_at TIMESTAMPTZ,
-      revoked BOOLEAN DEFAULT FALSE
-    );
-  `);
-  tableReady = true;
+export interface ApiTokenRecord {
+  id: number;
+  name: string | null;
+  token_prefix: string;
+  user_id: number | null;
+  token_type: ApiTokenType;
 }
 
-// ─── Token helpers ───────────────────────────────────────────────────────
 export function hashToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
@@ -29,22 +19,63 @@ export function generateToken(): string {
   return `clawkb_${crypto.randomBytes(32).toString("hex")}`;
 }
 
-// ─── Verify bearer token from request ────────────────────────────────────
+export async function createApiToken(input: {
+  name: string;
+  userId?: number | null;
+  tokenType?: ApiTokenType;
+}) {
+  const token = generateToken();
+  const hash = hashToken(token);
+  const prefix = token.slice(0, 12);
+  const tokenType = input.tokenType ?? "user";
+
+  const record = await prisma.apiToken.create({
+    data: {
+      name: input.name,
+      tokenHash: hash,
+      tokenPrefix: prefix,
+      userId: input.userId ?? null,
+      tokenType,
+    },
+  });
+
+  return {
+    id: record.id,
+    name: record.name,
+    token_prefix: record.tokenPrefix,
+    user_id: record.userId,
+    token_type: record.tokenType as ApiTokenType,
+    token, // Only returned once at creation
+  };
+}
+
+export async function verifyRawApiToken(token: string): Promise<ApiTokenRecord | null> {
+  const hash = hashToken(token);
+
+  const record = await prisma.apiToken.updateMany({
+    where: { tokenHash: hash, revoked: false },
+    data: { lastUsedAt: new Date() },
+  });
+
+  if (record.count === 0) return null;
+
+  const found = await prisma.apiToken.findUnique({
+    where: { tokenHash: hash },
+  });
+
+  if (!found || found.revoked) return null;
+
+  return {
+    id: found.id,
+    name: found.name,
+    token_prefix: found.tokenPrefix,
+    user_id: found.userId,
+    token_type: found.tokenType as ApiTokenType,
+  };
+}
+
 export async function verifyApiToken(request: Request): Promise<boolean> {
   const authHeader = request.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) return false;
-
-  const token = authHeader.substring(7);
-  const hash = hashToken(token);
-
-  await ensureApiTokensTable();
-
-  const result = await pool.query(
-    `UPDATE api_tokens SET last_used_at = NOW()
-     WHERE token_hash = $1 AND revoked = FALSE
-     RETURNING id`,
-    [hash]
-  );
-
-  return result.rowCount !== null && result.rowCount > 0;
+  return (await verifyRawApiToken(authHeader.slice(7))) !== null;
 }
