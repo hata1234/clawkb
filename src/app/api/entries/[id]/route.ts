@@ -26,6 +26,7 @@ interface EntryUpdateInput {
   metadata?: Record<string, unknown>;
   addImages?: EntryImageInput[];
   removeImageIds?: number[];
+  editNote?: string;
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -50,11 +51,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   const body = await request.json();
 
-  const existing = await prisma.entry.findUnique({ where: { id: parseInt(id) } });
+  const existing = await prisma.entry.findUnique({
+    where: { id: parseInt(id) },
+    include: { tags: true },
+  });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (!canEditEntry(principal, existing.authorId)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  // Save revision snapshot BEFORE applying changes
+  await prisma.entryRevision.create({
+    data: {
+      entryId: existing.id,
+      authorId: principal.id,
+      title: existing.title,
+      summary: existing.summary,
+      content: existing.content,
+      status: existing.status,
+      type: existing.type,
+      source: existing.source,
+      url: existing.url,
+      metadata: existing.metadata as Prisma.InputJsonValue,
+      tags: existing.tags.map((t) => t.name),
+      editNote: (body as EntryUpdateInput).editNote || null,
+    },
+  });
 
   const hookedBody = await runEntryBeforeUpdateHooks(body as Record<string, unknown>, existing as unknown as Record<string, unknown>, principal) as EntryUpdateInput;
   const { type, source, title, summary, content, status, url, tags, metadata, addImages, removeImageIds } = hookedBody;

@@ -30,6 +30,7 @@ model User {
   createdUsers             User[]         @relation("UserProvisioning")
   entries                  Entry[]        @relation("EntryAuthor")
   comments                 EntryComment[]
+  revisions                EntryRevision[]
 }
 
 model Entry {
@@ -49,6 +50,7 @@ model Entry {
   images    EntryImage[]
   author    User?          @relation("EntryAuthor", fields: [authorId], references: [id], onDelete: SetNull)
   comments  EntryComment[]
+  revisions EntryRevision[]
   // Vector search (managed via raw SQL, not Prisma migrations)
   // embedding Unsupported("vector(1024)")?
   // tsv       Unsupported("tsvector")?
@@ -116,4 +118,26 @@ model ApiToken {
   revoked    Boolean   @default(false)
 
   @@map("api_tokens")
+}
+
+model EntryRevision {
+  id        Int      @id @default(autoincrement())
+  entryId   Int
+  authorId  Int?
+  title     String
+  summary   String?
+  content   String?
+  status    String
+  type      String
+  source    String
+  url       String?
+  metadata  Json     @default("{}")
+  tags      String[] // snapshot of tag names at revision time
+  editNote  String?  @map("edit_note")
+  createdAt DateTime @default(now())
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([entryId, createdAt])
+  @@map("entry_revisions")
 }
