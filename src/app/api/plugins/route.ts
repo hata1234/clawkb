@@ -17,6 +17,7 @@ export async function GET(request: Request) {
     plugins: plugins.map((plugin) => ({
       ...plugin.manifest,
       enabled: plugin.enabled,
+      apiBasePath: `/api/plugins/${plugin.manifest.id}`,
     })),
     panels,
   });

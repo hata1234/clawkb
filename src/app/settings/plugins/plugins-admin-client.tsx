@@ -11,6 +11,7 @@ interface PluginRecord {
   hooks?: string[];
   permissions?: string[];
   enabled: boolean;
+  apiBasePath?: string;
 }
 
 interface SettingsPanel {
@@ -137,6 +138,11 @@ export default function PluginsAdminClient() {
               <div style={{ marginTop: 10, fontSize: "0.78rem", color: "var(--text-dim)" }}>
                 Hooks: {(plugin.hooks || []).join(", ") || "none"}
               </div>
+              {plugin.apiBasePath ? (
+                <div style={{ marginTop: 6, fontSize: "0.78rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                  API base: {plugin.apiBasePath}
+                </div>
+              ) : null}
               {!plugin.builtIn ? (
                 <button onClick={() => remove(plugin.id)} style={{ marginTop: 12, border: "1px solid rgba(248,113,113,0.2)", borderRadius: "var(--radius-md)", background: "rgba(248,113,113,0.08)", color: "var(--danger)", padding: "8px 10px", cursor: "pointer" }}>
                   Remove
