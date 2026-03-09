@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import EntryCard from "@/components/EntryCard";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
@@ -38,19 +38,41 @@ const selectFilterStyle: React.CSSProperties = {
 
 function EntriesPageInner() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Initialize state from URL params
   const [entries, setEntries] = useState<Entry[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(parseInt(searchParams.get("page") || "1", 10));
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [type, setType] = useState(searchParams.get("type") || "");
-  const [status, setStatus] = useState("");
-  const [source, setSource] = useState("");
+  const [status, setStatus] = useState(searchParams.get("status") || "");
+  const [source, setSource] = useState(searchParams.get("source") || "");
   const [tag, setTag] = useState(searchParams.get("tag") || "");
-  const [sort, setSort] = useState("newest");
+  const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([]);
+
+  // Sync state to URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set("page", String(page));
+    if (search) params.set("search", search);
+    if (type) params.set("type", type);
+    if (status) params.set("status", status);
+    if (source) params.set("source", source);
+    if (tag) params.set("tag", tag);
+    if (sort && sort !== "newest") params.set("sort", sort);
+
+    const qs = params.toString();
+    const newUrl = qs ? `${pathname}?${qs}` : pathname;
+    // Use replaceState to avoid creating new history entries on every keystroke,
+    // but pushState on page change so back button works for pagination
+    window.history.replaceState(null, "", newUrl);
+  }, [page, search, type, status, source, tag, sort, pathname]);
 
   // Load available tags for filter dropdown
   useEffect(() => {
@@ -80,6 +102,39 @@ function EntriesPageInner() {
     const t = setTimeout(fetchEntries, 300);
     return () => clearTimeout(t);
   }, [fetchEntries]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      setPage(parseInt(params.get("page") || "1", 10));
+      setSearch(params.get("search") || "");
+      setType(params.get("type") || "");
+      setStatus(params.get("status") || "");
+      setSource(params.get("source") || "");
+      setTag(params.get("tag") || "");
+      setSort(params.get("sort") || "newest");
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  // Push to history on page change (so back button navigates between pages)
+  const handlePageChange = useCallback((newPage: number) => {
+    const params = new URLSearchParams();
+    if (newPage > 1) params.set("page", String(newPage));
+    if (search) params.set("search", search);
+    if (type) params.set("type", type);
+    if (status) params.set("status", status);
+    if (source) params.set("source", source);
+    if (tag) params.set("tag", tag);
+    if (sort && sort !== "newest") params.set("sort", sort);
+    const qs = params.toString();
+    const newUrl = qs ? `${pathname}?${qs}` : pathname;
+    window.history.pushState(null, "", newUrl);
+    setPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [search, type, status, source, tag, sort, pathname]);
 
   const clearFilters = () => {
     setSearch(""); setType(""); setStatus(""); setSource(""); setTag(""); setSort("newest"); setPage(1);
@@ -213,7 +268,7 @@ function EntriesPageInner() {
         </div>
       )}
 
-      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
 
       <style>{`
         .entries-filter-grid {
