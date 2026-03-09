@@ -12,9 +12,25 @@ async function main() {
   const existingUser = await prisma.user.findUnique({ where: { username: SEED_USERNAME } });
   if (!existingUser) {
     const hash = await bcrypt.hash(SEED_PASSWORD, 12);
-    await prisma.user.create({ data: { username: SEED_USERNAME, passwordHash: hash } });
+    await prisma.user.create({
+      data: {
+        username: SEED_USERNAME,
+        displayName: SEED_USERNAME,
+        passwordHash: hash,
+        role: "admin",
+        approvalStatus: "approved",
+      },
+    });
     console.log(`✅ Created user: ${SEED_USERNAME}`);
   } else {
+    await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        role: "admin",
+        approvalStatus: "approved",
+        displayName: existingUser.displayName || existingUser.username,
+      },
+    });
     console.log(`ℹ️  User ${SEED_USERNAME} already exists`);
   }
 }

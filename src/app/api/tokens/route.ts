@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { pool } from "@/lib/prisma";
-import { ensureApiTokensTable, generateToken, hashToken } from "@/lib/auth-token";
+import { prisma } from "@/lib/prisma";
+import { generateToken, hashToken } from "@/lib/auth-token";
 
 async function requireSession() {
   const session = await auth();
@@ -15,14 +15,26 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  await ensureApiTokensTable();
+  const tokens = await prisma.apiToken.findMany({
+    select: {
+      id: true,
+      name: true,
+      tokenPrefix: true,
+      createdAt: true,
+      lastUsedAt: true,
+      revoked: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-  const { rows } = await pool.query(
-    `SELECT id, name, token_prefix, created_at, last_used_at, revoked
-     FROM api_tokens ORDER BY created_at DESC`
-  );
-
-  return NextResponse.json(rows);
+  return NextResponse.json(tokens.map((t) => ({
+    id: t.id,
+    name: t.name,
+    token_prefix: t.tokenPrefix,
+    created_at: t.createdAt,
+    last_used_at: t.lastUsedAt,
+    revoked: t.revoked,
+  })));
 }
 
 // POST /api/tokens — create new token, return full token once
@@ -38,14 +50,19 @@ export async function POST(request: Request) {
   const hash = hashToken(token);
   const prefix = token.substring(0, 12);
 
-  await ensureApiTokensTable();
+  const record = await prisma.apiToken.create({
+    data: {
+      name,
+      tokenHash: hash,
+      tokenPrefix: prefix,
+    },
+  });
 
-  const { rows } = await pool.query(
-    `INSERT INTO api_tokens (name, token_hash, token_prefix)
-     VALUES ($1, $2, $3)
-     RETURNING id, name, token_prefix, created_at`,
-    [name, hash, prefix]
-  );
-
-  return NextResponse.json({ ...rows[0], token }, { status: 201 });
+  return NextResponse.json({
+    id: record.id,
+    name: record.name,
+    token_prefix: record.tokenPrefix,
+    created_at: record.createdAt,
+    token,
+  }, { status: 201 });
 }
