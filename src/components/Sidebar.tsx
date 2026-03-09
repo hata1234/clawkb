@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   FileText,
-  PlusCircle,
   Tag,
   Settings,
   Clock,
@@ -36,7 +35,6 @@ const navItems = [
   { href: "/graph",       label: "Graph",      icon: Network },
   { href: "/tags",        label: "Tags",       icon: Tag },
   { href: "/activity",    label: "Activity",   icon: Activity },
-  { href: "/entries/new", label: "New Entry",  icon: PlusCircle },
   { href: "/profile",     label: "Profile",    icon: UserCircle2 },
   { href: "/settings",    label: "Settings",   icon: Settings },
 ];

@@ -113,6 +113,10 @@ function toMarkdown(entries) {
     if (e.tags && e.tags.length) lines.push(`- **Tags:** ${e.tags.join(", ")}`);
     if (e.url) lines.push(`- **URL:** ${e.url}`);
     if (e.createdAt) lines.push(`- **Created:** ${e.createdAt instanceof Date ? e.createdAt.toISOString() : e.createdAt}`);
+    if (e.images && e.images.length) {
+      lines.push("");
+      for (const img of e.images) lines.push(`![](${img})`);
+    }
     if (e.summary) {
       lines.push("");
       lines.push(e.summary);
@@ -123,12 +127,53 @@ function toMarkdown(entries) {
       lines.push("");
       lines.push(e.content);
     }
+    if (e.comments && e.comments.length) {
+      lines.push("");
+      lines.push("## Comments");
+      lines.push("");
+      for (const c of e.comments) {
+        lines.push(`**${c.author}** (${c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt}):`);
+        lines.push(c.body);
+        lines.push("");
+      }
+    }
     return lines.join("\n");
   }).join("\n\n---\n\n");
 }
 
 function datestamp() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function makeResponse(mapped, format, filenameBase, fields) {
+  const stamp = datestamp();
+  const name = filenameBase || "clawkb-export";
+
+  if (format === "csv") {
+    return new Response(toCsv(mapped, fields), {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${name}-${stamp}.csv"`,
+      },
+    });
+  }
+
+  if (format === "markdown") {
+    return new Response(toMarkdown(mapped), {
+      headers: {
+        "Content-Type": "text/markdown; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${name}-${stamp}.md"`,
+      },
+    });
+  }
+
+  // Default: JSON
+  return new Response(JSON.stringify(mapped, null, 2), {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${name}-${stamp}.json"`,
+    },
+  });
 }
 
 export const sidebar = {
@@ -159,33 +204,36 @@ export const api = {
         });
 
         const mapped = entries.map((e) => pickFields(e, fields, options));
-        const stamp = datestamp();
-
-        if (format === "csv") {
-          return new Response(toCsv(mapped, fields), {
-            headers: {
-              "Content-Type": "text/csv; charset=utf-8",
-              "Content-Disposition": `attachment; filename="clawkb-export-${stamp}.csv"`,
-            },
-          });
+        return makeResponse(mapped, format, "clawkb-export", fields);
+      },
+    },
+    {
+      method: "GET",
+      path: "/export/:id",
+      description: "Export a single entry by ID",
+      async handler({ params, request, context }) {
+        const entryId = parseInt(params[0], 10);
+        if (isNaN(entryId)) {
+          return { status: 400, body: { error: "Invalid entry ID" } };
         }
 
-        if (format === "markdown") {
-          return new Response(toMarkdown(mapped), {
-            headers: {
-              "Content-Type": "text/markdown; charset=utf-8",
-              "Content-Disposition": `attachment; filename="clawkb-export-${stamp}.md"`,
-            },
-          });
-        }
+        const { searchParams } = new URL(request.url);
+        const format = searchParams.get("format") || "json";
+        const options = parseOptions(searchParams);
+        const fields = parseFields(searchParams);
 
-        // Default: JSON
-        return new Response(JSON.stringify(mapped, null, 2), {
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Content-Disposition": `attachment; filename="clawkb-export-${stamp}.json"`,
-          },
+        const entry = await context.prisma.entry.findFirst({
+          where: { id: entryId, deletedAt: null },
+          include: getIncludes(options),
         });
+
+        if (!entry) {
+          return { status: 404, body: { error: "Entry not found" } };
+        }
+
+        const mapped = [pickFields(entry, fields, options)];
+        const slug = (entry.title || "entry").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50);
+        return makeResponse(mapped, format, `clawkb-${entryId}-${slug}`, fields);
       },
     },
     {

@@ -1,0 +1,9 @@
+{
+  "id": "entry-templates",
+  "name": "Entry Templates",
+  "version": "1.0.0",
+  "description": "Pre-defined templates for creating new entries. Configure templates with preset type, source, tags, and content structure.",
+  "builtIn": true,
+  "hooks": ["api.register", "settings.register"],
+  "permissions": ["entries.read", "settings.read", "settings.write"]
+}

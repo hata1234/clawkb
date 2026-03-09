@@ -847,16 +847,6 @@ export default function SettingsClient({ initialSettings }: { initialSettings: A
 
   return (
     <div>
-      {/* Header */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 400, letterSpacing: "-0.02em", marginBottom: 4 }}>
-          Settings
-        </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>
-          Configure entry types, embedding provider, object storage, and API tokens.
-        </p>
-      </div>
-
       {/* Tabs */}
       <div style={{
         display: "flex", gap: 4,

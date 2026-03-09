@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import MarkdownRenderer from "./MarkdownRenderer";
-import { Save, Eye, EyeOff } from "lucide-react";
+import { Save, Eye, EyeOff, LayoutTemplate } from "lucide-react";
 import ImageUpload from "./ImageUpload";
 
 interface UploadedImage {
@@ -15,6 +15,17 @@ interface UploadedImage {
   mimeType: string;
   size: number;
   caption?: string;
+}
+
+interface EntryTemplate {
+  id: string;
+  name: string;
+  type?: string;
+  source?: string;
+  status?: string;
+  tags?: string;
+  summary?: string;
+  content?: string;
 }
 
 interface EntryFormData {
@@ -74,6 +85,16 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [images, setImages] = useState<UploadedImage[]>(initialData?.images || []);
+  const [templates, setTemplates] = useState<EntryTemplate[]>([]);
+
+  // Load templates for create mode
+  useEffect(() => {
+    if (mode !== "create") return;
+    fetch("/api/plugins/entry-templates/templates")
+      .then(r => r.ok ? r.json() : { templates: [] })
+      .then(data => setTemplates(data.templates || []))
+      .catch(() => {});
+  }, [mode]);
 
   // Dynamic options from DB settings, with hardcoded fallback
   const typeOptions = settings?.entry_types?.map(t => t.id) ?? [...TYPE_OPTIONS];
@@ -98,6 +119,20 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
     url: initialData?.url || "",
     tags: initialData?.tags || "",
   });
+
+  const applyTemplate = (templateId: string) => {
+    const tpl = templates.find(t => t.id === templateId);
+    if (!tpl) return;
+    setForm(prev => ({
+      ...prev,
+      type: tpl.type || prev.type,
+      source: tpl.source || prev.source,
+      status: tpl.status || prev.status,
+      tags: tpl.tags || prev.tags,
+      summary: tpl.summary || prev.summary,
+      content: tpl.content || prev.content,
+    }));
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -156,6 +191,40 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
           color: "var(--danger)",
         }}>
           {error}
+        </div>
+      )}
+
+      {/* Template selector — only in create mode and when templates exist */}
+      {mode === "create" && templates.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          padding: "12px 14px",
+          background: "var(--accent-muted)",
+          border: "1px solid rgba(201,169,110,0.2)",
+          borderRadius: "var(--radius-md)",
+        }}>
+          <LayoutTemplate style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} />
+          <span style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 500, flexShrink: 0 }}>Template:</span>
+          {templates.map(tpl => (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => applyTemplate(tpl.id)}
+              style={{
+                padding: "5px 12px",
+                borderRadius: "var(--radius-md)",
+                border: "1px solid var(--border)",
+                background: "var(--surface)",
+                color: "var(--text-secondary)",
+                fontSize: "0.8rem",
+                fontWeight: 500,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              {tpl.name}
+            </button>
+          ))}
         </div>
       )}
 
