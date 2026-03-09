@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import RelatedEntries from "@/components/RelatedEntries";
+import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
 import TypeBadge from "@/components/TypeBadge";
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
@@ -384,6 +385,8 @@ export default function EntryDetailPage() {
           )}
         </div>
       )}
+
+      {!editing && <RevisionHistory entryId={entry.id} currentTitle={entry.title} />}
 
       {!editing && entry.pluginRender?.map((block) => {
         if (block.type === "related-entries") {
