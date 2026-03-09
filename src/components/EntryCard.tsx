@@ -25,6 +25,7 @@ interface Entry {
   status: string;
   createdAt: string;
   tags: { id: number; name: string }[];
+  collections?: { id: number; name: string; icon?: string | null; color?: string | null }[];
   images?: { id: number; url: string }[];
   isFavorited?: boolean;
   cardElements?: CardElement[];
@@ -147,6 +148,21 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
                 <span className="entry-meta-item" style={{ display: "flex", alignItems: "center", gap: 3 }}>
                   <ImageIcon style={{ width: 12, height: 12 }} /> {entry.images.length}
                 </span>
+              </>
+            )}
+            {entry.collections && entry.collections.length > 0 && (
+              <>
+                <span className="entry-meta-dot">·</span>
+                <div className="entry-tags">
+                  {entry.collections.slice(0, 2).map((col) => (
+                    <span key={col.id} className="entry-collection-pill" style={col.color ? { borderColor: col.color, color: col.color } : undefined}>
+                      {col.icon || "📁"} {col.name}
+                    </span>
+                  ))}
+                  {entry.collections.length > 2 && (
+                    <span className="entry-meta-item">+{entry.collections.length - 2}</span>
+                  )}
+                </div>
               </>
             )}
             {entry.tags.length > 0 && (
@@ -296,6 +312,16 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
           padding: 2px 8px;
           border-radius: 999px;
           white-space: nowrap;
+        }
+        .entry-collection-pill {
+          font-size: 0.65rem;
+          background: transparent;
+          border: 1px solid var(--border);
+          color: var(--text-secondary);
+          padding: 1px 7px;
+          border-radius: 999px;
+          white-space: nowrap;
+          font-weight: 500;
         }
         .card-el-top-right {
           position: absolute;

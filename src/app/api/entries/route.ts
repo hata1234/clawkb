@@ -38,6 +38,7 @@ export async function GET(request: Request) {
   const status = searchParams.get("status") || undefined;
   const source = searchParams.get("source") || undefined;
   const tag = searchParams.get("tag") || undefined;
+  const collectionId = searchParams.get("collectionId") || undefined;
   const search = searchParams.get("search") || undefined;
   const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
   const limit = Math.min(100, parseInt(searchParams.get("limit") || "20"));
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
     ...(status && { status }),
     ...(source && { source }),
     ...(tag && { tags: { some: { name: tag } } }),
+    ...(collectionId && { collections: { some: { id: parseInt(collectionId) } } }),
     ...(search && {
       OR: [
         { title: { contains: search, mode: "insensitive" as const } },

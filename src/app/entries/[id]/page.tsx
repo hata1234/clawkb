@@ -13,7 +13,7 @@ import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import {
   ArrowLeft, Edit2, Trash2, ExternalLink, Tag, Clock, Globe,
-  Check, X, Loader2, Network, Star, Download
+  Check, X, Loader2, Network, Star, Download, FolderOpen
 } from "lucide-react";
 
 interface Entry {
@@ -28,6 +28,7 @@ interface Entry {
   createdAt: string;
   updatedAt: string;
   tags: { id: number; name: string }[];
+  collections?: { id: number; name: string; icon?: string | null; color?: string | null }[];
   images: { id: number; url: string; key: string; filename: string; mimeType: string; size: number; caption: string | null; sortOrder: number }[];
   authorId: number | null;
   author: { id: number; displayName: string; avatarUrl: string | null } | null;
@@ -326,6 +327,26 @@ export default function EntryDetailPage() {
             <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>No tags</span>
           )}
         </div>
+
+        {/* Collections */}
+        {!editing && entry.collections && entry.collections.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+            <FolderOpen style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {entry.collections.map((col) => (
+                <Link key={col.id} href={`/entries?collectionId=${col.id}`} style={{
+                  fontSize: "0.75rem", border: "1px solid var(--border)", color: col.color || "var(--text-secondary)",
+                  padding: "3px 10px", borderRadius: 999, textDecoration: "none", borderColor: col.color || "var(--border)",
+                  transition: "background 0.12s",
+                }}
+                onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "var(--surface-hover)"; }}
+                onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "transparent"; }}>
+                  {col.icon || "📁"} {col.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Images */}

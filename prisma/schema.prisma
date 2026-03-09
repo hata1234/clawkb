@@ -48,8 +48,9 @@ model Entry {
   authorId  Int?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
-  tags      Tag[]          @relation("EntryTags")
-  images    EntryImage[]
+  tags        Tag[]          @relation("EntryTags")
+  collections Collection[]   @relation("EntryCollections")
+  images      EntryImage[]
   author    User?          @relation("EntryAuthor", fields: [authorId], references: [id], onDelete: SetNull)
   deletedAt DateTime?
   deletedBy Int?
@@ -157,6 +158,25 @@ model UserFavorite {
 
   @@unique([userId, entryId])
   @@map("user_favorites")
+}
+
+model Collection {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  parentId    Int?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent      Collection?  @relation("CollectionTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Collection[] @relation("CollectionTree")
+  entries     Entry[]      @relation("EntryCollections")
+
+  @@index([parentId])
+  @@map("collections")
 }
 
 model ActivityLog {

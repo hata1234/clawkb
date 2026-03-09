@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   FileText,
   Tag,
+  FolderOpen,
   Settings,
   Clock,
   Network,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "./ThemeProvider";
+import CollectionTree from "./CollectionTree";
 
 const navItems = [
   { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
@@ -33,6 +35,7 @@ const navItems = [
   { href: "/favorites",   label: "Favorites",  icon: Star },
   { href: "/timeline",    label: "Timeline",   icon: Clock },
   { href: "/graph",       label: "Graph",      icon: Network },
+  { href: "/collections", label: "Collections", icon: FolderOpen },
   { href: "/tags",        label: "Tags",       icon: Tag },
   { href: "/activity",    label: "Activity",   icon: Activity },
   { href: "/profile",     label: "Profile",    icon: UserCircle2 },
@@ -129,6 +132,9 @@ export default function Sidebar({
           );
         })}
       </nav>
+
+      {/* Collection tree */}
+      <CollectionTree collapsed={collapsed} />
 
       {/* Theme toggle + Collapse toggle */}
       <div className="sidebar-bottom-actions">
