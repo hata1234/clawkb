@@ -1,0 +1,9 @@
+{
+  "id": "auto-tag",
+  "name": "Auto Tag",
+  "version": "1.0.0",
+  "description": "Automatically suggests tags when a new entry is created without tags.",
+  "builtIn": true,
+  "hooks": ["entry.afterCreate", "settings.register"],
+  "permissions": ["entries.write", "settings.read"]
+}
