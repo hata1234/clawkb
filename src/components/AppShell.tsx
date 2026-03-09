@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
+import CommandSearch from "./CommandSearch";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -21,6 +22,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         avatarUrl={session?.user?.avatarUrl || undefined}
         effectiveRole={session?.user?.effectiveRole || undefined}
       />
+      <CommandSearch />
       <main id="main-content" className="min-h-screen">
         <div id="main-inner">
           {children}

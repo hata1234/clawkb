@@ -23,6 +23,7 @@ import {
   Star,
   Trash2,
   Activity,
+  Search,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -31,6 +32,7 @@ import CollectionTree from "./CollectionTree";
 
 const navItems = [
   { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/search",      label: "Search",     icon: Search },
   { href: "/entries",     label: "Entries",    icon: FileText },
   { href: "/favorites",   label: "Favorites",  icon: Star },
   { href: "/timeline",    label: "Timeline",   icon: Clock },

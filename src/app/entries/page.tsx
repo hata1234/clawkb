@@ -187,7 +187,13 @@ function EntriesPageInner() {
           <input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search entries..."
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && search.trim().split(/\s+/).length >= 3) {
+                e.preventDefault();
+                router.push(`/search?q=${encodeURIComponent(search.trim())}`);
+              }
+            }}
+            placeholder="Search entries... (Enter for deep search)"
             style={{ width: "100%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", paddingLeft: 36, paddingRight: 16, paddingTop: 10, paddingBottom: 10, fontSize: "0.875rem", color: "var(--text)", outline: "none", boxSizing: "border-box" }}
           />
         </div>
