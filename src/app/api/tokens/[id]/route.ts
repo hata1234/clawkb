@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { pool } from "@/lib/prisma";
-import { ensureApiTokensTable } from "@/lib/auth-token";
+import { prisma } from "@/lib/prisma";
 
 // DELETE /api/tokens/[id] — revoke a token
 export async function DELETE(
@@ -19,14 +18,12 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid token ID" }, { status: 400 });
   }
 
-  await ensureApiTokensTable();
-
-  const { rowCount } = await pool.query(
-    `UPDATE api_tokens SET revoked = TRUE WHERE id = $1`,
-    [tokenId]
-  );
-
-  if (!rowCount) {
+  try {
+    await prisma.apiToken.update({
+      where: { id: tokenId },
+      data: { revoked: true },
+    });
+  } catch {
     return NextResponse.json({ error: "Token not found" }, { status: 404 });
   }
 

@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { pool } from "./prisma";
+import { prisma } from "./prisma";
 
 export type ApiTokenType = "legacy" | "user" | "agent";
 
@@ -9,34 +9,6 @@ export interface ApiTokenRecord {
   token_prefix: string;
   user_id: number | null;
   token_type: ApiTokenType;
-}
-
-let tableReady = false;
-
-export async function ensureApiTokensTable() {
-  if (tableReady) return;
-
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS api_tokens (
-      id SERIAL PRIMARY KEY,
-      name VARCHAR(100),
-      token_hash VARCHAR(64) NOT NULL UNIQUE,
-      token_prefix VARCHAR(12) NOT NULL,
-      user_id INTEGER,
-      token_type VARCHAR(32) NOT NULL DEFAULT 'legacy',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      last_used_at TIMESTAMPTZ,
-      revoked BOOLEAN DEFAULT FALSE
-    );
-  `);
-
-  await pool.query(`
-    ALTER TABLE api_tokens
-      ADD COLUMN IF NOT EXISTS user_id INTEGER,
-      ADD COLUMN IF NOT EXISTS token_type VARCHAR(32) NOT NULL DEFAULT 'legacy';
-  `);
-
-  tableReady = true;
 }
 
 export function hashToken(token: string): string {
@@ -52,40 +24,54 @@ export async function createApiToken(input: {
   userId?: number | null;
   tokenType?: ApiTokenType;
 }) {
-  await ensureApiTokensTable();
-
   const token = generateToken();
   const hash = hashToken(token);
   const prefix = token.slice(0, 12);
   const tokenType = input.tokenType ?? "user";
 
-  const { rows } = await pool.query<ApiTokenRecord & { created_at: Date }>(
-    `INSERT INTO api_tokens (name, token_hash, token_prefix, user_id, token_type)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, name, token_prefix, user_id, token_type, created_at`,
-    [input.name, hash, prefix, input.userId ?? null, tokenType]
-  );
+  const record = await prisma.apiToken.create({
+    data: {
+      name: input.name,
+      tokenHash: hash,
+      tokenPrefix: prefix,
+      userId: input.userId ?? null,
+      tokenType,
+    },
+  });
 
   return {
-    ...rows[0],
-    token,
+    id: record.id,
+    name: record.name,
+    token_prefix: record.tokenPrefix,
+    user_id: record.userId,
+    token_type: record.tokenType as ApiTokenType,
+    token, // Only returned once at creation
   };
 }
 
 export async function verifyRawApiToken(token: string): Promise<ApiTokenRecord | null> {
   const hash = hashToken(token);
 
-  await ensureApiTokensTable();
+  const record = await prisma.apiToken.updateMany({
+    where: { tokenHash: hash, revoked: false },
+    data: { lastUsedAt: new Date() },
+  });
 
-  const result = await pool.query<ApiTokenRecord>(
-    `UPDATE api_tokens
-     SET last_used_at = NOW()
-     WHERE token_hash = $1 AND revoked = FALSE
-     RETURNING id, name, token_prefix, user_id, token_type`,
-    [hash]
-  );
+  if (record.count === 0) return null;
 
-  return result.rows[0] ?? null;
+  const found = await prisma.apiToken.findUnique({
+    where: { tokenHash: hash },
+  });
+
+  if (!found || found.revoked) return null;
+
+  return {
+    id: found.id,
+    name: found.name,
+    token_prefix: found.tokenPrefix,
+    user_id: found.userId,
+    token_type: found.tokenType as ApiTokenType,
+  };
 }
 
 export async function verifyApiToken(request: Request): Promise<boolean> {

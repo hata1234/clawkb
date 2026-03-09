@@ -72,3 +72,20 @@ ALTER TABLE "EntryComment"
 UPDATE "User"
 SET "role" = 'admin',
     "updatedAt" = COALESCE("updatedAt", "createdAt");
+
+-- api_tokens: migrate from raw SQL table to Prisma-managed
+-- Create only if not exists (may already exist from auth-token.ts raw SQL)
+CREATE TABLE IF NOT EXISTS "api_tokens" (
+  "id" SERIAL NOT NULL,
+  "name" VARCHAR(100),
+  "token_hash" VARCHAR(64) NOT NULL,
+  "token_prefix" VARCHAR(12) NOT NULL,
+  "user_id" INTEGER,
+  "token_type" VARCHAR(32) NOT NULL DEFAULT 'legacy',
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "last_used_at" TIMESTAMPTZ,
+  "revoked" BOOLEAN NOT NULL DEFAULT false,
+  CONSTRAINT "api_tokens_pkey" PRIMARY KEY ("id")
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "api_tokens_token_hash_key" ON "api_tokens"("token_hash");

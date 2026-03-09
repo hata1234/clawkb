@@ -50,8 +50,8 @@ async function loadServerModule(dir: string): Promise<PluginServerModule | null>
     return null;
   }
 
-  const dynamicImport = (specifier: string) => (0, eval)(`import(${JSON.stringify(specifier)})`) as Promise<PluginServerModule>;
-  const mod = await dynamicImport(pathToFileURL(file).href);
+  // Dynamic import with cache-busting to pick up file changes
+  const mod = await import(/* webpackIgnore: true */ pathToFileURL(file).href) as PluginServerModule;
   return mod as PluginServerModule;
 }
 
