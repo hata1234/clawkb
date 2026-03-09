@@ -3,6 +3,7 @@ import { buildDisplayName } from "./users";
 
 export const entryWithAuthorInclude = {
   tags: true,
+  collections: { select: { id: true, name: true, icon: true, color: true } },
   images: { orderBy: { sortOrder: "asc" as const } },
   author: {
     select: {
@@ -46,6 +47,7 @@ export function serializeEntry<T extends {
   createdAt: Date;
   updatedAt: Date;
   tags?: { id: number; name: string }[];
+  collections?: { id: number; name: string; icon?: string | null; color?: string | null }[];
   images?: {
     id: number;
     url: string;
@@ -63,6 +65,7 @@ export function serializeEntry<T extends {
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
     tags: entry.tags ?? [],
+    collections: entry.collections ?? [],
     images: entry.images ?? [],
     author: entry.author
       ? {

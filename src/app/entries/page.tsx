@@ -52,10 +52,12 @@ function EntriesPageInner() {
   const [status, setStatus] = useState(searchParams.get("status") || "");
   const [source, setSource] = useState(searchParams.get("source") || "");
   const [tag, setTag] = useState(searchParams.get("tag") || "");
+  const [collectionId, setCollectionId] = useState(searchParams.get("collectionId") || "");
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([]);
+  const [allCollections, setAllCollections] = useState<{ id: number; name: string }[]>([]);
 
   // Sync state to URL params
   useEffect(() => {
@@ -66,6 +68,7 @@ function EntriesPageInner() {
     if (status) params.set("status", status);
     if (source) params.set("source", source);
     if (tag) params.set("tag", tag);
+    if (collectionId) params.set("collectionId", collectionId);
     if (sort && sort !== "newest") params.set("sort", sort);
 
     const qs = params.toString();
@@ -73,11 +76,12 @@ function EntriesPageInner() {
     // Use replaceState to avoid creating new history entries on every keystroke,
     // but pushState on page change so back button works for pagination
     window.history.replaceState(null, "", newUrl);
-  }, [page, search, type, status, source, tag, sort, pathname]);
+  }, [page, search, type, status, source, tag, collectionId, sort, pathname]);
 
-  // Load available tags for filter dropdown
+  // Load available tags and collections for filter dropdowns
   useEffect(() => {
     fetch("/api/tags").then((r) => r.json()).then(setAllTags).catch(() => {});
+    fetch("/api/collections").then((r) => r.json()).then((data) => setAllCollections(data.flat || [])).catch(() => {});
   }, []);
 
   const fetchEntries = useCallback(async () => {
@@ -88,6 +92,7 @@ function EntriesPageInner() {
     if (status) params.set("status", status);
     if (source) params.set("source", source);
     if (tag) params.set("tag", tag);
+    if (collectionId) params.set("collectionId", collectionId);
     if (sort === "oldest") params.set("sort", "oldest");
     params.set("page", String(page));
     params.set("limit", "20");
@@ -97,7 +102,7 @@ function EntriesPageInner() {
     setTotal(data.total);
     setTotalPages(data.totalPages);
     setLoading(false);
-  }, [search, type, status, source, tag, sort, page]);
+  }, [search, type, status, source, tag, collectionId, sort, page]);
 
   useEffect(() => {
     const t = setTimeout(fetchEntries, 300);
@@ -114,6 +119,7 @@ function EntriesPageInner() {
       setStatus(params.get("status") || "");
       setSource(params.get("source") || "");
       setTag(params.get("tag") || "");
+      setCollectionId(params.get("collectionId") || "");
       setSort(params.get("sort") || "newest");
     };
     window.addEventListener("popstate", onPopState);
@@ -129,16 +135,17 @@ function EntriesPageInner() {
     if (status) params.set("status", status);
     if (source) params.set("source", source);
     if (tag) params.set("tag", tag);
+    if (collectionId) params.set("collectionId", collectionId);
     if (sort && sort !== "newest") params.set("sort", sort);
     const qs = params.toString();
     const newUrl = qs ? `${pathname}?${qs}` : pathname;
     window.history.pushState(null, "", newUrl);
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [search, type, status, source, tag, sort, pathname]);
+  }, [search, type, status, source, tag, collectionId, sort, pathname]);
 
   const clearFilters = () => {
-    setSearch(""); setType(""); setStatus(""); setSource(""); setTag(""); setSort("newest"); setPage(1);
+    setSearch(""); setType(""); setStatus(""); setSource(""); setTag(""); setCollectionId(""); setSort("newest"); setPage(1);
   };
 
   const toggleFavorite = async (entryId: number) => {
@@ -148,7 +155,7 @@ function EntriesPageInner() {
     setEntries((prev) => prev.map((e) => e.id === entryId ? { ...e, isFavorited: data.favorited } : e));
   };
 
-  const hasFilters = search || type || status || source || tag || sort !== "newest";
+  const hasFilters = search || type || status || source || tag || collectionId || sort !== "newest";
 
   return (
     <div>
@@ -229,6 +236,10 @@ function EntriesPageInner() {
             <option value="">All Tags</option>
             {allTags.map((t) => <option key={t.id} value={t.name}>{t.name}</option>)}
           </select>
+          <select value={collectionId} onChange={(e) => { setCollectionId(e.target.value); setPage(1); }} style={selectFilterStyle}>
+            <option value="">All Collections</option>
+            {allCollections.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
+          </select>
           <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }} style={selectFilterStyle}>
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
@@ -285,7 +296,7 @@ function EntriesPageInner() {
         }
         @media (min-width: 640px) {
           .entries-filter-grid {
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(3, 1fr);
           }
         }
         select { color-scheme: dark; }
