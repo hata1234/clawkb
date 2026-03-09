@@ -1,0 +1,9 @@
+{
+  "id": "export",
+  "name": "Export",
+  "version": "1.0.0",
+  "description": "Export entries in JSON, CSV, or Markdown formats with filtering and field selection.",
+  "builtIn": true,
+  "hooks": ["api.register", "sidebar.register"],
+  "permissions": ["entries.read"]
+}
