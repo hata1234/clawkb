@@ -94,8 +94,12 @@ export default function TimelineFeed() {
   const dateGroups = groupByDate(entries);
 
   return (
-    <div className="timeline-page">
-      <h1 className="timeline-heading">Timeline</h1>
+    <div>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Library</p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>Timeline</h1>
+      </div>
 
       {/* Filter chips */}
       <div className="timeline-filters">
@@ -228,19 +232,6 @@ export default function TimelineFeed() {
       )}
 
       <style>{`
-        .timeline-page {
-          max-width: 720px;
-          margin: 0 auto;
-          padding: 32px 16px 64px;
-        }
-        .timeline-heading {
-          font-family: var(--font-heading);
-          font-size: 2rem;
-          font-weight: 400;
-          color: var(--text);
-          margin-bottom: 24px;
-        }
-
         /* ═══ Filters ═══ */
         .timeline-filters {
           display: flex;
@@ -465,12 +456,6 @@ export default function TimelineFeed() {
 
         /* ═══ Mobile ═══ */
         @media (max-width: 640px) {
-          .timeline-page {
-            padding: 24px 12px 48px;
-          }
-          .timeline-heading {
-            font-size: 1.5rem;
-          }
           .timeline-container {
             padding-left: 0;
           }

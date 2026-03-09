@@ -13,7 +13,7 @@ import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import {
   ArrowLeft, Edit2, Trash2, ExternalLink, Tag, Clock, Globe,
-  Check, X, Loader2, Network, Star
+  Check, X, Loader2, Network, Star, Download
 } from "lucide-react";
 
 interface Entry {
@@ -77,6 +77,19 @@ export default function EntryDetailPage() {
   const [editStatus, setEditStatus] = useState("");
   const [editUrl, setEditUrl] = useState("");
   const [editTags, setEditTags] = useState("");
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const exportEntry = (format: "json" | "csv" | "markdown") => {
+    if (!entry) return;
+    const url = `/api/plugins/export/export/${entry.id}?format=${format}&includeComments=true`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setShowExportMenu(false);
+  };
 
   const fetchEntry = useCallback(async () => {
     const res = await fetch(`/api/entries/${params.id}`);
@@ -183,6 +196,22 @@ export default function EntryDetailPage() {
               <Link href={`/graph?focus=${entry.id}`} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
                 <Network style={{ width: 14, height: 14 }} /> Graph
               </Link>
+              <div style={{ position: "relative" }}>
+                <button onClick={() => setShowExportMenu((v) => !v)} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+                  <Download style={{ width: 14, height: 14 }} /> Export
+                </button>
+                {showExportMenu && (
+                  <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 50, minWidth: 140, overflow: "hidden" }}>
+                    {(["json", "csv", "markdown"] as const).map((fmt) => (
+                      <button key={fmt} onClick={() => exportEntry(fmt)} style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 14px", fontSize: "0.82rem", color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer", borderBottom: fmt !== "markdown" ? "1px solid var(--border)" : "none" }}
+                        onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "var(--surface-hover)"; }}
+                        onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "none"; }}>
+                        {fmt === "json" ? "JSON" : fmt === "csv" ? "CSV" : "Markdown"}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {canEdit ? (
                 <button onClick={startEdit} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                   <Edit2 style={{ width: 14, height: 14 }} /> Edit

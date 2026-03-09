@@ -102,8 +102,9 @@ export default function ProfilePage() {
   return (
     <div style={{ maxWidth: 720 }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.8rem", fontWeight: 400, marginBottom: 6 }}>Profile</h1>
-        <p style={{ color: "var(--text-secondary)" }}>Update your display name, bio, and avatar.</p>
+        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Account</p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>Profile</h1>
+        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: 2 }}>Update your display name, bio, and avatar.</p>
       </div>
 
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: 24, display: "grid", gap: 24 }}>

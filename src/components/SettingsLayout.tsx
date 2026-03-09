@@ -21,14 +21,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
   return (
     <div style={{ maxWidth: 1040 }}>
-      <h1 style={{
-        fontFamily: "var(--font-heading)",
-        fontSize: "1.8rem",
-        fontWeight: 400,
-        marginBottom: 20,
-      }}>
-        Settings
-      </h1>
+      <div style={{ marginBottom: 20 }}>
+        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>System</p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>Settings</h1>
+      </div>
 
       <nav className="settings-tabs" style={{
         display: "flex",

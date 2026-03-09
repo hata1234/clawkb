@@ -1,5 +1,7 @@
 "use client";
 
+import TemplateManager from "@/components/TemplateManager";
+
 import { useEffect, useState } from "react";
 
 interface PluginRecord {
@@ -153,17 +155,20 @@ export default function PluginsAdminClient() {
         </div>
       </div>
 
-      <div style={card}>
-        <h2 style={{ fontSize: "1rem", marginBottom: 12 }}>Registered Settings Panels</h2>
-        <div style={{ display: "grid", gap: 10 }}>
-          {panels.map((panel) => (
-            <div key={panel.id} style={{ background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "12px 14px" }}>
-              <div style={{ color: "var(--text)" }}>{panel.title}</div>
-              {panel.description ? <div style={{ color: "var(--text-secondary)", fontSize: "0.84rem", marginTop: 4 }}>{panel.description}</div> : null}
-            </div>
-          ))}
+      {panels.length > 0 && (
+        <div style={card}>
+          <h2 style={{ fontSize: "1rem", marginBottom: 12 }}>Plugin Settings</h2>
+          <div style={{ display: "grid", gap: 12 }}>
+            {panels.map((panel) => (
+              <div key={panel.id} style={{ background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "16px 18px" }}>
+                <div style={{ color: "var(--text)", fontWeight: 600, marginBottom: 4 }}>{panel.title}</div>
+                {panel.description ? <div style={{ color: "var(--text-secondary)", fontSize: "0.84rem", marginBottom: 12 }}>{panel.description}</div> : null}
+                {panel.id === "entry-templates" && <TemplateManager />}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {message ? <div style={{ color: "var(--accent)", fontSize: "0.85rem" }}>{message}</div> : null}
     </div>

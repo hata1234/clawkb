@@ -254,6 +254,23 @@ export async function getSettingsPanels(principal: AppPrincipal | null): Promise
   return items;
 }
 
+function matchRoute(routePath: string, pathname: string): string[] | null {
+  // Normalize: strip leading slash from route path
+  const rp = routePath.replace(/^\//, "");
+  const routeSegments = rp.split("/").filter(Boolean);
+  const pathSegments = pathname.split("/").filter(Boolean);
+  if (routeSegments.length !== pathSegments.length) return null;
+  const params: string[] = [];
+  for (let i = 0; i < routeSegments.length; i++) {
+    if (routeSegments[i].startsWith(":")) {
+      params.push(pathSegments[i]);
+    } else if (routeSegments[i] !== pathSegments[i]) {
+      return null;
+    }
+  }
+  return params;
+}
+
 export async function executePluginApi(pluginId: string, pathParts: string[], request: Request, principal: AppPrincipal | null) {
   const plugins = await getEnabledPlugins();
   const plugin = plugins.find((item) => item.manifest.id === pluginId);
@@ -264,15 +281,27 @@ export async function executePluginApi(pluginId: string, pathParts: string[], re
   const mod = await loadServerModule(plugin.dir);
   const routes = (mod?.api?.routes || []) as PluginApiRoute[];
   const pathname = pathParts.join("/");
-  const route = routes.find((item) => item.method.toUpperCase() === request.method.toUpperCase() && item.path === pathname);
-  if (!route) {
+
+  let matchedRoute: PluginApiRoute | undefined;
+  let matchedParams: string[] = [];
+  for (const route of routes) {
+    if (route.method.toUpperCase() !== request.method.toUpperCase()) continue;
+    const params = matchRoute(route.path, pathname);
+    if (params !== null) {
+      matchedRoute = route;
+      matchedParams = params;
+      break;
+    }
+  }
+
+  if (!matchedRoute) {
     return NextResponse.json({ error: "Plugin route not found" }, { status: 404 });
   }
 
   const body = request.method === "GET" || request.method === "HEAD" ? null : await request.json().catch(() => null);
-  const response = await route.handler({
+  const response = await matchedRoute.handler({
     request,
-    params: pathParts,
+    params: matchedParams,
     body,
     context: createPluginContext(principal),
   });

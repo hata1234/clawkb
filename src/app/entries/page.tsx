@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import EntryCard from "@/components/EntryCard";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
-import { Search, Filter, PlusCircle, FileText, X, Download } from "lucide-react";
+import { Search, Filter, FileText, X, Download } from "lucide-react";
 import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 
 interface Entry {
@@ -169,8 +169,7 @@ function EntriesPageInner() {
           borderRadius: "var(--radius-md)", padding: "10px 16px",
           fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap",
         }}>
-          <PlusCircle style={{ width: 16, height: 16 }} />
-          New
+          + New Entry
         </Link>
       </div>
 
