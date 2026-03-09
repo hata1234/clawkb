@@ -20,6 +20,9 @@ import {
   Sun,
   Moon,
   UserCircle2,
+  Star,
+  Trash2,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -28,9 +31,11 @@ import { useTheme } from "./ThemeProvider";
 const navItems = [
   { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
   { href: "/entries",     label: "Entries",    icon: FileText },
+  { href: "/favorites",   label: "Favorites",  icon: Star },
   { href: "/timeline",    label: "Timeline",   icon: Clock },
   { href: "/graph",       label: "Graph",      icon: Network },
   { href: "/tags",        label: "Tags",       icon: Tag },
+  { href: "/activity",    label: "Activity",   icon: Activity },
   { href: "/entries/new", label: "New Entry",  icon: PlusCircle },
   { href: "/profile",     label: "Profile",    icon: UserCircle2 },
   { href: "/settings",    label: "Settings",   icon: Settings },
@@ -56,6 +61,7 @@ export default function Sidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [pluginItems, setPluginItems] = useState<Array<{ id: string; label: string; href: string }>>([]);
+  const [trashCount, setTrashCount] = useState(0);
   const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
@@ -64,6 +70,15 @@ export default function Sidebar({
       .then((data) => setPluginItems(data.items || []))
       .catch(() => setPluginItems([]));
   }, []);
+
+  useEffect(() => {
+    if (effectiveRole === "admin") {
+      fetch("/api/trash")
+        .then((res) => res.ok ? res.json() : { total: 0 })
+        .then((data) => setTrashCount(data.total || 0))
+        .catch(() => setTrashCount(0));
+    }
+  }, [effectiveRole]);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -92,6 +107,7 @@ export default function Sidebar({
       <nav className="sidebar-nav">
         {([...
           navItems,
+          ...(effectiveRole === "admin" ? [{ href: "/trash", label: "Trash", icon: Trash2 }] : []),
           ...pluginItems,
         ] as NavItem[]).map((item) => {
           const Icon = item.icon;
@@ -105,7 +121,12 @@ export default function Sidebar({
               className={`sidebar-link ${active ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
             >
               {Icon ? <Icon className="sidebar-link-icon" /> : <span className="sidebar-plugin-dot" />}
-              <span className="sidebar-link-label">{item.label}</span>
+              <span className="sidebar-link-label">
+                {item.label}
+                {item.href === "/trash" && trashCount > 0 && (
+                  <span style={{ marginLeft: 6, fontSize: "0.65rem", background: "var(--danger)", color: "#fff", padding: "1px 6px", borderRadius: 999, fontWeight: 600 }}>{trashCount}</span>
+                )}
+              </span>
             </Link>
           );
         })}

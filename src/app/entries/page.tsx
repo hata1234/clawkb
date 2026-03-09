@@ -17,6 +17,7 @@ interface Entry {
   status: string;
   createdAt: string;
   tags: { id: number; name: string }[];
+  isFavorited?: boolean;
 }
 
 interface ApiResponse {
@@ -138,6 +139,13 @@ function EntriesPageInner() {
 
   const clearFilters = () => {
     setSearch(""); setType(""); setStatus(""); setSource(""); setTag(""); setSort("newest"); setPage(1);
+  };
+
+  const toggleFavorite = async (entryId: number) => {
+    const res = await fetch(`/api/entries/${entryId}/favorite`, { method: "POST" });
+    if (!res.ok) return;
+    const data = await res.json();
+    setEntries((prev) => prev.map((e) => e.id === entryId ? { ...e, isFavorited: data.favorited } : e));
   };
 
   const hasFilters = search || type || status || source || tag || sort !== "newest";
@@ -264,7 +272,7 @@ function EntriesPageInner() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {entries.map((entry) => <EntryCard key={entry.id} entry={entry} />)}
+          {entries.map((entry) => <EntryCard key={entry.id} entry={entry} onToggleFavorite={toggleFavorite} />)}
         </div>
       )}
 

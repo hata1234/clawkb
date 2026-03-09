@@ -1,0 +1,9 @@
+{
+  "id": "backlinks",
+  "name": "Backlinks",
+  "version": "1.0.0",
+  "description": "Tracks bidirectional links between entries. Shows which entries reference the current one.",
+  "builtIn": true,
+  "hooks": ["entry.afterCreate", "entry.afterUpdate", "entry.render"],
+  "permissions": ["entries.read"]
+}

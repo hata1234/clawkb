@@ -13,6 +13,7 @@ import type { AppPrincipal } from "@/lib/auth";
 import type {
   PluginApiRoute,
   PluginContext,
+  PluginEntryCardElement,
   PluginEntryRenderBlock,
   PluginManifest,
   PluginServerModule,
@@ -201,6 +202,36 @@ export async function getEntryRenderBlocks(entry: Record<string, unknown>, princ
     if (result?.length) blocks.push(...result);
   }
   return blocks;
+}
+
+export async function runEntrySerializeHooks(entry: Record<string, unknown>, principal: AppPrincipal | null): Promise<Record<string, unknown>> {
+  let result = { ...entry };
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const extra = await mod?.entry?.serialize?.({ entry: result, principal, context: createPluginContext(principal) });
+    if (extra) result = { ...result, ...extra };
+  }
+  return result;
+}
+
+export async function getEntryCardElements(entry: Record<string, unknown>, principal: AppPrincipal | null): Promise<PluginEntryCardElement[]> {
+  const elements: PluginEntryCardElement[] = [];
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.entryCard?.render?.({ entry, context: createPluginContext(principal) });
+    if (result?.length) elements.push(...result);
+  }
+  return elements;
+}
+
+export async function runEntryAfterQueryHooks(entries: Record<string, unknown>[], principal: AppPrincipal | null): Promise<Record<string, unknown>[]> {
+  let result = entries;
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const updated = await mod?.entry?.afterQuery?.({ entries: result, principal, context: createPluginContext(principal) });
+    if (updated) result = updated;
+  }
+  return result;
 }
 
 export async function getSidebarItems(principal: AppPrincipal | null): Promise<PluginSidebarItem[]> {

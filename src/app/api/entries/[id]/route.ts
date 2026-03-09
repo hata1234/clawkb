@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { canDeleteEntry, canEditEntry, getRequestPrincipal } from "@/lib/auth";
 import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
-import { getEntryRenderBlocks, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks } from "@/lib/plugins/manager";
+import { getEntryRenderBlocks, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/activity";
 
 interface EntryImageInput {
   url: string;
@@ -40,8 +41,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   });
 
   if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  let isFavorited = false;
+  if (principal.id) {
+    const fav = await prisma.userFavorite.findUnique({
+      where: { userId_entryId: { userId: principal.id, entryId: entry.id } },
+    });
+    isFavorited = !!fav;
+  }
+
   const pluginRender = await getEntryRenderBlocks(entry as unknown as Record<string, unknown>, principal);
-  return NextResponse.json({ ...serializeEntry(entry), pluginRender });
+  const base = { ...serializeEntry(entry), isFavorited, pluginRender } as Record<string, unknown>;
+  const serialized = await runEntrySerializeHooks(base, principal);
+  return NextResponse.json(serialized);
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -135,6 +147,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     principal
   ).catch(() => {});
 
+  logActivity("entry.updated", principal.id, entry.id, { title: entry.title }).catch(() => {});
+
   return NextResponse.json(serializeEntry(entry));
 }
 
@@ -149,6 +163,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   await runEntryBeforeDeleteHooks(entry as unknown as Record<string, unknown>, principal);
-  await prisma.entry.delete({ where: { id: parseInt(id) } });
+  await prisma.entry.update({
+    where: { id: parseInt(id) },
+    data: { deletedAt: new Date(), deletedBy: principal.id },
+  });
+
+  logActivity("entry.deleted", principal.id, parseInt(id), { title: entry.title }).catch(() => {});
+
   return NextResponse.json({ success: true });
 }
