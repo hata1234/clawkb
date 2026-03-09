@@ -1,0 +1,9 @@
+{
+  "id": "related-entries",
+  "name": "Related Entries",
+  "version": "1.0.0",
+  "description": "Adds related entry recommendations to the entry detail view.",
+  "builtIn": true,
+  "hooks": ["entry.render", "settings.register"],
+  "permissions": ["entries.read"]
+}

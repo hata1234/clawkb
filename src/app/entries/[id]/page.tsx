@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import RelatedEntries from "@/components/RelatedEntries";
 import StatusBadge from "@/components/StatusBadge";
@@ -27,6 +28,16 @@ interface Entry {
   updatedAt: string;
   tags: { id: number; name: string }[];
   images: { id: number; url: string; key: string; filename: string; mimeType: string; size: number; caption: string | null; sortOrder: number }[];
+  authorId: number | null;
+  author: { id: number; displayName: string; avatarUrl: string | null } | null;
+  pluginRender?: { id: string; type: string; title?: string; data?: Record<string, unknown> }[];
+}
+
+interface Comment {
+  id: number;
+  content: string;
+  createdAt: string;
+  author: { id: number; displayName: string; avatarUrl: string | null } | null;
 }
 
 const inputStyle: React.CSSProperties = {
@@ -45,7 +56,10 @@ const btnBase: React.CSSProperties = {
 export default function EntryDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const [entry, setEntry] = useState<Entry | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState("");
   const settings = useSettings();
   const statusOpts = settings?.status_options?.map(s => s.id) ?? [...STATUS_OPTIONS];
   const statusLabels: Record<string, string> = {};
@@ -71,6 +85,15 @@ export default function EntryDetailPage() {
   }, [params.id, router]);
 
   useEffect(() => { fetchEntry(); }, [fetchEntry]);
+  useEffect(() => {
+    fetch(`/api/entries/${params.id}/comments`)
+      .then((res) => res.ok ? res.json() : { comments: [] })
+      .then((data) => setComments(data.comments || []));
+  }, [params.id]);
+
+  const canEdit = session?.user?.effectiveRole === "admin" || (session?.user?.effectiveRole === "editor" && session.user.id === String(entry?.authorId ?? ""));
+  const canDelete = session?.user?.effectiveRole === "admin";
+  const canComment = Boolean(entry && (session?.user?.effectiveRole === "admin" || (session?.user?.effectiveRole === "editor" && session.user.id !== String(entry.authorId ?? ""))));
 
   const startEdit = () => {
     if (!entry) return;
@@ -116,6 +139,19 @@ export default function EntryDetailPage() {
     router.push("/entries");
   };
 
+  const addComment = async () => {
+    if (!entry || !commentText.trim()) return;
+    const res = await fetch(`/api/entries/${entry.id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: commentText }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    setComments((current) => [...current, data.comment]);
+    setCommentText("");
+  };
+
   if (loading) return (
     <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
       <Loader2 style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
@@ -137,12 +173,16 @@ export default function EntryDetailPage() {
               <Link href={`/graph?focus=${entry.id}`} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
                 <Network style={{ width: 14, height: 14 }} /> Graph
               </Link>
-              <button onClick={startEdit} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
-                <Edit2 style={{ width: 14, height: 14 }} /> Edit
-              </button>
-              <button onClick={() => setShowDeleteConfirm(true)} style={{ ...btnBase, background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)", color: "var(--danger)" }}>
-                <Trash2 style={{ width: 14, height: 14 }} /> Delete
-              </button>
+              {canEdit ? (
+                <button onClick={startEdit} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+                  <Edit2 style={{ width: 14, height: 14 }} /> Edit
+                </button>
+              ) : null}
+              {canDelete ? (
+                <button onClick={() => setShowDeleteConfirm(true)} style={{ ...btnBase, background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)", color: "var(--danger)" }}>
+                  <Trash2 style={{ width: 14, height: 14 }} /> Delete
+                </button>
+              ) : null}
             </>
           ) : (
             <>
@@ -179,7 +219,7 @@ export default function EntryDetailPage() {
             <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ ...inputStyle, width: "auto", padding: "4px 8px", fontSize: "0.75rem" }}>
               {statusOpts.map((s) => <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>)}
             </select>
-          ) : (
+          ) : canEdit ? (
             <div style={{ position: "relative" }}>
               <StatusBadge status={entry.status} />
               <select value={entry.status} onChange={(e) => updateStatus(e.target.value)}
@@ -187,6 +227,8 @@ export default function EntryDetailPage() {
                 {statusOpts.map((s) => <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>)}
               </select>
             </div>
+          ) : (
+            <StatusBadge status={entry.status} />
           )}
         </div>
 
@@ -199,6 +241,14 @@ export default function EntryDetailPage() {
 
         {/* Meta row */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 16 }}>
+          {entry.author ? (
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: 24, height: 24, borderRadius: 999, overflow: "hidden", background: "var(--accent-muted)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontSize: "0.7rem", fontWeight: 700 }}>
+                {entry.author.avatarUrl ? <img src={entry.author.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : entry.author.displayName.charAt(0).toUpperCase()}
+              </span>
+              {entry.author.displayName}
+            </span>
+          ) : null}
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Globe style={{ width: 14, height: 14 }} /> {entry.source}
           </span>
@@ -273,6 +323,40 @@ export default function EntryDetailPage() {
         </div>
       )}
 
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
+        <h2 style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+          Comments
+        </h2>
+
+        {canComment ? (
+          <div style={{ marginBottom: 16 }}>
+            <textarea value={commentText} onChange={(event) => setCommentText(event.target.value)} placeholder="Add a comment" style={{ ...inputStyle, minHeight: 100, resize: "vertical" }} />
+            <div style={{ marginTop: 10 }}>
+              <button onClick={addComment} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)" }}>
+                Add comment
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div style={{ display: "grid", gap: 12 }}>
+          {comments.length === 0 ? (
+            <p style={{ color: "var(--text-dim)", fontSize: "0.85rem" }}>No comments yet.</p>
+          ) : comments.map((comment) => (
+            <div key={comment.id} style={{ background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ width: 22, height: 22, borderRadius: 999, overflow: "hidden", background: "var(--accent-muted)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontSize: "0.65rem", fontWeight: 700 }}>
+                  {comment.author?.avatarUrl ? <img src={comment.author.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : comment.author?.displayName?.charAt(0).toUpperCase() || "?"}
+                </span>
+                <span style={{ fontSize: "0.82rem", color: "var(--text)" }}>{comment.author?.displayName || "Unknown"}</span>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>{formatDate(comment.createdAt)}</span>
+              </div>
+              <p style={{ fontSize: "0.88rem", lineHeight: 1.6, color: "var(--text-secondary)", whiteSpace: "pre-wrap" }}>{comment.content}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Summary */}
       {(entry.summary || editing) && (
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
@@ -301,8 +385,12 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      {/* Related Entries */}
-      {!editing && entry.id && <RelatedEntries entryId={entry.id} />}
+      {!editing && entry.pluginRender?.map((block) => {
+        if (block.type === "related-entries") {
+          return <RelatedEntries key={block.id} entryId={Number(block.data?.entryId || entry.id)} />;
+        }
+        return null;
+      })}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

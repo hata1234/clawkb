@@ -16,6 +16,11 @@ interface Entry {
   createdAt: string;
   tags: { id: number; name: string }[];
   images?: { id: number; url: string }[];
+  author?: {
+    id: number;
+    displayName: string;
+    avatarUrl: string | null;
+  } | null;
 }
 
 export default function EntryCard({ entry }: { entry: Entry }) {
@@ -40,6 +45,19 @@ export default function EntryCard({ entry }: { entry: Entry }) {
             <p className="entry-summary">{entry.summary}</p>
           )}
           <div className="entry-meta">
+            {entry.author && (
+              <>
+                <span className="entry-author">
+                  {entry.author.avatarUrl ? (
+                    <img src={entry.author.avatarUrl} alt="" className="entry-author-avatar-image" />
+                  ) : (
+                    <span className="entry-author-avatar-fallback">{entry.author.displayName.charAt(0).toUpperCase()}</span>
+                  )}
+                  <span className="entry-meta-item">{entry.author.displayName}</span>
+                </span>
+                <span className="entry-meta-dot">·</span>
+              </>
+            )}
             <span className="entry-meta-item">{entry.source}</span>
             <span className="entry-meta-dot">·</span>
             <span className="entry-meta-item">{formatRelativeDate(entry.createdAt)}</span>
@@ -129,6 +147,26 @@ export default function EntryCard({ entry }: { entry: Entry }) {
           gap: 8px;
           margin-top: 10px;
           flex-wrap: wrap;
+        }
+        .entry-author {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .entry-author-avatar-image,
+        .entry-author-avatar-fallback {
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          object-fit: cover;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--accent-muted);
+          color: var(--accent);
+          font-size: 0.6rem;
+          font-weight: 700;
+          overflow: hidden;
         }
         .entry-meta-item {
           font-size: 0.75rem;

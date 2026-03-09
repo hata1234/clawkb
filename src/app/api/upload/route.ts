@@ -1,22 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRequestPrincipal } from "@/lib/auth";
 import { uploadToMinio } from "@/lib/minio";
 import { v4 as uuid } from "uuid";
 
 export async function POST(req: NextRequest) {
   try {
-    // Check API token or session auth
-    const authHeader = req.headers.get("authorization");
-    const apiToken = process.env.API_TOKEN;
-    if (apiToken && authHeader !== `Bearer ${apiToken}`) {
-      // Check session auth via cookie (for browser uploads)
-      const { auth } = await import("@/lib/auth");
-      const session = await auth();
-      if (!session) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    const principal = await getRequestPrincipal(req);
+    if (!principal) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (principal.authMethod === "token" && principal.agent && principal.effectiveRole === "viewer") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const formData = await req.formData();
+    const kind = String(formData.get("kind") || "entry").trim().toLowerCase();
+    if (kind !== "entry" && kind !== "avatar") {
+      return NextResponse.json({ error: "Invalid upload kind" }, { status: 400 });
+    }
+
     const file = formData.get("file") as File | null;
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -37,7 +40,9 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.name.split(".").pop() || "png";
-    const key = `${Date.now()}-${uuid().slice(0, 8)}.${ext}`;
+    const folder = kind === "avatar" ? "avatars" : "entries";
+    const owner = principal.id ? `user-${principal.id}` : principal.username;
+    const key = `${folder}/${owner}/${Date.now()}-${uuid().slice(0, 8)}.${ext}`;
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const url = await uploadToMinio(buffer, key, file.type);

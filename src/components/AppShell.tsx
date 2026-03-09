@@ -8,15 +8,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  const isLoginPage = pathname === "/login";
+  const isAuthPage = pathname === "/login" || pathname === "/register";
 
-  if (isLoginPage) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
 
   return (
     <div className="min-h-screen">
-      <Sidebar userName={session?.user?.name || undefined} />
+      <Sidebar
+        userName={session?.user?.name || undefined}
+        avatarUrl={session?.user?.avatarUrl || undefined}
+        effectiveRole={session?.user?.effectiveRole || undefined}
+      />
       <main id="main-content" className="min-h-screen">
         <div id="main-inner">
           {children}

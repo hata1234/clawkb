@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 
@@ -200,6 +201,8 @@ export default function LoginPage() {
           marginTop: 24,
         }}>
           Knowledge base for Human–AI Agent collaboration
+          <br />
+          <Link href="/register" style={{ color: "var(--accent)", textDecoration: "none" }}>Create an account</Link>
         </p>
       </div>
 

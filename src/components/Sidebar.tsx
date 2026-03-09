@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -19,6 +19,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
+  UserCircle2,
+  type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "./ThemeProvider";
@@ -30,14 +32,38 @@ const navItems = [
   { href: "/graph",       label: "Graph",      icon: Network },
   { href: "/tags",        label: "Tags",       icon: Tag },
   { href: "/entries/new", label: "New Entry",  icon: PlusCircle },
+  { href: "/profile",     label: "Profile",    icon: UserCircle2 },
   { href: "/settings",    label: "Settings",   icon: Settings },
 ];
 
-export default function Sidebar({ userName }: { userName?: string }) {
+type NavItem = {
+  href: string;
+  label: string;
+  icon?: LucideIcon;
+  id?: string;
+};
+
+export default function Sidebar({
+  userName,
+  avatarUrl,
+  effectiveRole,
+}: {
+  userName?: string;
+  avatarUrl?: string;
+  effectiveRole?: string;
+}) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [pluginItems, setPluginItems] = useState<Array<{ id: string; label: string; href: string }>>([]);
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    fetch("/api/plugins/sidebar")
+      .then((res) => res.ok ? res.json() : { items: [] })
+      .then((data) => setPluginItems(data.items || []))
+      .catch(() => setPluginItems([]));
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -64,7 +90,10 @@ export default function Sidebar({ userName }: { userName?: string }) {
 
       {/* Nav links */}
       <nav className="sidebar-nav">
-        {navItems.map((item) => {
+        {([...
+          navItems,
+          ...pluginItems,
+        ] as NavItem[]).map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
           return (
@@ -75,7 +104,7 @@ export default function Sidebar({ userName }: { userName?: string }) {
               title={collapsed ? item.label : undefined}
               className={`sidebar-link ${active ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
             >
-              <Icon className="sidebar-link-icon" />
+              {Icon ? <Icon className="sidebar-link-icon" /> : <span className="sidebar-plugin-dot" />}
               <span className="sidebar-link-label">{item.label}</span>
             </Link>
           );
@@ -105,9 +134,16 @@ export default function Sidebar({ userName }: { userName?: string }) {
       <div className="sidebar-user">
         <div className="sidebar-user-inner">
           <div className="sidebar-avatar">
-            {userName?.charAt(0).toUpperCase() || "U"}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" className="sidebar-avatar-image" />
+            ) : (
+              userName?.charAt(0).toUpperCase() || "U"
+            )}
           </div>
-          <span className="sidebar-username">{userName || "User"}</span>
+          <div className="sidebar-user-copy">
+            <span className="sidebar-username">{userName || "User"}</span>
+            {effectiveRole ? <span className="sidebar-user-role">{effectiveRole}</span> : null}
+          </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="sidebar-logout"
@@ -276,6 +312,14 @@ export default function Sidebar({ userName }: { userName?: string }) {
           height: 18px;
           flex-shrink: 0;
         }
+        .sidebar-plugin-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
+          background: var(--accent);
+          margin: 0 5px;
+          flex-shrink: 0;
+        }
 
         /* ═══ Bottom Actions ═══ */
         .sidebar-bottom-actions {
@@ -352,11 +396,32 @@ export default function Sidebar({ userName }: { userName?: string }) {
           font-weight: 500;
           color: var(--accent);
           flex-shrink: 0;
+          overflow: hidden;
+        }
+        .sidebar-avatar-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .sidebar-user-copy {
+          min-width: 0;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
         }
         .sidebar-username {
           font-size: 0.875rem;
           color: var(--text-secondary);
-          flex: 1;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .sidebar-user-role {
+          font-size: 0.66rem;
+          color: var(--text-dim);
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
         }
         .sidebar-logout {
           padding: 6px;
