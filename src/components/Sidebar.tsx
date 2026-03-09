@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTheme } from "./ThemeProvider";
+import { Suspense } from "react";
 import CollectionTree from "./CollectionTree";
 
 const navItems = [
@@ -136,7 +137,7 @@ export default function Sidebar({
       </nav>
 
       {/* Collection tree */}
-      <CollectionTree collapsed={collapsed} />
+      <Suspense fallback={null}><CollectionTree collapsed={collapsed} /></Suspense>
 
       {/* Theme toggle + Collapse toggle */}
       <div className="sidebar-bottom-actions">
