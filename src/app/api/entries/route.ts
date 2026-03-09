@@ -4,7 +4,8 @@ import { canCreateEntries, getRequestPrincipal } from "@/lib/auth";
 import { serializeEntry, entryWithAuthorInclude } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreEmbedding } from "@/lib/embedding";
-import { runEntryAfterCreateHooks, runEntryBeforeCreateHooks } from "@/lib/plugins/manager";
+import { getEntryCardElements, runEntryAfterCreateHooks, runEntryAfterQueryHooks, runEntryBeforeCreateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
+import { logActivity } from "@/lib/activity";
 
 interface EntryImageInput {
   url: string;
@@ -42,7 +43,10 @@ export async function GET(request: Request) {
   const limit = Math.min(100, parseInt(searchParams.get("limit") || "20"));
   const sort = searchParams.get("sort") === "oldest" ? "asc" : "desc";
 
-  const where = {
+  const includeDeleted = searchParams.get("includeDeleted") === "true" && principal.effectiveRole === "admin";
+
+  const where: Prisma.EntryWhereInput = {
+    ...(!includeDeleted && { deletedAt: null }),
     ...(type && { type }),
     ...(status && { status }),
     ...(source && { source }),
@@ -67,8 +71,31 @@ export async function GET(request: Request) {
     prisma.entry.count({ where }),
   ]);
 
+  // Add isFavorited for authenticated users
+  let favoriteEntryIds = new Set<number>();
+  if (principal.id) {
+    const favorites = await prisma.userFavorite.findMany({
+      where: { userId: principal.id, entryId: { in: entries.map((e) => e.id) } },
+      select: { entryId: true },
+    });
+    favoriteEntryIds = new Set(favorites.map((f) => f.entryId));
+  }
+
+  // Run serialize and card element hooks per entry
+  let serializedEntries = await Promise.all(
+    entries.map(async (e) => {
+      const base = { ...serializeEntry(e), isFavorited: favoriteEntryIds.has(e.id) } as Record<string, unknown>;
+      const serialized = await runEntrySerializeHooks(base, principal);
+      const cardElements = await getEntryCardElements(serialized, principal);
+      return { ...serialized, cardElements };
+    })
+  );
+
+  // Run batch afterQuery hooks
+  serializedEntries = await runEntryAfterQueryHooks(serializedEntries, principal) as typeof serializedEntries;
+
   return NextResponse.json({
-    entries: entries.map(serializeEntry),
+    entries: serializedEntries,
     total,
     page,
     limit,
@@ -132,6 +159,8 @@ export async function POST(request: Request) {
 
   // Auto-tag if no manual tags provided (fire-and-forget)
   runEntryAfterCreateHooks(entry as unknown as Record<string, unknown>, hookedBody as unknown as Record<string, unknown>, principal).catch(() => {});
+
+  logActivity("entry.created", principal.id, entry.id, { title: entry.title }).catch(() => {});
 
   return NextResponse.json(serializeEntry(entry), { status: 201 });
 }

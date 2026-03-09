@@ -7,6 +7,9 @@ export type PluginHookName =
   | "entry.afterUpdate"
   | "entry.beforeDelete"
   | "entry.render"
+  | "entry.serialize"
+  | "entry.afterQuery"
+  | "entryCard.render"
   | "sidebar.register"
   | "api.register"
   | "settings.register";
@@ -37,6 +40,17 @@ export interface PluginEntryRenderBlock {
   id: string;
   type: string;
   title?: string;
+  data?: Record<string, unknown>;
+}
+
+export interface PluginEntryCardElement {
+  id: string;
+  type: "badge" | "icon" | "indicator";
+  position: "top-right" | "bottom-left" | "meta-row";
+  label?: string;
+  icon?: string;
+  color?: string;
+  tooltip?: string;
   data?: Record<string, unknown>;
 }
 
@@ -80,6 +94,11 @@ export interface PluginServerModule {
     afterUpdate?: (input: { entry: Record<string, unknown>; existingEntry: Record<string, unknown>; context: PluginContext }) => Promise<void>;
     beforeDelete?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<void>;
     render?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<PluginEntryRenderBlock[] | void>;
+    serialize?: (input: { entry: Record<string, unknown>; principal: AppPrincipal | null; context: PluginContext }) => Promise<Record<string, unknown> | void>;
+    afterQuery?: (input: { entries: Record<string, unknown>[]; principal: AppPrincipal | null; context: PluginContext }) => Promise<Record<string, unknown>[] | void>;
+  };
+  entryCard?: {
+    render?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<PluginEntryCardElement[] | void>;
   };
   sidebar?: {
     register?: (input: { context: PluginContext }) => Promise<PluginSidebarItem[] | void>;

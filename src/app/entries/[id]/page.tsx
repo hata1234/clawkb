@@ -13,7 +13,7 @@ import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import {
   ArrowLeft, Edit2, Trash2, ExternalLink, Tag, Clock, Globe,
-  Check, X, Loader2, Network
+  Check, X, Loader2, Network, Star
 } from "lucide-react";
 
 interface Entry {
@@ -31,6 +31,7 @@ interface Entry {
   images: { id: number; url: string; key: string; filename: string; mimeType: string; size: number; caption: string | null; sortOrder: number }[];
   authorId: number | null;
   author: { id: number; displayName: string; avatarUrl: string | null } | null;
+  isFavorited?: boolean;
   pluginRender?: { id: string; type: string; title?: string; data?: Record<string, unknown> }[];
 }
 
@@ -153,6 +154,14 @@ export default function EntryDetailPage() {
     setCommentText("");
   };
 
+  const toggleFavorite = async () => {
+    if (!entry) return;
+    const res = await fetch(`/api/entries/${entry.id}/favorite`, { method: "POST" });
+    if (!res.ok) return;
+    const data = await res.json();
+    setEntry({ ...entry, isFavorited: data.favorited });
+  };
+
   if (loading) return (
     <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
       <Loader2 style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
@@ -201,11 +210,11 @@ export default function EntryDetailPage() {
       {/* Delete confirm */}
       {showDeleteConfirm && (
         <div style={{ marginBottom: 16, padding: 16, background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: "var(--radius-lg)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <p style={{ fontSize: "0.875rem", color: "var(--danger)" }}>Delete this entry? This cannot be undone.</p>
+          <p style={{ fontSize: "0.875rem", color: "var(--danger)" }}>Move this entry to trash?</p>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setShowDeleteConfirm(false)} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>Cancel</button>
             <button onClick={deleteEntry} disabled={deleting} style={{ ...btnBase, background: "var(--danger)", color: "#fff" }}>
-              {deleting && <Loader2 style={{ width: 12, height: 12 }} />} Delete
+              {deleting && <Loader2 style={{ width: 12, height: 12 }} />} Move to trash
             </button>
           </div>
         </div>
@@ -262,6 +271,9 @@ export default function EntryDetailPage() {
               <ExternalLink style={{ width: 14, height: 14 }} /> Source
             </a>
           )}
+          <button onClick={toggleFavorite} style={{ display: "flex", alignItems: "center", gap: 5, background: "none", border: "none", cursor: "pointer", padding: 0, color: entry.isFavorited ? "var(--accent)" : "var(--text-dim)", transition: "color 0.15s ease" }} title={entry.isFavorited ? "Remove from favorites" : "Add to favorites"}>
+            <Star style={{ width: 14, height: 14, fill: entry.isFavorited ? "var(--accent)" : "none" }} /> {entry.isFavorited ? "Favorited" : "Favorite"}
+          </button>
         </div>
 
         {editing && (

@@ -31,6 +31,8 @@ model User {
   entries                  Entry[]        @relation("EntryAuthor")
   comments                 EntryComment[]
   revisions                EntryRevision[]
+  favorites                UserFavorite[]
+  activityLogs             ActivityLog[]
 }
 
 model Entry {
@@ -49,8 +51,11 @@ model Entry {
   tags      Tag[]          @relation("EntryTags")
   images    EntryImage[]
   author    User?          @relation("EntryAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  deletedAt DateTime?
+  deletedBy Int?
   comments  EntryComment[]
   revisions EntryRevision[]
+  favorites UserFavorite[]
   // Vector search (managed via raw SQL, not Prisma migrations)
   // embedding Unsupported("vector(1024)")?
   // tsv       Unsupported("tsvector")?
@@ -140,4 +145,30 @@ model EntryRevision {
 
   @@index([entryId, createdAt])
   @@map("entry_revisions")
+}
+
+model UserFavorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  entryId   Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entry     Entry    @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entryId])
+  @@map("user_favorites")
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  action    String   // "entry.created" | "entry.updated" | "entry.deleted" | "entry.restored" | "comment.created"
+  actorId   Int?
+  entryId   Int?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entryId])
+  @@map("activity_log")
 }

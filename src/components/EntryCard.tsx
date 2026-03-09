@@ -4,7 +4,17 @@ import Link from "next/link";
 import StatusBadge from "./StatusBadge";
 import TypeBadge from "./TypeBadge";
 import { formatRelativeDate } from "@/lib/utils";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Star, Link as LinkIcon, Tag, AlertCircle, CheckCircle, Info, Zap } from "lucide-react";
+
+interface CardElement {
+  id: string;
+  type: "badge" | "icon" | "indicator";
+  position: "top-right" | "bottom-left" | "meta-row";
+  label?: string;
+  icon?: string;
+  color?: string;
+  tooltip?: string;
+}
 
 interface Entry {
   id: number;
@@ -16,6 +26,8 @@ interface Entry {
   createdAt: string;
   tags: { id: number; name: string }[];
   images?: { id: number; url: string }[];
+  isFavorited?: boolean;
+  cardElements?: CardElement[];
   author?: {
     id: number;
     displayName: string;
@@ -23,11 +35,79 @@ interface Entry {
   } | null;
 }
 
-export default function EntryCard({ entry }: { entry: Entry }) {
+const ICON_MAP: Record<string, React.ComponentType<{ style?: React.CSSProperties }>> = {
+  link: LinkIcon,
+  tag: Tag,
+  "alert-circle": AlertCircle,
+  "check-circle": CheckCircle,
+  info: Info,
+  zap: Zap,
+  star: Star,
+};
+
+function CardElementBadge({ el }: { el: CardElement }) {
+  return (
+    <span
+      className="card-el-badge"
+      style={{ background: el.color || "var(--accent-muted)", color: el.color ? "#fff" : "var(--accent)" }}
+      title={el.tooltip}
+    >
+      {el.label || el.id}
+    </span>
+  );
+}
+
+function CardElementIcon({ el }: { el: CardElement }) {
+  const Icon = el.icon ? ICON_MAP[el.icon] : null;
+  return (
+    <span className="card-el-icon" title={el.tooltip} style={{ color: el.color || "var(--text-dim)" }}>
+      {Icon ? <Icon style={{ width: 14, height: 14 }} /> : <span>{el.icon || "?"}</span>}
+    </span>
+  );
+}
+
+function CardElementIndicator({ el }: { el: CardElement }) {
+  return (
+    <span
+      className="card-el-indicator"
+      style={{ background: el.color || "var(--accent)" }}
+      title={el.tooltip}
+    />
+  );
+}
+
+function renderCardElement(el: CardElement) {
+  switch (el.type) {
+    case "badge": return <CardElementBadge key={el.id} el={el} />;
+    case "icon": return <CardElementIcon key={el.id} el={el} />;
+    case "indicator": return <CardElementIndicator key={el.id} el={el} />;
+    default: return null;
+  }
+}
+
+export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; onToggleFavorite?: (id: number) => void }) {
+  const topRight = entry.cardElements?.filter((el) => el.position === "top-right") || [];
+  const bottomLeft = entry.cardElements?.filter((el) => el.position === "bottom-left") || [];
+  const metaRow = entry.cardElements?.filter((el) => el.position === "meta-row") || [];
+
   return (
     <Link href={`/entries/${entry.id}`} style={{ textDecoration: "none" }}>
       <div className="entry-card card-hover">
         <div className={`type-bar type-bar-${entry.type}`} />
+        {topRight.length > 0 && (
+          <div className="card-el-top-right">
+            {topRight.map((el) => renderCardElement(el))}
+          </div>
+        )}
+        {onToggleFavorite && (
+          <button
+            className="entry-card-star"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(entry.id); }}
+            title={entry.isFavorited ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Star style={{ width: 16, height: 16, fill: entry.isFavorited ? "var(--accent)" : "none", color: entry.isFavorited ? "var(--accent)" : "var(--text-dim)" }} />
+          </button>
+        )}
         {entry.images && entry.images.length > 0 && (
           <img
             src={entry.images[0].url}
@@ -82,8 +162,19 @@ export default function EntryCard({ entry }: { entry: Entry }) {
                 </div>
               </>
             )}
+            {metaRow.length > 0 && metaRow.map((el) => (
+              <span key={el.id}>
+                <span className="entry-meta-dot">·</span>
+                {renderCardElement(el)}
+              </span>
+            ))}
           </div>
         </div>
+        {bottomLeft.length > 0 && (
+          <div className="card-el-bottom-left">
+            {bottomLeft.map((el) => renderCardElement(el))}
+          </div>
+        )}
       </div>
       <style>{`
         .entry-card {
@@ -97,6 +188,21 @@ export default function EntryCard({ entry }: { entry: Entry }) {
           display: flex;
           gap: 14px;
           align-items: flex-start;
+        }
+        .entry-card-star {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          border-radius: 4px;
+          z-index: 2;
+          transition: transform 0.15s ease;
+        }
+        .entry-card-star:hover {
+          transform: scale(1.2);
         }
         .entry-card-thumb {
           width: 72px;
@@ -190,6 +296,41 @@ export default function EntryCard({ entry }: { entry: Entry }) {
           padding: 2px 8px;
           border-radius: 999px;
           white-space: nowrap;
+        }
+        .card-el-top-right {
+          position: absolute;
+          top: 10px;
+          right: 32px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          z-index: 2;
+        }
+        .card-el-bottom-left {
+          position: absolute;
+          bottom: 8px;
+          left: 20px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .card-el-badge {
+          font-size: 0.65rem;
+          padding: 1px 7px;
+          border-radius: 999px;
+          font-weight: 600;
+          white-space: nowrap;
+        }
+        .card-el-icon {
+          display: inline-flex;
+          align-items: center;
+          cursor: default;
+        }
+        .card-el-indicator {
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          border-radius: 999px;
         }
         @media (max-width: 640px) {
           .entry-title {

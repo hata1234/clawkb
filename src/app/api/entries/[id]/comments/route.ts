@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { canCreateComment, getRequestPrincipal } from "@/lib/auth";
 import { commentWithAuthorInclude, serializeComment } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/activity";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
@@ -50,6 +51,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     },
     include: commentWithAuthorInclude,
   });
+
+  logActivity("comment.created", principal.id, entryId, { commentId: comment.id, entryTitle: entry.title }).catch(() => {});
 
   return NextResponse.json({ comment: serializeComment(comment) }, { status: 201 });
 }
