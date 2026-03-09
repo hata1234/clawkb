@@ -12,15 +12,28 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
 ## Features
 
-- 📝 **Customizable entry types** — Default types included (opportunity, report, reference, project note); add, rename, or remove types via Settings
-- 🔍 **Hybrid search** — Vector (pgvector), full-text (tsvector), and fuzzy (ILIKE) in a cascading pipeline
+- 📝 **Customizable entry types** — Default types included (opportunity, report, reference, project note); add, rename, or remove via Settings
+- 🔍 **Hybrid search** — Vector (pgvector) + full-text (tsvector) + fuzzy (ILIKE) cascading pipeline, with a dedicated search page and ⌘K quick-search modal
+- 📂 **Collections** — Hierarchical folders to organize entries into a tree structure
 - 🏷️ **Tags & status tracking** — Filter, organize, and track entry lifecycle
-- 🤖 **Agent-friendly API** — Bearer-token authenticated REST endpoints for cron jobs and AI agents to write/query entries
-- 🖼️ **Image attachments** — Upload and attach images via any S3-compatible object storage (MinIO, AWS S3, Cloudflare R2, etc.)
+- 💬 **Comments** — Per-entry comment threads for discussion and notes
+- ⭐ **Favorites** — Star entries for quick access from the `/favorites` page
+- 🗑️ **Soft delete & Trash** — Deleted entries go to trash; restore or permanently delete from `/trash` (admin)
+- 📊 **Activity feed** — Automatic logging of all CRUD and comment actions, viewable at `/activity`
+- 🕸️ **Knowledge graph** — Visual graph of entry relationships at `/graph`
+- 📅 **Timeline** — Chronological view of entries at `/timeline`
+- 🤖 **Agent-friendly API** — Bearer-token authenticated REST endpoints for cron jobs and AI agents
+- 🖼️ **Image attachments** — Upload via any S3-compatible object storage (MinIO, AWS S3, Cloudflare R2, etc.)
+- 📤 **Export** — CSV and JSON export with filters from the UI or API
+- 🔒 **Multi-user auth** — Session-based login (NextAuth.js), user registration, role groups (admin/editor/viewer), per-user API tokens
+- 🔌 **Plugin system** — Extensible hooks (`entry.serialize`, `entryCard.render`, `entry.afterQuery`) with built-in plugins:
+  - **Backlinks** — Bi-directional link detection (`#id` and `/entries/id` references)
+  - **Related Entries** — Discover semantically similar entries
+  - **Auto-tag** — Automatic tag suggestions
+  - **Entry Templates** — Predefined templates for new entries
+  - **Export** — Extended export formats
 - 📊 **Dashboard** — Stats overview with charts and recent entries
-- 📤 **Export** — CSV and JSON export from the UI or API
-- ⚙️ **Settings** — Configure entry types, embedding provider, object storage, and more from the web UI
-- 🔒 **Auth** — Session-based login (NextAuth.js credentials provider)
+- ⚙️ **Settings** — Configure entry types, embedding provider, object storage, users, and plugins from the web UI
 - 🌙 **Dark theme** — Editorial dark UI, responsive on mobile and desktop
 
 ## Tech Stack
@@ -87,7 +100,7 @@ docker compose up -d
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user@localhost:5432/clawkb` |
 | `NEXTAUTH_SECRET` | Session encryption secret | (random string) |
 | `NEXTAUTH_URL` | Public URL | `https://kb.example.com` |
-| `API_TOKEN` | Bearer token for agent API access | (random string) |
+| `API_TOKEN` | Global bearer token for agent API access | (random string) |
 | **Embedding** | | |
 | `EMBEDDING_PROVIDER` | Provider type | `ollama` or `openai` |
 | `EMBEDDING_URL` | Embedding API endpoint | `http://localhost:11434` |
@@ -108,19 +121,51 @@ ClawKB includes a built-in Settings page (`/settings`) where you can configure:
 - **Entry Types** — Add, rename, or remove entry type categories
 - **Embedding** — Switch between Ollama, OpenAI, or other providers; change model
 - **Object Storage** — Configure S3-compatible storage connection
+- **Users** — Manage users and role groups (admin)
+- **API Tokens** — Create per-user API tokens for agent access
+- **Plugins** — Enable/disable and configure plugins
 
 ## API
 
-All API endpoints are under `/api/`. Agent/cron access requires `Authorization: Bearer <API_TOKEN>`.
+All API endpoints are under `/api/`. Access requires either a session cookie or `Authorization: Bearer <token>` header (global `API_TOKEN` or per-user token).
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| **Entries** | | |
 | `GET` | `/api/entries` | List entries (filter by type, status, tags; pagination) |
 | `POST` | `/api/entries` | Create entry (auto-generates embedding) |
 | `GET` | `/api/entries/[id]` | Get single entry |
 | `PATCH` | `/api/entries/[id]` | Update entry fields |
-| `DELETE` | `/api/entries/[id]` | Delete entry |
+| `DELETE` | `/api/entries/[id]` | Soft-delete entry |
+| **Search** | | |
 | `POST` | `/api/search` | Hybrid search (vector + full-text + fuzzy) |
+| **Collections** | | |
+| `GET` | `/api/collections` | List collections tree |
+| `POST` | `/api/collections` | Create collection |
+| `PATCH` | `/api/collections/[id]` | Update collection |
+| `DELETE` | `/api/collections/[id]` | Delete collection |
+| **Comments** | | |
+| `GET` | `/api/entries/[id]/comments` | List comments on entry |
+| `POST` | `/api/entries/[id]/comments` | Add comment |
+| **Favorites** | | |
+| `GET` | `/api/favorites` | List starred entries |
+| `POST` | `/api/favorites` | Toggle star on entry |
+| **Activity** | | |
+| `GET` | `/api/activity` | Activity feed |
+| **Trash** | | |
+| `GET` | `/api/trash` | List soft-deleted entries |
+| `POST` | `/api/trash` | Restore or permanently delete |
+| **Graph** | | |
+| `GET` | `/api/graph` | Knowledge graph data |
+| **Users & Tokens** | | |
+| `GET` | `/api/users` | List users (admin) |
+| `GET` | `/api/tokens` | List API tokens |
+| `POST` | `/api/tokens` | Create API token |
+| `DELETE` | `/api/tokens/[id]` | Revoke token |
+| **Plugins** | | |
+| `GET` | `/api/plugins` | List installed plugins |
+| `PATCH` | `/api/plugins/[id]` | Enable/disable plugin |
+| **Other** | | |
 | `GET` | `/api/stats` | Dashboard statistics |
 | `GET` | `/api/tags` | List all tags |
 | `GET` | `/api/export` | Export entries as CSV or JSON |
@@ -161,14 +206,37 @@ Browser/Mobile → Reverse Proxy (Caddy/Nginx) → Next.js :3500 → PostgreSQL 
                                                     ↑                    ↑
                                               AI Agent / Cron    Embedding Provider
                                               (REST API)         (Ollama / OpenAI)
+                                                    ↓
+                                              Plugin System
+                                              (backlinks, auto-tag, templates, ...)
 ```
+
+## Plugins
+
+ClawKB supports a file-based plugin system. Plugins live in the `plugins/` directory and can hook into:
+
+| Hook | Description |
+|------|-------------|
+| `entry.serialize` | Modify API response before sending |
+| `entryCard.render` | Add badges/icons/indicators to entry cards |
+| `entry.afterQuery` | Post-process batch queries |
+
+### Built-in Plugins
+
+| Plugin | Description |
+|--------|-------------|
+| `backlinks` | Scans `#id` and `/entries/id` references to build bi-directional links |
+| `related-entries` | Finds semantically similar entries via embeddings |
+| `auto-tag` | Suggests tags based on entry content |
+| `entry-templates` | Predefined templates for common entry types |
+| `export` | Extended export formats and options |
 
 ## Roadmap
 
-- [ ] Multi-user support
+- [ ] ACL permission system (custom groups + fine-grained read/edit/delete/create per type/entry)
+- [ ] Revision diff viewer
 - [ ] RAG query endpoint (query → retrieve → synthesize)
 - [ ] Webhook on new entry (notify agents)
-- [ ] Plugin system for custom entry types
 - [ ] Public sharing mode for selected entries
 
 ## License
