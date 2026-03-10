@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Copy, Link2, Trash2, Lock, Check, Loader2, Eye, Clock, Shield } from "lucide-react";
+import { X, Copy, Link2, Trash2, Lock, Check, Loader2, Eye, Clock, Shield, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 interface ShareLink {
@@ -13,10 +13,17 @@ interface ShareLink {
   maxViews: number | null;
   viewCount: number;
   createdAt: string;
+  linkedShares?: { entryId: number; title: string; token: string }[];
+}
+
+interface LinkedEntry {
+  id: number;
+  title: string;
 }
 
 interface ShareDialogProps {
   entryId: number;
+  entryContent?: string | null;
   onClose: () => void;
 }
 
@@ -27,6 +34,23 @@ const EXPIRY_OPTIONS = [
   { label: "7 days", value: 168 },
   { label: "30 days", value: 720 },
 ];
+
+// Extract [[entry:ID|title]] from content
+function extractInternalLinks(content: string | null | undefined): LinkedEntry[] {
+  if (!content) return [];
+  const regex = /\[\[entry:(\d+)\|([^\]]+)\]\]/g;
+  const results: LinkedEntry[] = [];
+  const seen = new Set<number>();
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    const id = Number(match[1]);
+    if (!seen.has(id)) {
+      seen.add(id);
+      results.push({ id, title: match[2] });
+    }
+  }
+  return results;
+}
 
 const overlayStyle: React.CSSProperties = {
   position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
@@ -53,7 +77,7 @@ const btnBase: React.CSSProperties = {
   transition: "all 0.15s ease",
 };
 
-export default function ShareDialog({ entryId, onClose }: ShareDialogProps) {
+export default function ShareDialog({ entryId, entryContent, onClose }: ShareDialogProps) {
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -66,6 +90,12 @@ export default function ShareDialog({ entryId, onClose }: ShareDialogProps) {
   const [expiryHours, setExpiryHours] = useState(0);
   const [maxViews, setMaxViews] = useState("");
 
+  // Internal links detection
+  const internalLinks = extractInternalLinks(entryContent);
+  const [selectedLinkedIds, setSelectedLinkedIds] = useState<Set<number>>(
+    new Set(internalLinks.map((l) => l.id)) // default: all selected
+  );
+
   const fetchLinks = async () => {
     const res = await fetch(`/api/entries/${entryId}/share`);
     if (res.ok) {
@@ -76,12 +106,25 @@ export default function ShareDialog({ entryId, onClose }: ShareDialogProps) {
 
   useEffect(() => { fetchLinks(); }, [entryId]);
 
+  const toggleLinked = (id: number) => {
+    setSelectedLinkedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllLinked = () => setSelectedLinkedIds(new Set(internalLinks.map((l) => l.id)));
+  const deselectAllLinked = () => setSelectedLinkedIds(new Set());
+
   const createLink = async () => {
     setCreating(true);
     const body: Record<string, unknown> = {};
     if (usePassword && password) body.password = password;
     if (expiryHours > 0) body.expiresInHours = expiryHours;
     if (maxViews && Number(maxViews) > 0) body.maxViews = Number(maxViews);
+    if (selectedLinkedIds.size > 0) body.linkedEntryIds = Array.from(selectedLinkedIds);
 
     const res = await fetch(`/api/entries/${entryId}/share`, {
       method: "POST",
@@ -158,6 +201,41 @@ export default function ShareDialog({ entryId, onClose }: ShareDialogProps) {
                 placeholder="Max views (unlimited)" min={1} style={{ ...inputStyle, flex: 1 }} />
             </div>
 
+            {/* Internal links selection */}
+            {internalLinks.length > 0 && (
+              <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <FileText style={{ width: 14, height: 14 }} />
+                    Linked Entries ({internalLinks.length})
+                  </span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={selectAllLinked} style={{ ...btnBase, padding: "3px 8px", fontSize: "0.7rem", background: "transparent", color: "var(--accent)", border: "1px solid var(--border)" }}>All</button>
+                    <button onClick={deselectAllLinked} style={{ ...btnBase, padding: "3px 8px", fontSize: "0.7rem", background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>None</button>
+                  </div>
+                </div>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginBottom: 8 }}>
+                  This entry references other entries. Select which to include in the share. Unselected ones will show a 🔒 lock.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {internalLinks.map((le) => (
+                    <label key={le.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)", padding: "4px 0" }}>
+                      <input
+                        type="checkbox"
+                        checked={selectedLinkedIds.has(le.id)}
+                        onChange={() => toggleLinked(le.id)}
+                        style={{ accentColor: "var(--accent)" }}
+                      />
+                      <span style={{ opacity: selectedLinkedIds.has(le.id) ? 1 : 0.5 }}>
+                        #{le.id} — {le.title}
+                      </span>
+                      {!selectedLinkedIds.has(le.id) && <Lock style={{ width: 11, height: 11, color: "var(--text-dim)" }} />}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button onClick={createLink} disabled={creating || (usePassword && !password)}
               style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", justifyContent: "center",
                 opacity: creating || (usePassword && !password) ? 0.5 : 1 }}>
@@ -200,6 +278,13 @@ export default function ShareDialog({ entryId, onClose }: ShareDialogProps) {
                       {link.viewCount} view{link.viewCount !== 1 ? "s" : ""}{link.maxViews !== null ? ` / ${link.maxViews} max` : ""}
                     </span>
                   </div>
+                  {/* Show linked entries count */}
+                  {link.linkedShares && link.linkedShares.length > 0 && (
+                    <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}>
+                      <FileText style={{ width: 11, height: 11 }} />
+                      Includes {link.linkedShares.length} linked {link.linkedShares.length === 1 ? "entry" : "entries"}
+                    </div>
+                  )}
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => copyUrl(link)}
                       style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: copiedId === link.id ? "var(--accent)" : "var(--text-secondary)", fontSize: "0.75rem", padding: "5px 10px" }}>

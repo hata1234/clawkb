@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getRequestPrincipal, jsonError } from "@/lib/auth";
 
-// POST - Create a share link
+// POST - Create a share link (optionally with linked entries)
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return jsonError("Unauthorized", 401);
@@ -17,10 +17,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!entry || entry.deletedAt) return jsonError("Entry not found", 404);
 
   const body = await request.json().catch(() => ({}));
-  const { password, expiresInHours, maxViews } = body as {
+  const { password, expiresInHours, maxViews, linkedEntryIds } = body as {
     password?: string;
     expiresInHours?: number;
     maxViews?: number;
+    linkedEntryIds?: number[];
   };
 
   const token = crypto.randomBytes(32).toString("hex");
@@ -29,6 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000)
     : null;
 
+  // Create main share link
   const shareLink = await prisma.shareLink.create({
     data: {
       token,
@@ -40,6 +42,32 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     },
   });
 
+  // Create child share links for linked entries
+  const childLinks: { entryId: number; token: string; title: string }[] = [];
+  if (linkedEntryIds && linkedEntryIds.length > 0) {
+    // Verify all linked entries exist
+    const linkedEntries = await prisma.entry.findMany({
+      where: { id: { in: linkedEntryIds }, deletedAt: null },
+      select: { id: true, title: true },
+    });
+
+    for (const le of linkedEntries) {
+      const childToken = crypto.randomBytes(32).toString("hex");
+      await prisma.shareLink.create({
+        data: {
+          token: childToken,
+          entryId: le.id,
+          createdById: principal.id!,
+          parentId: shareLink.id,
+          passwordHash, // inherit same password
+          expiresAt,    // inherit same expiry
+          maxViews: null,
+        },
+      });
+      childLinks.push({ entryId: le.id, token: childToken, title: le.title });
+    }
+  }
+
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3500";
 
   return NextResponse.json({
@@ -49,10 +77,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     expiresAt: shareLink.expiresAt?.toISOString() ?? null,
     maxViews: shareLink.maxViews,
     createdAt: shareLink.createdAt.toISOString(),
+    linkedShares: childLinks.map((c) => ({
+      entryId: c.entryId,
+      token: c.token,
+      title: c.title,
+      url: `${baseUrl}/share/${c.token}`,
+    })),
   });
 }
 
-// GET - List active share links for an entry
+// GET - List active share links for an entry (only top-level, not children)
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return jsonError("Unauthorized", 401);
@@ -62,7 +96,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   if (isNaN(entryId)) return jsonError("Invalid entry ID", 400);
 
   const links = await prisma.shareLink.findMany({
-    where: { entryId, revokedAt: null },
+    where: { entryId, revokedAt: null, parentId: null },
+    include: {
+      children: {
+        where: { revokedAt: null },
+        include: { entry: { select: { id: true, title: true } } },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -78,6 +118,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       maxViews: link.maxViews,
       viewCount: link.viewCount,
       createdAt: link.createdAt.toISOString(),
+      linkedShares: link.children.map((c) => ({
+        entryId: c.entry.id,
+        title: c.entry.title,
+        token: c.token,
+      })),
     }))
   );
 }

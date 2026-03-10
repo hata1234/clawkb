@@ -55,6 +55,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
     data: { viewCount: { increment: 1 } },
   });
 
+  // Get linked shares map
+  const parentId = link.parentId ?? link.id;
+  const siblings = await prisma.shareLink.findMany({
+    where: {
+      OR: [
+        { parentId: parentId },
+        ...(link.parentId ? [{ id: link.parentId }] : []),
+      ],
+      revokedAt: null,
+    },
+    include: { entry: { select: { id: true, title: true } } },
+  });
+
+  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3500";
+  const linkedShares: Record<number, { token: string; title: string; url: string }> = {};
+  for (const s of siblings) {
+    linkedShares[s.entry.id] = {
+      token: s.token,
+      title: s.entry.title,
+      url: `${baseUrl}/share/${s.token}`,
+    };
+  }
+
   const entry = link.entry;
   return NextResponse.json({
     title: entry.title,
@@ -71,5 +94,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
       : null,
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
+    linkedShares,
   });
 }

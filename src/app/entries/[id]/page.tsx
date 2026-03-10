@@ -510,7 +510,7 @@ export default function EntryDetailPage() {
         return null;
       })}
 
-      {showShareDialog && <ShareDialog entryId={entry.id} onClose={() => setShowShareDialog(false)} />}
+      {showShareDialog && <ShareDialog entryId={entry.id} entryContent={entry.content} onClose={() => setShowShareDialog(false)} />}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

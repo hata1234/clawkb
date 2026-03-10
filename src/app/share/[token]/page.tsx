@@ -2,8 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import MarkdownRenderer from "@/components/MarkdownRenderer";
-import { Lock, Loader2, AlertCircle, Clock, Tag, User } from "lucide-react";
+import SharedMarkdownRenderer from "@/components/SharedMarkdownRenderer";
+import { Lock, Loader2, AlertCircle, Clock, Tag, BookOpen } from "lucide-react";
+
+interface LinkedShare {
+  token: string;
+  title: string;
+  url: string;
+}
 
 interface SharedEntry {
   title: string;
@@ -14,6 +20,7 @@ interface SharedEntry {
   author: { displayName: string; avatarUrl: string | null } | null;
   createdAt: string;
   updatedAt: string;
+  linkedShares: Record<number, LinkedShare>;
 }
 
 const containerStyle: React.CSSProperties = {
@@ -233,9 +240,7 @@ export default function SharePage() {
             <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
               Content
             </h2>
-            <div className="prose-kb">
-              <MarkdownRenderer content={entry.content} />
-            </div>
+            <SharedMarkdownRenderer content={entry.content} linkedShares={entry.linkedShares || {}} />
           </div>
         )}
       </div>
@@ -248,7 +253,12 @@ export default function SharePage() {
 function Footer() {
   return (
     <footer style={{ textAlign: "center", padding: "24px 20px", fontSize: "0.75rem", color: "var(--text-dim)", borderTop: "1px solid var(--border)" }}>
-      Powered by ClawKB
+      <a href="/" style={{ color: "var(--text-dim)", textDecoration: "none" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <BookOpen style={{ width: 14, height: 14 }} />
+          Powered by ClawKB
+        </span>
+      </a>
     </footer>
   );
 }

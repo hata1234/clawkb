@@ -240,6 +240,7 @@ model ShareLink {
   token        String    @unique @db.VarChar(64)
   entryId      Int
   createdById  Int
+  parentId     Int?
   passwordHash String?   @map("password_hash")
   expiresAt    DateTime?
   maxViews     Int?      @map("max_views")
@@ -247,9 +248,12 @@ model ShareLink {
   createdAt    DateTime  @default(now())
   revokedAt    DateTime?
 
-  entry     Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
-  createdBy User  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  entry     Entry      @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  createdBy User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  parent    ShareLink? @relation("ShareLinkChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  ShareLink[] @relation("ShareLinkChildren")
 
   @@index([entryId])
+  @@index([parentId])
   @@map("share_links")
 }
