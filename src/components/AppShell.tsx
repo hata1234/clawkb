@@ -12,15 +12,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  const isPublicPage = pathname === "/login" || pathname === "/register" || pathname.startsWith("/share/");
 
   useEffect(() => {
-    if (status === "unauthenticated" && !isAuthPage) {
+    if (status === "unauthenticated" && !isPublicPage) {
       router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
     }
-  }, [status, isAuthPage, pathname, router]);
+  }, [status, isPublicPage, pathname, router]);
 
-  if (isAuthPage) {
+  if (isPublicPage) {
     return <>{children}</>;
   }
 

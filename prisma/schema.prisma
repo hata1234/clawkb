@@ -34,6 +34,7 @@ model User {
   favorites                UserFavorite[]
   activityLogs             ActivityLog[]
   permissionGroups         UserGroup[]
+  shareLinks               ShareLink[]
 }
 
 model Entry {
@@ -58,6 +59,7 @@ model Entry {
   comments  EntryComment[]
   revisions EntryRevision[]
   favorites UserFavorite[]
+  shareLinks ShareLink[]
   // Vector search (managed via raw SQL, not Prisma migrations)
   // embedding Unsupported("vector(1024)")?
   // tsv       Unsupported("tsvector")?
@@ -231,4 +233,23 @@ model UserGroup {
 
   @@unique([userId, groupId])
   @@map("user_groups")
+}
+
+model ShareLink {
+  id           Int       @id @default(autoincrement())
+  token        String    @unique @db.VarChar(64)
+  entryId      Int
+  createdById  Int
+  passwordHash String?   @map("password_hash")
+  expiresAt    DateTime?
+  maxViews     Int?      @map("max_views")
+  viewCount    Int       @default(0) @map("view_count")
+  createdAt    DateTime  @default(now())
+  revokedAt    DateTime?
+
+  entry     Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
+  @@map("share_links")
 }

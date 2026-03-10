@@ -11,9 +11,10 @@ import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
+import ShareDialog from "@/components/ShareDialog";
 import {
   ArrowLeft, Edit2, Trash2, ExternalLink, Tag, Clock, Globe,
-  Check, X, Loader2, Network, Star, Download, FolderOpen
+  Check, X, Loader2, Network, Star, Download, FolderOpen, Share2
 } from "lucide-react";
 
 interface Entry {
@@ -80,6 +81,7 @@ export default function EntryDetailPage() {
   const [editUrl, setEditUrl] = useState("");
   const [editTags, setEditTags] = useState("");
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
 
   const exportEntry = (format: "json" | "csv" | "markdown") => {
     if (!entry) return;
@@ -262,6 +264,9 @@ export default function EntryDetailPage() {
                   </div>
                 )}
               </div>
+              <button onClick={() => setShowShareDialog(true)} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
+                <Share2 style={{ width: 14, height: 14 }} /> Share
+              </button>
               {canEdit ? (
                 <button onClick={startEdit} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>
                   <Edit2 style={{ width: 14, height: 14 }} /> Edit
@@ -504,6 +509,8 @@ export default function EntryDetailPage() {
         }
         return null;
       })}
+
+      {showShareDialog && <ShareDialog entryId={entry.id} onClose={() => setShowShareDialog(false)} />}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
