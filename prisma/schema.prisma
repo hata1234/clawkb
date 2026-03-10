@@ -33,6 +33,7 @@ model User {
   revisions                EntryRevision[]
   favorites                UserFavorite[]
   activityLogs             ActivityLog[]
+  permissionGroups         UserGroup[]
 }
 
 model Entry {
@@ -191,4 +192,43 @@ model ActivityLog {
   @@index([createdAt])
   @@index([entryId])
   @@map("activity_log")
+}
+
+model PermissionGroup {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  builtIn     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions Permission[]
+  users       UserGroup[]
+
+  @@map("permission_groups")
+}
+
+model Permission {
+  id      Int    @id @default(autoincrement())
+  groupId Int
+  action  String // "read" | "create" | "edit" | "delete" | "manage_settings" | "manage_users"
+  scope   String // "global" | "own" | "collection" | "entry"
+  scopeId Int?   // collection ID or entry ID when scope is "collection" or "entry"
+
+  group PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, action, scope, scopeId])
+  @@map("permissions")
+}
+
+model UserGroup {
+  id      Int @id @default(autoincrement())
+  userId  Int
+  groupId Int
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@map("user_groups")
 }
