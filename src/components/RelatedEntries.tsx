@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import TypeBadge from "@/components/TypeBadge";
 import { formatRelativeDate } from "@/lib/utils";
 
 interface RelatedEntry {
@@ -60,7 +59,6 @@ export default function RelatedEntries({ entryId }: { entryId: number }) {
               }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <TypeBadge type={e.type} />
                     <span style={{
                       fontSize: "0.7rem", color: "var(--text-muted)",
                       fontFamily: "var(--font-mono)",

@@ -4,9 +4,8 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import StatusBadge from "@/components/StatusBadge";
-import TypeBadge from "@/components/TypeBadge";
 import { Search, Filter, X, FileText, Sparkles, Type, TextSearch, Loader2 } from "lucide-react";
-import { TYPE_OPTIONS, STATUS_OPTIONS, formatRelativeDate } from "@/lib/utils";
+import { STATUS_OPTIONS, formatRelativeDate } from "@/lib/utils";
 
 interface SearchResult {
   id: number;
@@ -248,13 +247,6 @@ function SearchPageInner() {
       {showFilters && (
         <div className="search-filters" style={{ maxWidth: 720, margin: "0 auto 24px" }}>
           <div className="search-filters-grid">
-            <div>
-              <label className="search-filter-label">Type</label>
-              <select value={type} onChange={(e) => setType(e.target.value)} style={selectStyle}>
-                <option value="">All Types</option>
-                {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
-              </select>
-            </div>
             <div>
               <label className="search-filter-label">Status</label>
               <select value={status} onChange={(e) => setStatus(e.target.value)} style={selectStyle}>
@@ -529,7 +521,6 @@ function SearchResultCard({ result, searchMode }: { result: SearchResult; search
   return (
     <Link href={`/entries/${result.id}`} className="search-result-card">
       <div className="sr-header">
-        <TypeBadge type={result.type} />
         <StatusBadge status={result.status} />
         {result.similarity != null && (
           <span className="sr-score" style={{

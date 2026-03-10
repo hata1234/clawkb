@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
+import { SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import MarkdownRenderer from "./MarkdownRenderer";
 import MentionTextarea from "./MentionTextarea";
@@ -29,6 +29,12 @@ interface EntryTemplate {
   content?: string;
 }
 
+interface CollectionOption {
+  id: number;
+  name: string;
+  icon?: string | null;
+}
+
 interface EntryFormData {
   id?: number;
   type: string;
@@ -40,6 +46,7 @@ interface EntryFormData {
   url: string;
   tags: string;
   images?: UploadedImage[];
+  collectionIds?: number[];
 }
 
 interface EntryFormProps {
@@ -88,6 +95,9 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const [images, setImages] = useState<UploadedImage[]>(initialData?.images || []);
   const [templates, setTemplates] = useState<EntryTemplate[]>([]);
 
+  const [allCollections, setAllCollections] = useState<CollectionOption[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<number[]>(initialData?.collectionIds || []);
+
   // Load templates for create mode
   useEffect(() => {
     if (mode !== "create") return;
@@ -97,12 +107,15 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       .catch(() => {});
   }, [mode]);
 
+  // Load collections for selector
+  useEffect(() => {
+    fetch("/api/collections")
+      .then((r) => r.json())
+      .then((data) => setAllCollections(data.flat || []))
+      .catch(() => {});
+  }, []);
+
   // Dynamic options from DB settings, with hardcoded fallback
-  const typeOptions = settings?.entry_types?.map(t => t.id) ?? [...TYPE_OPTIONS];
-  const typeLabels: Record<string, string> = {};
-  if (settings?.entry_types) {
-    for (const t of settings.entry_types) typeLabels[t.id] = t.label;
-  }
   const sourceOptions = settings?.source_options ?? [...SOURCE_OPTIONS];
   const statusOptions = settings?.status_options?.map(s => s.id) ?? [...STATUS_OPTIONS];
   const statusLabels: Record<string, string> = {};
@@ -111,7 +124,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   }
 
   const [form, setForm] = useState<EntryFormData>({
-    type: initialData?.type || typeOptions[0] || "opportunity",
+    type: initialData?.type || "entry",
     source: initialData?.source || sourceOptions[0] || "manual",
     title: initialData?.title || "",
     summary: initialData?.summary || "",
@@ -126,7 +139,6 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
     if (!tpl) return;
     setForm(prev => ({
       ...prev,
-      type: tpl.type || prev.type,
       source: tpl.source || prev.source,
       status: tpl.status || prev.status,
       tags: tpl.tags || prev.tags,
@@ -149,7 +161,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
     const tagList = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
 
     const body = {
-      type: form.type,
+      type: "entry",
       source: form.source,
       title: form.title,
       summary: form.summary || undefined,
@@ -158,6 +170,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       url: form.url || undefined,
       tags: tagList.length > 0 ? tagList : undefined,
       images: images.length > 0 ? images : undefined,
+      collectionIds: selectedCollectionIds.length > 0 ? selectedCollectionIds : undefined,
     };
 
     try {
@@ -231,12 +244,31 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
 
       <div className="form-row-2col">
         <div>
-          <label style={labelStyle}>Type</label>
-          <select name="type" value={form.type} onChange={handleChange} style={selectStyle}>
-            {typeOptions.map((t) => (
-              <option key={t} value={t}>{typeLabels[t] || t.replace(/_/g, " ")}</option>
-            ))}
-          </select>
+          <label style={labelStyle}>Collections</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, minHeight: 38, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "6px 10px", alignItems: "center" }}>
+            {selectedCollectionIds.map((cid) => {
+              const col = allCollections.find((c) => c.id === cid);
+              return col ? (
+                <span key={cid} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem", background: "var(--surface-hover)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: 999 }}>
+                  {col.icon || "📁"} {col.name}
+                  <button type="button" onClick={() => setSelectedCollectionIds((prev) => prev.filter((id) => id !== cid))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: "var(--text-dim)" }}>&times;</button>
+                </span>
+              ) : null;
+            })}
+            <select
+              value=""
+              onChange={(e) => {
+                const id = parseInt(e.target.value);
+                if (id && !selectedCollectionIds.includes(id)) setSelectedCollectionIds((prev) => [...prev, id]);
+              }}
+              style={{ ...selectStyle, width: "auto", minWidth: 120, padding: "4px 8px", fontSize: "0.75rem", border: "none", background: "transparent" }}
+            >
+              <option value="">+ Add...</option>
+              {allCollections.filter((c) => !selectedCollectionIds.includes(c.id)).map((c) => (
+                <option key={c.id} value={c.id}>{c.icon || "📁"} {c.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
         <div>
           <label style={labelStyle}>Source</label>

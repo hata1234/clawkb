@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import TypeBadge from "./TypeBadge";
 import { formatRelativeDate } from "@/lib/utils";
-import { TYPE_OPTIONS, SOURCE_OPTIONS } from "@/lib/utils";
+import { SOURCE_OPTIONS } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 
 interface Entry {
@@ -45,7 +44,6 @@ export default function TimelineFeed() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [typeFilter, setTypeFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
 
   const fetchEntries = useCallback(
@@ -57,7 +55,6 @@ export default function TimelineFeed() {
         page: String(pageNum),
         limit: "20",
       });
-      if (typeFilter) params.set("type", typeFilter);
       if (sourceFilter) params.set("source", sourceFilter);
 
       try {
@@ -76,7 +73,7 @@ export default function TimelineFeed() {
         setLoadingMore(false);
       }
     },
-    [typeFilter, sourceFilter]
+    [sourceFilter]
   );
 
   // Reset when filters change
@@ -104,18 +101,6 @@ export default function TimelineFeed() {
       {/* Filter chips */}
       <div className="timeline-filters">
         <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="timeline-filter-select"
-        >
-          <option value="">All Types</option>
-          {TYPE_OPTIONS.map((t) => (
-            <option key={t} value={t}>
-              {t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-            </option>
-          ))}
-        </select>
-        <select
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value)}
           className="timeline-filter-select"
@@ -127,11 +112,10 @@ export default function TimelineFeed() {
             </option>
           ))}
         </select>
-        {(typeFilter || sourceFilter) && (
+        {sourceFilter && (
           <button
             className="timeline-clear-btn"
             onClick={() => {
-              setTypeFilter("");
               setSourceFilter("");
             }}
           >
@@ -174,7 +158,6 @@ export default function TimelineFeed() {
                     className="timeline-card"
                   >
                     <div className="timeline-card-header">
-                      <TypeBadge type={entry.type} />
                       <span className="timeline-card-source">
                         {entry.source}
                       </span>
