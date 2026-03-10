@@ -5,6 +5,13 @@ import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { createApiToken, verifyRawApiToken, type ApiTokenType } from "./auth-token";
 import { getEffectiveRole, type AppRole, normalizeRole } from "./roles";
+import { getUserPermissions, hasPermission, type PermissionAction } from "./permissions";
+
+interface UserPermission {
+  action: string;
+  scope: string;
+  scopeId: number | null;
+}
 
 export interface AppPrincipal {
   id: number | null;
@@ -20,11 +27,13 @@ export interface AppPrincipal {
   authMethod: "session" | "token";
   tokenType?: ApiTokenType;
   tokenId?: number;
+  permissions: UserPermission[];
 }
 
 type DbUser = Awaited<ReturnType<typeof findUserById>>;
 
-function principalFromUser(user: NonNullable<DbUser>, authMethod: "session" | "token", token?: { id: number; tokenType: ApiTokenType }): AppPrincipal {
+async function principalFromUser(user: NonNullable<DbUser>, authMethod: "session" | "token", token?: { id: number; tokenType: ApiTokenType }): Promise<AppPrincipal> {
+  const permissions = await getUserPermissions(user.id);
   return {
     id: user.id,
     username: user.username,
@@ -39,6 +48,7 @@ function principalFromUser(user: NonNullable<DbUser>, authMethod: "session" | "t
     authMethod,
     tokenType: token?.tokenType,
     tokenId: token?.id,
+    permissions,
   };
 }
 
@@ -129,7 +139,7 @@ export async function getSessionPrincipal(): Promise<AppPrincipal | null> {
 
   const user = await findUserById(Number(session.user.id));
   if (!user || user.approvalStatus !== "approved") return null;
-  return principalFromUser(user, "session");
+  return await principalFromUser(user, "session");
 }
 
 export async function getRequestPrincipal(request: Request): Promise<AppPrincipal | null> {
@@ -145,8 +155,18 @@ export async function getRequestPrincipal(request: Request): Promise<AppPrincipa
   if (token.user_id) {
     const user = await findUserById(token.user_id);
     if (!user || user.approvalStatus !== "approved") return null;
-    return principalFromUser(user, "token", { id: token.id, tokenType: token.token_type });
+    return await principalFromUser(user, "token", { id: token.id, tokenType: token.token_type });
   }
+
+  // Legacy tokens get full admin permissions
+  const adminPermissions: UserPermission[] = [
+    { action: "read", scope: "global", scopeId: null },
+    { action: "create", scope: "global", scopeId: null },
+    { action: "edit", scope: "global", scopeId: null },
+    { action: "delete", scope: "global", scopeId: null },
+    { action: "manage_settings", scope: "global", scopeId: null },
+    { action: "manage_users", scope: "global", scopeId: null },
+  ];
 
   return {
     id: null,
@@ -162,6 +182,7 @@ export async function getRequestPrincipal(request: Request): Promise<AppPrincipa
     authMethod: "token",
     tokenType: "legacy",
     tokenId: token.id,
+    permissions: adminPermissions,
   };
 }
 
@@ -174,29 +195,60 @@ export function jsonError(message: string, status: number) {
 }
 
 export function canManageSettings(principal: AppPrincipal) {
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "manage_settings");
+  }
   return principal.effectiveRole === "admin";
 }
 
 export function canManageUsers(principal: AppPrincipal) {
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "manage_users");
+  }
   return principal.effectiveRole === "admin";
 }
 
 export function canCreateEntries(principal: AppPrincipal) {
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "create");
+  }
   return principal.effectiveRole === "admin" || principal.effectiveRole === "editor";
 }
 
 export function canEditEntry(principal: AppPrincipal, entryAuthorId: number | null) {
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "edit", {
+      entryAuthorId,
+      userId: principal.id,
+    });
+  }
   if (principal.effectiveRole === "admin") return true;
   if (principal.effectiveRole !== "editor") return false;
   return principal.id !== null && principal.id === entryAuthorId;
 }
 
 export function canDeleteEntry(principal: AppPrincipal, entryAuthorId: number | null) {
-  return canEditEntry(principal, entryAuthorId) && principal.effectiveRole === "admin";
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "delete", {
+      entryAuthorId,
+      userId: principal.id,
+    });
+  }
+  return principal.effectiveRole === "admin";
 }
 
 export function canCreateComment(principal: AppPrincipal, _entryAuthorId: number | null) {
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "create");
+  }
   return principal.effectiveRole === "admin" || principal.effectiveRole === "editor";
+}
+
+export function canReadEntries(principal: AppPrincipal) {
+  if (principal.permissions.length > 0) {
+    return hasPermission(principal.permissions, "read");
+  }
+  return true; // All roles can read in old system
 }
 
 export async function issueUserToken(userId: number, name: string, tokenType: ApiTokenType = "user") {
