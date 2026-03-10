@@ -126,6 +126,28 @@ function EntriesPageInner() {
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
+  // Sync state when searchParams change (e.g. sidebar collection click)
+  useEffect(() => {
+    const urlPage = parseInt(searchParams.get("page") || "1", 10);
+    const urlSearch = searchParams.get("search") || "";
+    const urlType = searchParams.get("type") || "";
+    const urlStatus = searchParams.get("status") || "";
+    const urlSource = searchParams.get("source") || "";
+    const urlTag = searchParams.get("tag") || "";
+    const urlCollectionId = searchParams.get("collectionId") || "";
+    const urlSort = searchParams.get("sort") || "newest";
+
+    if (urlPage !== page) setPage(urlPage);
+    if (urlSearch !== search) setSearch(urlSearch);
+    if (urlType !== type) setType(urlType);
+    if (urlStatus !== status) setStatus(urlStatus);
+    if (urlSource !== source) setSource(urlSource);
+    if (urlTag !== tag) setTag(urlTag);
+    if (urlCollectionId !== collectionId) setCollectionId(urlCollectionId);
+    if (urlSort !== sort) setSort(urlSort);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   // Push to history on page change (so back button navigates between pages)
   const handlePageChange = useCallback((newPage: number) => {
     const params = new URLSearchParams();
