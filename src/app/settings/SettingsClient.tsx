@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Settings, Database, HardDrive, Type, Plus, Trash2, Edit2, Check, X, Loader2, Wifi, WifiOff, KeyRound, Copy } from "lucide-react";
-import type { AllSettings, EntryTypeOption, StatusOption, EmbeddingConfig, StorageConfig } from "@/lib/settings";
+import { Settings, Database, HardDrive, Plus, Trash2, Edit2, Check, X, Loader2, Wifi, WifiOff, KeyRound, Copy, List } from "lucide-react";
+import type { AllSettings, StatusOption, EmbeddingConfig, StorageConfig } from "@/lib/settings";
 
 // ─── Style constants ──────────────────────────────────────────────────────
 const card: React.CSSProperties = {
@@ -133,20 +133,14 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
   );
 }
 
-// ─── Entry Types Tab ──────────────────────────────────────────────────────
-function EntryTypesTab({ settings, onToast }: {
+// ─── Options Tab (Sources + Statuses) ─────────────────────────────────────
+function OptionsTab({ settings, onToast }: {
   settings: AllSettings;
   onToast: (msg: string, ok: boolean) => void;
 }) {
-  const [types, setTypes] = useState<EntryTypeOption[]>(settings.entry_types);
   const [sources, setSources] = useState<string[]>(settings.source_options);
   const [statuses, setStatuses] = useState<StatusOption[]>(settings.status_options);
   const [saving, setSaving] = useState(false);
-
-  // New type form
-  const [newType, setNewType] = useState({ id: "", label: "", icon: "📄" });
-  const [editIdx, setEditIdx] = useState<number | null>(null);
-  const [editVal, setEditVal] = useState<EntryTypeOption>({ id: "", label: "", icon: "" });
 
   // New source
   const [newSource, setNewSource] = useState("");
@@ -161,28 +155,6 @@ function EntryTypesTab({ settings, onToast }: {
     const ok = await saveSetting(key, value);
     setSaving(false);
     onToast(ok ? "Saved" : "Save failed", ok);
-  }
-
-  // ── Entry Types ──
-  function addType() {
-    if (!newType.id || !newType.label) return;
-    const updated = [...types, { ...newType }];
-    setTypes(updated);
-    setNewType({ id: "", label: "", icon: "📄" });
-    save("entry_types", updated);
-  }
-
-  function startEditType(i: number) { setEditIdx(i); setEditVal({ ...types[i] }); }
-  function saveEditType() {
-    if (editIdx === null) return;
-    const updated = types.map((t, i) => i === editIdx ? editVal : t);
-    setTypes(updated); setEditIdx(null);
-    save("entry_types", updated);
-  }
-  function deleteType(i: number) {
-    const updated = types.filter((_, idx) => idx !== i);
-    setTypes(updated);
-    save("entry_types", updated);
   }
 
   // ── Sources ──
@@ -220,75 +192,12 @@ function EntryTypesTab({ settings, onToast }: {
 
   return (
     <div>
-      {/* Entry Types */}
-      <div style={card}>
-        <div style={sectionTitle}>
-          <Type style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          Entry Types
-          {saving && <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />}
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-          {types.map((t, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "8px 12px",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-            }}>
-              {editIdx === i ? (
-                <>
-                  <input value={editVal.icon} onChange={e => setEditVal(v => ({ ...v, icon: e.target.value }))}
-                    style={{ ...inputStyle, width: 56 }} placeholder="🏷️" />
-                  <input value={editVal.label} onChange={e => setEditVal(v => ({ ...v, label: e.target.value }))}
-                    style={{ ...inputStyle, flex: 1 }} placeholder="Label" />
-                  <input value={editVal.id} onChange={e => setEditVal(v => ({ ...v, id: e.target.value }))}
-                    style={{ ...inputStyle, width: 120, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }} placeholder="id_key" />
-                  <button onClick={saveEditType} style={{ ...btnPrimary, padding: "4px 10px" }}><Check style={{ width: 14, height: 14 }} /></button>
-                  <button onClick={() => setEditIdx(null)} style={{ ...btnGhost, padding: "4px 10px" }}><X style={{ width: 14, height: 14 }} /></button>
-                </>
-              ) : (
-                <>
-                  <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>{t.icon}</span>
-                  <span style={{ flex: 1, fontSize: "0.875rem", color: "var(--text)" }}>{t.label}</span>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>{t.id}</span>
-                  <button onClick={() => startEditType(i)} style={{ ...btnGhost, padding: "4px 8px" }}><Edit2 style={{ width: 12, height: 12 }} /></button>
-                  <button onClick={() => deleteType(i)} style={btnDanger}><Trash2 style={{ width: 12, height: 12 }} /></button>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Add new type */}
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-          <div style={{ width: 64 }}>
-            <label style={labelStyle}>Icon</label>
-            <input value={newType.icon} onChange={e => setNewType(v => ({ ...v, icon: e.target.value }))}
-              style={{ ...inputStyle, textAlign: "center" }} placeholder="💡" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={labelStyle}>Label</label>
-            <input value={newType.label} onChange={e => setNewType(v => ({ ...v, label: e.target.value }))}
-              style={inputStyle} placeholder="New Type" />
-          </div>
-          <div style={{ width: 140 }}>
-            <label style={labelStyle}>ID (snake_case)</label>
-            <input value={newType.id} onChange={e => setNewType(v => ({ ...v, id: e.target.value.replace(/\s+/g, "_").toLowerCase() }))}
-              style={{ ...inputStyle, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }} placeholder="new_type" />
-          </div>
-          <button onClick={addType} style={btnPrimary}>
-            <Plus style={{ width: 14, height: 14 }} /> Add
-          </button>
-        </div>
-      </div>
-
       {/* Source Options */}
       <div style={card}>
         <div style={sectionTitle}>
           <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
           Source Options
+          {saving && <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
           {sources.map((s, i) => (
@@ -415,7 +324,6 @@ function EmbeddingTab({ settings, onToast }: {
         Embedding Provider
       </div>
 
-      {/* Provider selector */}
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>Provider</label>
         <div style={{ display: "flex", gap: 8 }}>
@@ -438,7 +346,6 @@ function EmbeddingTab({ settings, onToast }: {
         </div>
       </div>
 
-      {/* Ollama fields */}
       {cfg.provider === "ollama" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
           <div>
@@ -454,7 +361,6 @@ function EmbeddingTab({ settings, onToast }: {
         </div>
       )}
 
-      {/* OpenAI fields */}
       {cfg.provider === "openai" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
           <div>
@@ -476,7 +382,6 @@ function EmbeddingTab({ settings, onToast }: {
         </p>
       )}
 
-      {/* Test result */}
       {testResult && (
         <div style={{
           padding: "10px 14px",
@@ -490,9 +395,7 @@ function EmbeddingTab({ settings, onToast }: {
           alignItems: "center",
           gap: 8,
         }}>
-          {testResult.ok
-            ? <Wifi style={{ width: 14, height: 14 }} />
-            : <WifiOff style={{ width: 14, height: 14 }} />}
+          {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
           {testResult.message}
         </div>
       )}
@@ -575,7 +478,6 @@ function StorageTab({ settings, onToast }: {
           <div style={{ width: 100 }}>{field("Port", "port", { placeholder: "9000" })}</div>
         </div>
 
-        {/* SSL toggle */}
         <div>
           <label style={labelStyle}>SSL</label>
           <button
@@ -611,7 +513,6 @@ function StorageTab({ settings, onToast }: {
         {field("Public URL", "publicUrl", { placeholder: "https://minio.cellar.men/knowledge-hub" })}
       </div>
 
-      {/* Test result */}
       {testResult && (
         <div style={{
           padding: "10px 14px",
@@ -625,9 +526,7 @@ function StorageTab({ settings, onToast }: {
           alignItems: "center",
           gap: 8,
         }}>
-          {testResult.ok
-            ? <Wifi style={{ width: 14, height: 14 }} />
-            : <WifiOff style={{ width: 14, height: 14 }} />}
+          {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
           {testResult.message}
         </div>
       )}
@@ -718,7 +617,6 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
 
   return (
     <div>
-      {/* New token created modal */}
       {revealedToken && (
         <div style={{
           ...card,
@@ -757,7 +655,6 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
         </div>
       )}
 
-      {/* Create new token */}
       <div style={card}>
         <div style={sectionTitle}>
           <KeyRound style={{ width: 16, height: 16, color: "var(--accent)" }} />
@@ -781,7 +678,6 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
         </div>
       </div>
 
-      {/* Token list */}
       <div style={card}>
         <div style={sectionTitle}>
           Active Tokens
@@ -834,10 +730,10 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────
-type Tab = "types" | "embedding" | "storage" | "tokens";
+type Tab = "options" | "embedding" | "storage" | "tokens";
 
 export default function SettingsClient({ initialSettings }: { initialSettings: AllSettings }) {
-  const [activeTab, setActiveTab] = useState<Tab>("types");
+  const [activeTab, setActiveTab] = useState<Tab>("options");
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
   const showToast = useCallback((msg: string, ok: boolean) => {
@@ -857,8 +753,8 @@ export default function SettingsClient({ initialSettings }: { initialSettings: A
         marginBottom: 24,
         width: "fit-content",
       }}>
-        <button onClick={() => setActiveTab("types")} style={tabBtn(activeTab === "types")}>
-          <Type style={{ width: 14, height: 14 }} /> Entry Types
+        <button onClick={() => setActiveTab("options")} style={tabBtn(activeTab === "options")}>
+          <List style={{ width: 14, height: 14 }} /> Options
         </button>
         <button onClick={() => setActiveTab("embedding")} style={tabBtn(activeTab === "embedding")}>
           <Database style={{ width: 14, height: 14 }} /> Embedding
@@ -871,13 +767,11 @@ export default function SettingsClient({ initialSettings }: { initialSettings: A
         </button>
       </div>
 
-      {/* Tab content */}
-      {activeTab === "types"     && <EntryTypesTab settings={initialSettings} onToast={showToast} />}
+      {activeTab === "options"   && <OptionsTab   settings={initialSettings} onToast={showToast} />}
       {activeTab === "embedding" && <EmbeddingTab  settings={initialSettings} onToast={showToast} />}
       {activeTab === "storage"   && <StorageTab    settings={initialSettings} onToast={showToast} />}
       {activeTab === "tokens"    && <ApiTokensTab  onToast={showToast} />}
 
-      {/* Toast */}
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
 
       <style>{`
