@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
@@ -487,7 +488,7 @@ export default function EntryDetailPage() {
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px" }}>
           <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Content</h2>
           {editing ? (
-            <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={20} placeholder="Full content (markdown)..."
+            <MentionTextarea name="editContent" value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={20} placeholder="Full content (markdown)..."
               style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 300 }} />
           ) : (
             <div className="prose-kb">
