@@ -8,6 +8,7 @@ import {
   type CSSProperties,
   type ChangeEvent,
 } from "react";
+import getCaretCoordinates from "textarea-caret";
 import EntryMentionPopup from "./EntryMentionPopup";
 
 interface MentionTextareaProps {
@@ -42,24 +43,45 @@ export default function MentionTextarea({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
-  const [mentionStart, setMentionStart] = useState(-1); // cursor position of the first [
+  const [mentionStart, setMentionStart] = useState(-1);
   const [activeIndex, setActiveIndex] = useState(0);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
 
-  // Compute popup position relative to wrapper
-  const updatePopupPosition = useCallback(() => {
+  // Compute popup position using textarea-caret for accurate cursor tracking
+  const updatePopupPosition = useCallback((cursorPos?: number) => {
     const ta = textareaRef.current;
     const wrapper = wrapperRef.current;
     if (!ta || !wrapper) return;
 
-    // Position popup below textarea, left-aligned
-    // For a more precise position we'd need textarea-caret, but this is clean enough
+    const pos = cursorPos ?? ta.selectionStart;
+    const caret = getCaretCoordinates(ta, pos);
+
+    // caret.top is relative to textarea content (includes scroll)
+    // caret.left is relative to textarea left edge
+    // We need to account for textarea's padding and scroll position
+    const caretTop = caret.top - ta.scrollTop;
+    const caretLeft = caret.left;
+    const lineHeight = caret.height || 20;
+
+    // Position popup below the caret line
+    // If not enough space below, position above
     const taRect = ta.getBoundingClientRect();
-    const wrapperRect = wrapper.getBoundingClientRect();
+    const viewportBottom = window.innerHeight;
+    const absoluteCaretBottom = taRect.top + caretTop + lineHeight;
+    const popupHeight = 300; // approximate
+
+    let top: number;
+    if (absoluteCaretBottom + popupHeight > viewportBottom) {
+      // Not enough space below → show above
+      top = caretTop - popupHeight;
+    } else {
+      // Show below
+      top = caretTop + lineHeight + 4;
+    }
 
     setPopupPos({
-      top: taRect.bottom - wrapperRect.top + 4,
-      left: 0,
+      top: Math.max(0, top),
+      left: Math.min(caretLeft, ta.clientWidth - 350),
     });
   }, []);
 
@@ -72,27 +94,22 @@ export default function MentionTextarea({
       const pos = ta.selectionStart;
       const text = ta.value;
 
-      // Check if we're inside a [[ ... (no ]] yet)
-      // Look backwards from cursor for [[
       const before = text.slice(0, pos);
       const lastOpen = before.lastIndexOf("[[");
       const lastClose = before.lastIndexOf("]]");
 
       if (lastOpen > -1 && lastOpen > lastClose) {
-        // We're inside a [[ mention
         const query = before.slice(lastOpen + 2);
-        // Don't open if query contains newlines (user moved on)
         if (!query.includes("\n") && query.length <= 50) {
           setMentionOpen(true);
           setMentionStart(lastOpen);
           setMentionQuery(query);
           setActiveIndex(0);
-          updatePopupPosition();
+          updatePopupPosition(pos);
           return;
         }
       }
 
-      // Close if we're not inside [[
       if (mentionOpen) {
         setMentionOpen(false);
       }
@@ -100,7 +117,7 @@ export default function MentionTextarea({
     [onChange, mentionOpen, updatePopupPosition]
   );
 
-  // Also check on cursor movement (click, arrow keys)
+  // Also check on cursor movement
   const handleSelect = useCallback(() => {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -119,7 +136,7 @@ export default function MentionTextarea({
           setMentionStart(lastOpen);
           setMentionQuery(query);
           setActiveIndex(0);
-          updatePopupPosition();
+          updatePopupPosition(pos);
         }
         return;
       }
@@ -137,15 +154,12 @@ export default function MentionTextarea({
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActiveIndex((prev) => prev + 1); // popup will clamp
+        setActiveIndex((prev) => prev + 1);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setActiveIndex((prev) => Math.max(0, prev - 1));
       } else if (e.key === "Enter") {
-        // Let the popup handle selection via activeIndex
-        // We need to trigger select on the active item
         e.preventDefault();
-        // Dispatch a custom event that the popup listens to
         const event = new CustomEvent("mention-select-active");
         document.dispatchEvent(event);
       } else if (e.key === "Escape") {
@@ -157,7 +171,7 @@ export default function MentionTextarea({
   );
 
   // Handle entry selection from popup
-  const handleSelect2 = useCallback(
+  const handleEntrySelect = useCallback(
     (entry: MentionEntry) => {
       const ta = textareaRef.current;
       if (!ta || mentionStart < 0) return;
@@ -168,7 +182,6 @@ export default function MentionTextarea({
       const newValue = before + insertion + after;
       const newCursor = before.length + insertion.length;
 
-      // Create synthetic event
       const syntheticEvent = {
         target: {
           name,
@@ -179,7 +192,6 @@ export default function MentionTextarea({
       onChange(syntheticEvent);
       setMentionOpen(false);
 
-      // Restore cursor position after React re-render
       requestAnimationFrame(() => {
         ta.focus();
         ta.setSelectionRange(newCursor, newCursor);
@@ -193,9 +205,6 @@ export default function MentionTextarea({
     if (!mentionOpen) return;
 
     const handler = () => {
-      // We need to get the current results from the popup
-      // Since we can't directly, we'll use a ref-based approach
-      // For now, trigger a click on the active item
       const activeItem = document.querySelector(
         `[data-index="${activeIndex}"]`
       ) as HTMLButtonElement;
@@ -225,7 +234,7 @@ export default function MentionTextarea({
         <EntryMentionPopup
           query={mentionQuery}
           position={popupPos}
-          onSelect={handleSelect2}
+          onSelect={handleEntrySelect}
           onClose={() => setMentionOpen(false)}
           activeIndex={activeIndex}
         />

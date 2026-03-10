@@ -55,6 +55,7 @@ export async function GET(request: Request) {
     ...(collectionId && { collections: { some: { id: parseInt(collectionId) } } }),
     ...(search && {
       OR: [
+        ...(/^\d+$/.test(search) ? [{ id: parseInt(search) }] : []),
         { title: { contains: search, mode: "insensitive" as const } },
         { summary: { contains: search, mode: "insensitive" as const } },
         { content: { contains: search, mode: "insensitive" as const } },
