@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Loader2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,7 +31,8 @@ export default function LoginPage() {
     if (res?.error) {
       setError("Invalid username or password");
     } else {
-      router.push("/");
+      const callbackUrl = searchParams.get("callbackUrl") || "/";
+      router.push(callbackUrl);
       router.refresh();
     }
   };
@@ -216,5 +218,13 @@ export default function LoginPage() {
         input { color-scheme: dark; }
       `}</style>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

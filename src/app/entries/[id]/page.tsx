@@ -68,6 +68,7 @@ export default function EntryDetailPage() {
   const statusLabels: Record<string, string> = {};
   if (settings?.status_options) { for (const s of settings.status_options) statusLabels[s.id] = s.label; }
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<{ status: number; message: string } | null>(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -93,12 +94,36 @@ export default function EntryDetailPage() {
   };
 
   const fetchEntry = useCallback(async () => {
-    const res = await fetch(`/api/entries/${params.id}`);
-    if (!res.ok) { router.push("/entries"); return; }
-    const data = await res.json();
-    setEntry(data);
-    setLoading(false);
-  }, [params.id, router]);
+    try {
+      const res = await fetch(`/api/entries/${params.id}`);
+      if (res.status === 401) {
+        setError({ status: 401, message: "You need to log in to view this entry." });
+        setLoading(false);
+        return;
+      }
+      if (res.status === 403) {
+        setError({ status: 403, message: "You don\'t have permission to view this entry." });
+        setLoading(false);
+        return;
+      }
+      if (res.status === 404) {
+        setError({ status: 404, message: "This entry does not exist." });
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        setError({ status: res.status, message: "Something went wrong." });
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setEntry(data);
+      setLoading(false);
+    } catch {
+      setError({ status: 0, message: "Failed to connect to the server." });
+      setLoading(false);
+    }
+  }, [params.id]);
 
   useEffect(() => { fetchEntry(); }, [fetchEntry]);
   useEffect(() => {
@@ -179,6 +204,30 @@ export default function EntryDetailPage() {
   if (loading) return (
     <div style={{ display: "flex", justifyContent: "center", padding: "80px 0" }}>
       <Loader2 style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+    </div>
+  );
+
+  if (error) return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 20px", textAlign: "center" }}>
+      <div style={{ fontSize: "3rem", marginBottom: 16 }}>
+        {error.status === 401 ? "🔒" : error.status === 403 ? "🚫" : error.status === 404 ? "📭" : "⚠️"}
+      </div>
+      <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--text)", marginBottom: 8 }}>
+        {error.status === 401 ? "Login Required" : error.status === 403 ? "Access Denied" : error.status === 404 ? "Not Found" : "Error"}
+      </h2>
+      <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: 24, maxWidth: 400 }}>
+        {error.message}
+      </p>
+      <div style={{ display: "flex", gap: 12 }}>
+        {error.status === 401 ? (
+          <Link href={`/login?callbackUrl=/entries/${params.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
+            Log in
+          </Link>
+        ) : null}
+        <Link href="/entries" style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+          <ArrowLeft style={{ width: 14, height: 14 }} /> Back to entries
+        </Link>
+      </div>
     </div>
   );
 
