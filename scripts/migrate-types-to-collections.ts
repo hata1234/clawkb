@@ -7,7 +7,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-const DB_URL = process.env.DATABASE_URL ?? "postgresql://localhost:5432/clawkb";
+const DB_URL = process.env.DATABASE_URL ?? "postgresql://localhost:5432/knowledge_hub";
 const adapter = new PrismaPg({ connectionString: DB_URL });
 const prisma = new PrismaClient({ adapter });
 

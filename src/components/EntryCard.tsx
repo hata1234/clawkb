@@ -93,7 +93,6 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
   return (
     <Link href={`/entries/${entry.id}`} style={{ textDecoration: "none" }}>
       <div className="entry-card card-hover">
-        <div className="type-bar" />
         {topRight.length > 0 && (
           <div className="card-el-top-right">
             {topRight.map((el) => renderCardElement(el))}
