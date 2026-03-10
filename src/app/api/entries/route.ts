@@ -27,6 +27,7 @@ interface EntryMutationInput {
   tags?: string[];
   metadata?: Record<string, unknown>;
   images?: EntryImageInput[];
+  collectionIds?: number[];
 }
 
 export async function GET(request: Request) {
@@ -113,10 +114,13 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const hookedBody = await runEntryBeforeCreateHooks(body as Record<string, unknown>, principal) as EntryMutationInput;
-  const { type, source, title, summary, content, status, url, tags, metadata, images } = hookedBody;
+  const { type, source, title, summary, content, status, url, tags, metadata, images, collectionIds } = hookedBody;
 
-  if (!type || !source || !title) {
-    return NextResponse.json({ error: "type, source, title are required" }, { status: 400 });
+  // Default type to "entry" if not specified
+  const entryType = type || "entry";
+
+  if (!source || !title) {
+    return NextResponse.json({ error: "source and title are required" }, { status: 400 });
   }
 
   // Upsert tags
@@ -130,7 +134,7 @@ export async function POST(request: Request) {
 
   const entry = await prisma.entry.create({
     data: {
-      type,
+      type: entryType,
       source,
       title,
       summary: summary || null,
@@ -140,6 +144,9 @@ export async function POST(request: Request) {
       metadata: (metadata || {}) as Prisma.InputJsonValue,
       authorId: principal.id,
       tags: { connect: tagRecords.map((t) => ({ id: t.id })) },
+      ...(collectionIds && collectionIds.length > 0 && {
+        collections: { connect: collectionIds.map((id) => ({ id })) },
+      }),
       ...(images && images.length > 0 && {
         images: {
           create: images.map((img, i: number) => ({
