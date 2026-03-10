@@ -1,29 +1,32 @@
 /**
- * Remark plugin: transform #123 patterns into internal links to /entries/123
+ * Remark plugin: transform [[entry:ID|title]] patterns into internal links
  *
- * Rules:
- * - Matches #<digits> with word boundaries (won't match inside words or URLs)
- * - Skips code blocks and inline code
- * - Also matches explicit /entries/<digits> URLs in plain text
+ * Syntax: [[entry:123|Some Title Here]]
+ * Renders as: a clickable pill link to /entries/123 showing the title
+ *
+ * Skips code blocks and inline code automatically (mdast-util-find-and-replace).
  */
 
 import { findAndReplace } from "mdast-util-find-and-replace";
 import type { Root, PhrasingContent } from "mdast";
 
-// Match #123 style references (not inside words)
-const ENTRY_REF_REGEX = /(?<=^|[\s([\]{},.;:!?])#(\d+)(?=$|[\s)\]{},.;:!?])/g;
+// Match [[entry:123|Title Text]]
+const ENTRY_LINK_REGEX = /\[\[entry:(\d+)\|([^\]]+)\]\]/g;
 
 export default function remarkInternalLinks() {
   return (tree: Root) => {
     findAndReplace(tree, [
       [
-        ENTRY_REF_REGEX,
-        (_match: string, id: string): PhrasingContent => ({
+        ENTRY_LINK_REGEX,
+        (_match: string, id: string, title: string): PhrasingContent => ({
           type: "link",
           url: `/entries/${id}`,
-          children: [{ type: "text", value: `#${id}` }],
+          children: [{ type: "text", value: title }],
           data: {
-            hProperties: { className: "internal-link", "data-entry-id": id },
+            hProperties: {
+              className: "internal-link",
+              "data-entry-id": id,
+            },
           },
         }),
       ],

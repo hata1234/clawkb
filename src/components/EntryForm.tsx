@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import MarkdownRenderer from "./MarkdownRenderer";
+import MentionTextarea from "./MentionTextarea";
 import { Save, Eye, EyeOff, LayoutTemplate } from "lucide-react";
 import ImageUpload from "./ImageUpload";
 
@@ -269,7 +270,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
             {form.content ? <MarkdownRenderer content={form.content} /> : <p style={{ color: "var(--text-dim)", fontSize: "0.875rem" }}>Nothing to preview</p>}
           </div>
         ) : (
-          <textarea name="content" value={form.content} onChange={handleChange} rows={10} placeholder="Full content in Markdown (optional)"
+          <MentionTextarea name="content" value={form.content} onChange={handleChange} rows={10} placeholder="Full content in Markdown (optional)"
             style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 200 }} />
         )}
       </div>
