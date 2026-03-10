@@ -9,7 +9,6 @@ import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
-import TypeBadge from "@/components/TypeBadge";
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import {
@@ -304,7 +303,6 @@ export default function EntryDetailPage() {
       <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "24px", marginBottom: 16 }}>
         {/* Badges */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-          <TypeBadge type={entry.type} />
           {editing ? (
             <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ ...inputStyle, width: "auto", padding: "4px 8px", fontSize: "0.75rem" }}>
               {statusOpts.map((s) => <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>)}
