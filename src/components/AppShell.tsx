@@ -1,18 +1,48 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Sidebar from "./Sidebar";
 import CommandSearch from "./CommandSearch";
+import { Loader2 } from "lucide-react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
+  useEffect(() => {
+    if (status === "unauthenticated" && !isAuthPage) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+    }
+  }, [status, isAuthPage, pathname, router]);
+
   if (isAuthPage) {
     return <>{children}</>;
+  }
+
+  // Show loading while checking auth
+  if (status === "loading") {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--background)",
+      }}>
+        <Loader2 style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+        <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  // Redirect will happen via useEffect, show nothing while redirecting
+  if (status === "unauthenticated") {
+    return null;
   }
 
   return (
