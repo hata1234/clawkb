@@ -6,7 +6,7 @@ import EntryCard from "@/components/EntryCard";
 import Pagination from "@/components/Pagination";
 import Link from "next/link";
 import { Search, Filter, FileText, X, Download } from "lucide-react";
-import { TYPE_OPTIONS, SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
+import { SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 
 interface Entry {
   id: number;
@@ -48,7 +48,6 @@ function EntriesPageInner() {
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1", 10));
   const [search, setSearch] = useState(searchParams.get("search") || "");
-  const [type, setType] = useState(searchParams.get("type") || "");
   const [status, setStatus] = useState(searchParams.get("status") || "");
   const [source, setSource] = useState(searchParams.get("source") || "");
   const [tag, setTag] = useState(searchParams.get("tag") || "");
@@ -64,7 +63,6 @@ function EntriesPageInner() {
     const params = new URLSearchParams();
     if (page > 1) params.set("page", String(page));
     if (search) params.set("search", search);
-    if (type) params.set("type", type);
     if (status) params.set("status", status);
     if (source) params.set("source", source);
     if (tag) params.set("tag", tag);
@@ -76,7 +74,7 @@ function EntriesPageInner() {
     // Use replaceState to avoid creating new history entries on every keystroke,
     // but pushState on page change so back button works for pagination
     window.history.replaceState(null, "", newUrl);
-  }, [page, search, type, status, source, tag, collectionId, sort, pathname]);
+  }, [page, search, status, source, tag, collectionId, sort, pathname]);
 
   // Load available tags and collections for filter dropdowns
   useEffect(() => {
@@ -88,7 +86,6 @@ function EntriesPageInner() {
     setLoading(true);
     const params = new URLSearchParams();
     if (search) params.set("search", search);
-    if (type) params.set("type", type);
     if (status) params.set("status", status);
     if (source) params.set("source", source);
     if (tag) params.set("tag", tag);
@@ -102,7 +99,7 @@ function EntriesPageInner() {
     setTotal(data.total);
     setTotalPages(data.totalPages);
     setLoading(false);
-  }, [search, type, status, source, tag, collectionId, sort, page]);
+  }, [search, status, source, tag, collectionId, sort, page]);
 
   useEffect(() => {
     const t = setTimeout(fetchEntries, 300);
@@ -115,7 +112,6 @@ function EntriesPageInner() {
       const params = new URLSearchParams(window.location.search);
       setPage(parseInt(params.get("page") || "1", 10));
       setSearch(params.get("search") || "");
-      setType(params.get("type") || "");
       setStatus(params.get("status") || "");
       setSource(params.get("source") || "");
       setTag(params.get("tag") || "");
@@ -130,7 +126,6 @@ function EntriesPageInner() {
   useEffect(() => {
     const urlPage = parseInt(searchParams.get("page") || "1", 10);
     const urlSearch = searchParams.get("search") || "";
-    const urlType = searchParams.get("type") || "";
     const urlStatus = searchParams.get("status") || "";
     const urlSource = searchParams.get("source") || "";
     const urlTag = searchParams.get("tag") || "";
@@ -139,7 +134,6 @@ function EntriesPageInner() {
 
     if (urlPage !== page) setPage(urlPage);
     if (urlSearch !== search) setSearch(urlSearch);
-    if (urlType !== type) setType(urlType);
     if (urlStatus !== status) setStatus(urlStatus);
     if (urlSource !== source) setSource(urlSource);
     if (urlTag !== tag) setTag(urlTag);
@@ -153,7 +147,6 @@ function EntriesPageInner() {
     const params = new URLSearchParams();
     if (newPage > 1) params.set("page", String(newPage));
     if (search) params.set("search", search);
-    if (type) params.set("type", type);
     if (status) params.set("status", status);
     if (source) params.set("source", source);
     if (tag) params.set("tag", tag);
@@ -164,10 +157,10 @@ function EntriesPageInner() {
     window.history.pushState(null, "", newUrl);
     setPage(newPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [search, type, status, source, tag, collectionId, sort, pathname]);
+  }, [search, status, source, tag, collectionId, sort, pathname]);
 
   const clearFilters = () => {
-    setSearch(""); setType(""); setStatus(""); setSource(""); setTag(""); setCollectionId(""); setSort("newest"); setPage(1);
+    setSearch(""); setStatus(""); setSource(""); setTag(""); setCollectionId(""); setSort("newest"); setPage(1);
   };
 
   const toggleFavorite = async (entryId: number) => {
@@ -177,7 +170,7 @@ function EntriesPageInner() {
     setEntries((prev) => prev.map((e) => e.id === entryId ? { ...e, isFavorited: data.favorited } : e));
   };
 
-  const hasFilters = search || type || status || source || tag || collectionId || sort !== "newest";
+  const hasFilters = search || status || source || tag || collectionId || sort !== "newest";
 
   return (
     <div>
@@ -189,8 +182,8 @@ function EntriesPageInner() {
           <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: 2 }}>{total} total</p>
         </div>
         <div style={{ display: "flex", gap: 6 }}>
-          <button onClick={() => { const params = new URLSearchParams(); if (type) params.set("type", type); if (status) params.set("status", status); if (source) params.set("source", source); if (tag) params.set("tag", tag); params.set("format", "csv"); window.open("/api/export?" + params.toString()); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface-hover)", color: "var(--text-secondary)", borderRadius: "var(--radius-md)", padding: "10px 12px", fontSize: "0.8rem", fontWeight: 500, border: "1px solid var(--border)", cursor: "pointer", whiteSpace: "nowrap" }}><Download style={{ width: 14, height: 14 }} />CSV</button>
-          <button onClick={() => { const params = new URLSearchParams(); if (type) params.set("type", type); if (status) params.set("status", status); if (source) params.set("source", source); if (tag) params.set("tag", tag); params.set("format", "json"); window.open("/api/export?" + params.toString()); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface-hover)", color: "var(--text-secondary)", borderRadius: "var(--radius-md)", padding: "10px 12px", fontSize: "0.8rem", fontWeight: 500, border: "1px solid var(--border)", cursor: "pointer", whiteSpace: "nowrap" }}><Download style={{ width: 14, height: 14 }} />JSON</button>
+          <button onClick={() => { const params = new URLSearchParams(); if (status) params.set("status", status); if (source) params.set("source", source); if (tag) params.set("tag", tag); params.set("format", "csv"); window.open("/api/export?" + params.toString()); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface-hover)", color: "var(--text-secondary)", borderRadius: "var(--radius-md)", padding: "10px 12px", fontSize: "0.8rem", fontWeight: 500, border: "1px solid var(--border)", cursor: "pointer", whiteSpace: "nowrap" }}><Download style={{ width: 14, height: 14 }} />CSV</button>
+          <button onClick={() => { const params = new URLSearchParams(); if (status) params.set("status", status); if (source) params.set("source", source); if (tag) params.set("tag", tag); params.set("format", "json"); window.open("/api/export?" + params.toString()); }} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "var(--surface-hover)", color: "var(--text-secondary)", borderRadius: "var(--radius-md)", padding: "10px 12px", fontSize: "0.8rem", fontWeight: 500, border: "1px solid var(--border)", cursor: "pointer", whiteSpace: "nowrap" }}><Download style={{ width: 14, height: 14 }} />JSON</button>
         </div>
         <Link href="/entries/new" style={{
           display: "inline-flex", alignItems: "center", gap: 8,
@@ -248,10 +241,6 @@ function EntriesPageInner() {
           background: "var(--surface)", border: "1px solid var(--border)",
           borderRadius: "var(--radius-md)",
         }}>
-          <select value={type} onChange={(e) => { setType(e.target.value); setPage(1); }} style={selectFilterStyle}>
-            <option value="">All Types</option>
-            {TYPE_OPTIONS.map((t) => <option key={t} value={t}>{t.replace("_", " ")}</option>)}
-          </select>
           <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} style={selectFilterStyle}>
             <option value="">All Statuses</option>
             {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
