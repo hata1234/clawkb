@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import StatusBadge from "./StatusBadge";
-import TypeBadge from "./TypeBadge";
 import { formatRelativeDate } from "@/lib/utils";
 import { Image as ImageIcon, Star, Link as LinkIcon, Tag, AlertCircle, CheckCircle, Info, Zap } from "lucide-react";
 
@@ -94,7 +93,7 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
   return (
     <Link href={`/entries/${entry.id}`} style={{ textDecoration: "none" }}>
       <div className="entry-card card-hover">
-        <div className={`type-bar type-bar-${entry.type}`} />
+        <div className="type-bar" />
         {topRight.length > 0 && (
           <div className="card-el-top-right">
             {topRight.map((el) => renderCardElement(el))}
@@ -118,8 +117,12 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
         )}
         <div className="entry-card-inner">
           <div className="entry-badges">
-            <TypeBadge type={entry.type} />
             <StatusBadge status={entry.status} />
+            {entry.collections && entry.collections.length > 0 && entry.collections.slice(0, 2).map((col) => (
+              <span key={col.id} className="entry-collection-pill" style={col.color ? { borderColor: col.color, color: col.color } : undefined}>
+                {col.icon || "📁"} {col.name}
+              </span>
+            ))}
           </div>
           <h3 className="entry-title">{entry.title}</h3>
           {entry.summary && (
@@ -150,19 +153,10 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
                 </span>
               </>
             )}
-            {entry.collections && entry.collections.length > 0 && (
+            {entry.collections && entry.collections.length > 2 && (
               <>
                 <span className="entry-meta-dot">·</span>
-                <div className="entry-tags">
-                  {entry.collections.slice(0, 2).map((col) => (
-                    <span key={col.id} className="entry-collection-pill" style={col.color ? { borderColor: col.color, color: col.color } : undefined}>
-                      {col.icon || "📁"} {col.name}
-                    </span>
-                  ))}
-                  {entry.collections.length > 2 && (
-                    <span className="entry-meta-item">+{entry.collections.length - 2}</span>
-                  )}
-                </div>
+                <span className="entry-meta-item">+{entry.collections.length - 2} collections</span>
               </>
             )}
             {entry.tags.length > 0 && (
