@@ -288,9 +288,28 @@ function EmbeddingTab({ settings, onToast }: {
   onToast: (msg: string, ok: boolean) => void;
 }) {
   const [cfg, setCfg] = useState<EmbeddingConfig>(settings.embedding);
+  const [savedCfg] = useState<EmbeddingConfig>(settings.embedding); // track what's saved
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [rebuilding, setRebuilding] = useState(false);
+  const [rebuildResult, setRebuildResult] = useState<{ total: number; success: number; failed: number } | null>(null);
+  const [embeddingStatus, setEmbeddingStatus] = useState<{ total: number; embedded: number; missing: number } | null>(null);
+
+  // Check if config changed (URL or model different from saved)
+  const configChanged = cfg.provider !== savedCfg.provider
+    || cfg.ollamaUrl !== savedCfg.ollamaUrl
+    || cfg.ollamaModel !== savedCfg.ollamaModel
+    || cfg.openaiApiKey !== savedCfg.openaiApiKey
+    || cfg.openaiModel !== savedCfg.openaiModel;
+
+  // Fetch embedding status on mount
+  useEffect(() => {
+    fetch("/api/settings/rebuild-embeddings")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setEmbeddingStatus(data); })
+      .catch(() => {});
+  }, [rebuildResult]); // refresh after rebuild
 
   async function save() {
     setSaving(true);
@@ -317,101 +336,231 @@ function EmbeddingTab({ settings, onToast }: {
     }
   }
 
+  async function rebuildEmbeddings(force: boolean) {
+    if (!confirm(force
+      ? "This will re-embed ALL entries. It may take a few minutes. Continue?"
+      : "This will embed entries that are missing embeddings. Continue?"
+    )) return;
+    setRebuilding(true);
+    setRebuildResult(null);
+    try {
+      const res = await fetch("/api/settings/rebuild-embeddings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRebuildResult(data);
+        onToast(`Rebuilt: ${data.success}/${data.total} entries`, data.failed === 0);
+      } else {
+        onToast("Rebuild failed", false);
+      }
+    } catch {
+      onToast("Rebuild failed: network error", false);
+    } finally {
+      setRebuilding(false);
+    }
+  }
+
   return (
-    <div style={card}>
-      <div style={sectionTitle}>
-        <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
-        Embedding Provider
-      </div>
-
-      <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>Provider</label>
-        <div style={{ display: "flex", gap: 8 }}>
-          {(["ollama", "openai", "disabled"] as const).map(p => (
-            <button key={p} onClick={() => setCfg(c => ({ ...c, provider: p }))}
-              style={{
-                padding: "8px 16px",
-                borderRadius: "var(--radius-md)",
-                border: `1px solid ${cfg.provider === p ? "var(--accent)" : "var(--border)"}`,
-                background: cfg.provider === p ? "var(--accent-muted)" : "var(--background)",
-                color: cfg.provider === p ? "var(--accent)" : "var(--text-secondary)",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                textTransform: "capitalize",
-              }}>
-              {p}
-            </button>
-          ))}
+    <div>
+      <div style={card}>
+        <div style={sectionTitle}>
+          <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
+          Embedding Provider
         </div>
-      </div>
 
-      {cfg.provider === "ollama" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-          <div>
-            <label style={labelStyle}>Ollama URL</label>
-            <input value={cfg.ollamaUrl ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaUrl: e.target.value }))}
-              style={inputStyle} placeholder="http://localhost:11434" />
-          </div>
-          <div>
-            <label style={labelStyle}>Model</label>
-            <input value={cfg.ollamaModel ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaModel: e.target.value }))}
-              style={inputStyle} placeholder="bge-m3" />
+        <div style={{ marginBottom: 20 }}>
+          <label style={labelStyle}>Provider</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {(["ollama", "openai", "disabled"] as const).map(p => (
+              <button key={p} onClick={() => setCfg(c => ({ ...c, provider: p }))}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "var(--radius-md)",
+                  border: `1px solid ${cfg.provider === p ? "var(--accent)" : "var(--border)"}`,
+                  background: cfg.provider === p ? "var(--accent-muted)" : "var(--background)",
+                  color: cfg.provider === p ? "var(--accent)" : "var(--text-secondary)",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  textTransform: "capitalize",
+                }}>
+                {p}
+              </button>
+            ))}
           </div>
         </div>
-      )}
 
-      {cfg.provider === "openai" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-          <div>
-            <label style={labelStyle}>API Key</label>
-            <input type="password" value={cfg.openaiApiKey ?? ""} onChange={e => setCfg(c => ({ ...c, openaiApiKey: e.target.value }))}
-              style={inputStyle} placeholder="sk-..." autoComplete="off" />
+        {cfg.provider === "ollama" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+            <div>
+              <label style={labelStyle}>Ollama URL</label>
+              <input value={cfg.ollamaUrl ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaUrl: e.target.value }))}
+                style={inputStyle} placeholder="http://localhost:11434" />
+            </div>
+            <div>
+              <label style={labelStyle}>Model</label>
+              <input value={cfg.ollamaModel ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaModel: e.target.value }))}
+                style={inputStyle} placeholder="bge-m3" />
+            </div>
           </div>
-          <div>
-            <label style={labelStyle}>Model</label>
-            <input value={cfg.openaiModel ?? ""} onChange={e => setCfg(c => ({ ...c, openaiModel: e.target.value }))}
-              style={inputStyle} placeholder="text-embedding-3-small" />
-          </div>
-        </div>
-      )}
-
-      {cfg.provider === "disabled" && (
-        <p style={{ fontSize: "0.875rem", color: "var(--text-dim)", marginBottom: 20 }}>
-          Embedding is disabled. Semantic search will be unavailable.
-        </p>
-      )}
-
-      {testResult && (
-        <div style={{
-          padding: "10px 14px",
-          borderRadius: "var(--radius-md)",
-          background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
-          border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
-          color: testResult.ok ? "var(--success)" : "var(--danger)",
-          fontSize: "0.8rem",
-          marginBottom: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}>
-          {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
-          {testResult.message}
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={save} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
-          {saving ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
-          Save
-        </button>
-        {cfg.provider !== "disabled" && (
-          <button onClick={testConnection} disabled={testing} style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}>
-            {testing ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Wifi style={{ width: 14, height: 14 }} />}
-            Test Connection
-          </button>
         )}
+
+        {cfg.provider === "openai" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+            <div>
+              <label style={labelStyle}>API Key</label>
+              <input type="password" value={cfg.openaiApiKey ?? ""} onChange={e => setCfg(c => ({ ...c, openaiApiKey: e.target.value }))}
+                style={inputStyle} placeholder="sk-..." autoComplete="off" />
+            </div>
+            <div>
+              <label style={labelStyle}>Model</label>
+              <input value={cfg.openaiModel ?? ""} onChange={e => setCfg(c => ({ ...c, openaiModel: e.target.value }))}
+                style={inputStyle} placeholder="text-embedding-3-small" />
+            </div>
+          </div>
+        )}
+
+        {cfg.provider === "disabled" && (
+          <p style={{ fontSize: "0.875rem", color: "var(--text-dim)", marginBottom: 20 }}>
+            Embedding is disabled. Semantic search will be unavailable.
+          </p>
+        )}
+
+        {/* Warning: config changed */}
+        {configChanged && (
+          <div style={{
+            padding: "12px 16px",
+            borderRadius: "var(--radius-md)",
+            background: "rgba(251,191,36,0.08)",
+            border: "1px solid rgba(251,191,36,0.3)",
+            color: "rgb(251,191,36)",
+            fontSize: "0.82rem",
+            marginBottom: 16,
+            lineHeight: 1.5,
+          }}>
+            ⚠️ You changed the embedding provider/URL/model. After saving, you should <strong>rebuild all embeddings</strong> to ensure search results are consistent.
+          </div>
+        )}
+
+        {testResult && (
+          <div style={{
+            padding: "10px 14px",
+            borderRadius: "var(--radius-md)",
+            background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+            border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+            color: testResult.ok ? "var(--success)" : "var(--danger)",
+            fontSize: "0.8rem",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}>
+            {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
+            {testResult.message}
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={save} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
+            {saving ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
+            Save
+          </button>
+          {cfg.provider !== "disabled" && (
+            <button onClick={testConnection} disabled={testing} style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}>
+              {testing ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Wifi style={{ width: 14, height: 14 }} />}
+              Test Connection
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Embedding Index Management */}
+      {cfg.provider !== "disabled" && (
+        <div style={card}>
+          <div style={sectionTitle}>
+            <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
+            Embedding Index
+          </div>
+
+          {/* Status */}
+          {embeddingStatus && (
+            <div style={{ display: "flex", gap: 20, marginBottom: 16, fontSize: "0.85rem" }}>
+              <div>
+                <span style={{ color: "var(--text-dim)" }}>Total entries: </span>
+                <span style={{ color: "var(--text)", fontWeight: 600 }}>{embeddingStatus.total}</span>
+              </div>
+              <div>
+                <span style={{ color: "var(--text-dim)" }}>Embedded: </span>
+                <span style={{ color: "var(--success)", fontWeight: 600 }}>{embeddingStatus.embedded}</span>
+              </div>
+              {embeddingStatus.missing > 0 && (
+                <div>
+                  <span style={{ color: "var(--text-dim)" }}>Missing: </span>
+                  <span style={{ color: "rgb(251,191,36)", fontWeight: 600 }}>{embeddingStatus.missing}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Progress bar if we have status */}
+          {embeddingStatus && embeddingStatus.total > 0 && (
+            <div style={{
+              height: 6,
+              background: "var(--border)",
+              borderRadius: 3,
+              marginBottom: 16,
+              overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${(embeddingStatus.embedded / embeddingStatus.total) * 100}%`,
+                background: embeddingStatus.missing === 0 ? "var(--success)" : "rgb(251,191,36)",
+                borderRadius: 3,
+                transition: "width 0.3s ease",
+              }} />
+            </div>
+          )}
+
+          {/* Rebuild result */}
+          {rebuildResult && (
+            <div style={{
+              padding: "10px 14px",
+              borderRadius: "var(--radius-md)",
+              background: rebuildResult.failed === 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+              border: `1px solid ${rebuildResult.failed === 0 ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+              color: rebuildResult.failed === 0 ? "var(--success)" : "var(--danger)",
+              fontSize: "0.82rem",
+              marginBottom: 16,
+            }}>
+              Rebuild complete: {rebuildResult.success} success, {rebuildResult.failed} failed out of {rebuildResult.total} entries
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {embeddingStatus && embeddingStatus.missing > 0 && (
+              <button onClick={() => rebuildEmbeddings(false)} disabled={rebuilding}
+                style={{ ...btnPrimary, opacity: rebuilding ? 0.6 : 1 }}>
+                {rebuilding ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Database style={{ width: 14, height: 14 }} />}
+                Embed Missing ({embeddingStatus.missing})
+              </button>
+            )}
+            <button onClick={() => rebuildEmbeddings(true)} disabled={rebuilding}
+              style={{ ...btnGhost, opacity: rebuilding ? 0.6 : 1 }}>
+              {rebuilding ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Database style={{ width: 14, height: 14 }} />}
+              Rebuild All
+            </button>
+          </div>
+
+          {rebuilding && (
+            <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 12 }}>
+              Rebuilding embeddings... This may take a few minutes. Please don\u0027t close this page.
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
