@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
 import { getEntryCardElements, runEntryAfterCreateHooks, runEntryAfterQueryHooks, runEntryBeforeCreateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { logActivity } from "@/lib/activity";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 
 interface EntryImageInput {
   url: string;
@@ -189,6 +190,7 @@ export async function POST(request: Request) {
   runEntryAfterCreateHooks(entry as unknown as Record<string, unknown>, hookedBody as unknown as Record<string, unknown>, principal).catch(() => {});
 
   logActivity("entry.created", principal.id, entry.id, { title: entry.title }).catch(() => {});
+  dispatchWebhookEvent("entry.created", { id: entry.id, title: entry.title, type: entry.type, source: entry.source });
 
   return NextResponse.json(serializeEntry(entry), { status: 201 });
 }

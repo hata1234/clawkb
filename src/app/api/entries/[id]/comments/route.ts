@@ -3,6 +3,7 @@ import { canCreateComment, getRequestPrincipal } from "@/lib/auth";
 import { commentWithAuthorInclude, serializeComment } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
@@ -53,6 +54,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
 
   logActivity("comment.created", principal.id, entryId, { commentId: comment.id, entryTitle: entry.title }).catch(() => {});
+  dispatchWebhookEvent("comment.created", { id: comment.id, entryId, entryTitle: entry.title, authorId: principal.id });
 
   return NextResponse.json({ comment: serializeComment(comment) }, { status: 201 });
 }

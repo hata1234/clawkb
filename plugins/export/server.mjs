@@ -1,4 +1,4 @@
-// Export plugin — export entries in JSON, CSV, or Markdown formats
+// Export plugin — export entries in JSON, CSV, Markdown, or PDF formats
 
 function buildWhere(searchParams) {
   const type = searchParams.get("type") || undefined;
@@ -145,6 +145,316 @@ function datestamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// ── PDF generation ──────────────────────────────────────────────────
+
+async function toPdf(entries, password) {
+  const { jsPDF } = await import("jspdf");
+
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = { top: 56, bottom: 56, left: 56, right: 56 };
+  const contentW = pageW - margin.left - margin.right;
+
+  let y = margin.top;
+
+  function ensureSpace(needed) {
+    if (y + needed > pageH - margin.bottom) {
+      doc.addPage();
+      y = margin.top;
+    }
+  }
+
+  function drawLine() {
+    ensureSpace(16);
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(margin.left, y, pageW - margin.right, y);
+    y += 12;
+  }
+
+  function writeText(text, opts = {}) {
+    const {
+      fontSize = 10,
+      fontStyle = "normal",
+      color = [51, 51, 51],
+      indent = 0,
+      lineHeight = 1.5,
+      fontName = "helvetica",
+    } = opts;
+
+    doc.setFont(fontName, fontStyle);
+    doc.setFontSize(fontSize);
+    doc.setTextColor(...color);
+
+    const maxW = contentW - indent;
+    const lines = doc.splitTextToSize(text, maxW);
+    const lh = fontSize * lineHeight;
+
+    for (const line of lines) {
+      ensureSpace(lh);
+      doc.text(line, margin.left + indent, y);
+      y += lh;
+    }
+  }
+
+  // Parse markdown into styled segments and render
+  function renderMarkdown(md) {
+    const lines = md.split("\n");
+    let inCodeBlock = false;
+    let inTable = false;
+    let tableRows = [];
+
+    function flushTable() {
+      if (tableRows.length === 0) return;
+      const cols = tableRows[0].length;
+      const colW = contentW / cols;
+      const cellPad = 4;
+
+      for (let r = 0; r < tableRows.length; r++) {
+        const row = tableRows[r];
+        const isHeader = r === 0;
+
+        // Calculate row height
+        doc.setFont("helvetica", isHeader ? "bold" : "normal");
+        doc.setFontSize(9);
+        let maxH = 14;
+        for (let c = 0; c < row.length; c++) {
+          const cellLines = doc.splitTextToSize(row[c].trim(), colW - cellPad * 2);
+          maxH = Math.max(maxH, cellLines.length * 13 + cellPad * 2);
+        }
+
+        ensureSpace(maxH);
+
+        // Draw cells
+        for (let c = 0; c < row.length; c++) {
+          const cx = margin.left + c * colW;
+          if (isHeader) {
+            doc.setFillColor(240, 240, 240);
+            doc.rect(cx, y - 10, colW, maxH, "F");
+          }
+          doc.setDrawColor(200, 200, 200);
+          doc.rect(cx, y - 10, colW, maxH, "S");
+          doc.setFont("helvetica", isHeader ? "bold" : "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 51, 51);
+          const cellLines = doc.splitTextToSize(row[c].trim(), colW - cellPad * 2);
+          for (let l = 0; l < cellLines.length; l++) {
+            doc.text(cellLines[l], cx + cellPad, y + l * 13);
+          }
+        }
+        y += maxH;
+      }
+      y += 6;
+      tableRows = [];
+      inTable = false;
+    }
+
+    for (const raw of lines) {
+      const line = raw;
+
+      // Code block toggle
+      if (line.trimStart().startsWith("```")) {
+        if (inTable) flushTable();
+        inCodeBlock = !inCodeBlock;
+        if (inCodeBlock) y += 4;
+        else y += 4;
+        continue;
+      }
+
+      if (inCodeBlock) {
+        ensureSpace(14);
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin.left, y - 10, contentW, 14, "F");
+        writeText(line || " ", { fontSize: 9, fontName: "courier", color: [80, 80, 80], lineHeight: 1.3 });
+        continue;
+      }
+
+      // Table rows
+      if (line.includes("|") && line.trim().startsWith("|")) {
+        // Skip separator rows like |---|---|
+        if (/^\|[\s\-:]+\|/.test(line.trim()) && !line.replace(/[\|\s\-:]/g, "").length) {
+          continue;
+        }
+        inTable = true;
+        const cells = line.split("|").filter((_, i, a) => i > 0 && i < a.length - 1);
+        tableRows.push(cells);
+        continue;
+      } else if (inTable) {
+        flushTable();
+      }
+
+      // Empty line
+      if (!line.trim()) {
+        y += 8;
+        continue;
+      }
+
+      // Headers
+      const hMatch = line.match(/^(#{1,6})\s+(.+)/);
+      if (hMatch) {
+        const level = hMatch[1].length;
+        const text = hMatch[2].replace(/[*_`]/g, "");
+        const sizes = [22, 18, 15, 13, 11, 10];
+        y += level <= 2 ? 12 : 6;
+        writeText(text, { fontSize: sizes[level - 1] || 10, fontStyle: "bold", color: [30, 30, 30] });
+        y += 4;
+        continue;
+      }
+
+      // Bullet lists
+      const bulletMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)/);
+      if (bulletMatch) {
+        const depth = Math.floor(bulletMatch[1].length / 2);
+        const bullet = bulletMatch[2].match(/\d/) ? bulletMatch[2] : "\u2022";
+        const text = bulletMatch[3];
+        const indent = 16 + depth * 16;
+        ensureSpace(15);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(51, 51, 51);
+        doc.text(bullet, margin.left + indent - 10, y);
+        renderInlineFormatting(text, indent);
+        continue;
+      }
+
+      // Horizontal rule
+      if (/^[-*_]{3,}\s*$/.test(line.trim())) {
+        drawLine();
+        continue;
+      }
+
+      // Blockquote
+      if (line.trimStart().startsWith(">")) {
+        const text = line.replace(/^>\s*/, "");
+        ensureSpace(16);
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(2);
+        doc.line(margin.left + 4, y - 10, margin.left + 4, y + 4);
+        writeText(text, { indent: 16, color: [100, 100, 100], fontStyle: "italic" });
+        continue;
+      }
+
+      // Regular paragraph with inline formatting
+      renderInlineFormatting(line, 0);
+    }
+
+    if (inTable) flushTable();
+  }
+
+  function renderInlineFormatting(text, indent) {
+    // Strip markdown links to just text, strip images
+    let clean = text.replace(/!\[.*?\]\(.*?\)/g, "[image]");
+    clean = clean.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+
+    // Handle bold and italic
+    const hasBold = /\*\*(.+?)\*\*/.test(clean) || /__(.+?)__/.test(clean);
+    const hasItalic = /(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/.test(clean) || /(?<!_)_(?!_)(.+?)(?<!_)_(?!_)/.test(clean);
+
+    // For simplicity, strip markdown formatting and detect style
+    clean = clean.replace(/\*\*(.+?)\*\*/g, "$1").replace(/__(.+?)__/g, "$1");
+    clean = clean.replace(/\*(.+?)\*/g, "$1").replace(/_(.+?)_/g, "$1");
+    clean = clean.replace(/`(.+?)`/g, "$1");
+    clean = clean.replace(/~~(.+?)~~/g, "$1");
+
+    const style = hasBold && hasItalic ? "bolditalic" : hasBold ? "bold" : hasItalic ? "italic" : "normal";
+    writeText(clean, { indent, fontStyle: style });
+  }
+
+  // Render each entry
+  for (let i = 0; i < entries.length; i++) {
+    const e = entries[i];
+
+    if (i > 0) {
+      doc.addPage();
+      y = margin.top;
+    }
+
+    // Title
+    writeText(e.title || "(untitled)", { fontSize: 24, fontStyle: "bold", color: [20, 20, 20], lineHeight: 1.3 });
+    y += 8;
+
+    // Metadata
+    const meta = [];
+    if (e.type) meta.push(["Type", e.type]);
+    if (e.source) meta.push(["Source", e.source]);
+    if (e.status) meta.push(["Status", e.status.replace(/_/g, " ")]);
+    if (e.tags && e.tags.length) meta.push(["Tags", Array.isArray(e.tags) ? e.tags.join(", ") : e.tags]);
+    if (e.createdAt) {
+      const d = e.createdAt instanceof Date ? e.createdAt.toISOString() : String(e.createdAt);
+      meta.push(["Created", d.slice(0, 10)]);
+    }
+    if (e.url) meta.push(["URL", e.url]);
+
+    if (meta.length) {
+      doc.setFillColor(248, 248, 248);
+      const metaH = meta.length * 16 + 16;
+      ensureSpace(metaH);
+      doc.roundedRect(margin.left, y - 4, contentW, metaH, 4, 4, "F");
+      y += 8;
+      for (const [label, value] of meta) {
+        writeText(`${label}:  ${value}`, { fontSize: 9, color: [100, 100, 100], indent: 8 });
+      }
+      y += 8;
+    }
+
+    // Summary
+    if (e.summary) {
+      y += 8;
+      writeText("Summary", { fontSize: 11, fontStyle: "bold", color: [80, 80, 80] });
+      y += 2;
+      writeText(e.summary, { fontSize: 10, color: [70, 70, 70], fontStyle: "italic" });
+      y += 8;
+    }
+
+    // Content
+    if (e.content) {
+      drawLine();
+      y += 4;
+      renderMarkdown(e.content);
+    }
+
+    // Comments
+    if (e.comments && e.comments.length) {
+      y += 12;
+      drawLine();
+      writeText("Comments", { fontSize: 14, fontStyle: "bold", color: [30, 30, 30] });
+      y += 8;
+      for (const c of e.comments) {
+        const when = c.createdAt instanceof Date ? c.createdAt.toISOString() : String(c.createdAt);
+        writeText(`${c.author} — ${when.slice(0, 10)}`, { fontSize: 9, fontStyle: "bold", color: [100, 100, 100] });
+        writeText(c.body, { fontSize: 10, indent: 8 });
+        y += 8;
+      }
+    }
+
+    // Footer on each page
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(160, 160, 160);
+      doc.text(`ClawKB Export — ${datestamp()}`, margin.left, pageH - 28);
+      doc.text(`Page ${p} of ${totalPages}`, pageW - margin.right - 60, pageH - 28);
+    }
+  }
+
+  let pdfBytes = doc.output("arraybuffer");
+
+  // Encrypt with password if provided
+  if (password) {
+    const { PDFDocument } = await import("pdf-lib");
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    pdfBytes = await pdfDoc.save({
+      userPassword: password,
+      ownerPassword: password,
+    });
+  }
+
+  return pdfBytes;
+}
+
 function makeResponse(mapped, format, filenameBase, fields) {
   const stamp = datestamp();
   const name = filenameBase || "clawkb-export";
@@ -166,6 +476,9 @@ function makeResponse(mapped, format, filenameBase, fields) {
       },
     });
   }
+
+  // PDF — handled separately (async), should not reach here
+  // See makePdfResponse below
 
   // Default: JSON
   return new Response(JSON.stringify(mapped, null, 2), {
@@ -204,6 +517,18 @@ export const api = {
         });
 
         const mapped = entries.map((e) => pickFields(e, fields, options));
+
+        if (format === "pdf") {
+          const password = searchParams.get("password") || undefined;
+          const pdfBytes = await toPdf(mapped, password);
+          return new Response(pdfBytes, {
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": `attachment; filename="clawkb-export-${datestamp()}.pdf"`,
+            },
+          });
+        }
+
         return makeResponse(mapped, format, "clawkb-export", fields);
       },
     },
@@ -233,7 +558,20 @@ export const api = {
 
         const mapped = [pickFields(entry, fields, options)];
         const slug = (entry.title || "entry").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50);
-        return makeResponse(mapped, format, `clawkb-${entryId}-${slug}`, fields);
+        const baseName = `clawkb-${entryId}-${slug}`;
+
+        if (format === "pdf") {
+          const password = searchParams.get("password") || undefined;
+          const pdfBytes = await toPdf(mapped, password);
+          return new Response(pdfBytes, {
+            headers: {
+              "Content-Type": "application/pdf",
+              "Content-Disposition": `attachment; filename="${baseName}-${datestamp()}.pdf"`,
+            },
+          });
+        }
+
+        return makeResponse(mapped, format, baseName, fields);
       },
     },
     {

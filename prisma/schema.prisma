@@ -257,3 +257,31 @@ model ShareLink {
   @@index([parentId])
   @@map("share_links")
 }
+
+model Webhook {
+  id        Int      @id @default(autoincrement())
+  name      String   @default("")
+  url       String
+  secret    String
+  events    String   // JSON array: ["entry.created", "entry.updated", ...]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id        Int      @id @default(autoincrement())
+  webhookId Int
+  event     String
+  payload   String   // JSON
+  status    Int      // HTTP status code (0 = failed to connect)
+  response  String?  // Response body (truncated)
+  attempts  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@index([webhookId])
+  @@index([createdAt])
+  @@map("webhook_deliveries")
+}

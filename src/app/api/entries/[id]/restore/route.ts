@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequestPrincipal } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
@@ -21,6 +22,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
 
   logActivity("entry.restored", principal.id, entryId, { title: entry.title }).catch(() => {});
+  dispatchWebhookEvent("entry.restored", { id: entryId, title: entry.title });
 
   return NextResponse.json({ success: true });
 }

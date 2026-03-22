@@ -82,9 +82,17 @@ export default function EntryDetailPage() {
   const [editTags, setEditTags] = useState("");
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showPdfPasswordDialog, setShowPdfPasswordDialog] = useState(false);
+  const [pdfPassword, setPdfPassword] = useState("");
+  const [pdfExporting, setPdfExporting] = useState(false);
 
-  const exportEntry = (format: "json" | "csv" | "markdown") => {
+  const exportEntry = (format: "json" | "csv" | "markdown" | "pdf") => {
     if (!entry) return;
+    if (format === "pdf") {
+      setShowExportMenu(false);
+      setShowPdfPasswordDialog(true);
+      return;
+    }
     const url = `/api/plugins/export/export/${entry.id}?format=${format}&includeComments=true`;
     const a = document.createElement("a");
     a.href = url;
@@ -93,6 +101,30 @@ export default function EntryDetailPage() {
     a.click();
     document.body.removeChild(a);
     setShowExportMenu(false);
+  };
+
+  const exportPdf = async () => {
+    if (!entry) return;
+    setPdfExporting(true);
+    try {
+      const params = new URLSearchParams({ format: "pdf", includeComments: "true" });
+      if (pdfPassword.trim()) params.set("password", pdfPassword.trim());
+      const res = await fetch(`/api/plugins/export/export/${entry.id}?${params}`);
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `entry-${entry.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } finally {
+      setPdfExporting(false);
+      setShowPdfPasswordDialog(false);
+      setPdfPassword("");
+    }
   };
 
   const fetchEntry = useCallback(async () => {
@@ -254,11 +286,11 @@ export default function EntryDetailPage() {
                 </button>
                 {showExportMenu && (
                   <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", boxShadow: "0 4px 12px rgba(0,0,0,0.3)", zIndex: 50, minWidth: 140, overflow: "hidden" }}>
-                    {(["json", "csv", "markdown"] as const).map((fmt) => (
-                      <button key={fmt} onClick={() => exportEntry(fmt)} style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 14px", fontSize: "0.82rem", color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer", borderBottom: fmt !== "markdown" ? "1px solid var(--border)" : "none" }}
+                    {(["json", "csv", "markdown", "pdf"] as const).map((fmt) => (
+                      <button key={fmt} onClick={() => exportEntry(fmt)} style={{ display: "block", width: "100%", textAlign: "left", padding: "8px 14px", fontSize: "0.82rem", color: "var(--text-secondary)", background: "none", border: "none", cursor: "pointer", borderBottom: fmt !== "pdf" ? "1px solid var(--border)" : "none" }}
                         onMouseEnter={(e) => { (e.target as HTMLElement).style.background = "var(--surface-hover)"; }}
                         onMouseLeave={(e) => { (e.target as HTMLElement).style.background = "none"; }}>
-                        {fmt === "json" ? "JSON" : fmt === "csv" ? "CSV" : "Markdown"}
+                        {fmt === "json" ? "JSON" : fmt === "csv" ? "CSV" : fmt === "markdown" ? "Markdown" : "PDF"}
                       </button>
                     ))}
                   </div>
@@ -518,6 +550,31 @@ export default function EntryDetailPage() {
         }
         return null;
       })}
+
+      {showPdfPasswordDialog && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }} onClick={() => { setShowPdfPasswordDialog(false); setPdfPassword(""); }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: 24, width: 360, maxWidth: "90vw", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontFamily: "var(--font-heading)", fontSize: "1.1rem", fontWeight: 400, color: "var(--text)", marginBottom: 4 }}>Export as PDF</h3>
+            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: 16 }}>Optionally set a password to encrypt the PDF.</p>
+            <input
+              type="password"
+              value={pdfPassword}
+              onChange={(e) => setPdfPassword(e.target.value)}
+              placeholder="Password (leave empty for no encryption)"
+              style={{ ...inputStyle, marginBottom: 16 }}
+              onKeyDown={(e) => { if (e.key === "Enter") exportPdf(); }}
+              autoFocus
+            />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button onClick={() => { setShowPdfPasswordDialog(false); setPdfPassword(""); }} style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)" }}>Cancel</button>
+              <button onClick={exportPdf} disabled={pdfExporting} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", opacity: pdfExporting ? 0.6 : 1 }}>
+                {pdfExporting ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Download style={{ width: 14, height: 14 }} />}
+                {pdfExporting ? "Exporting..." : "Export PDF"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showShareDialog && <ShareDialog entryId={entry.id} entryContent={entry.content} onClose={() => setShowShareDialog(false)} />}
 

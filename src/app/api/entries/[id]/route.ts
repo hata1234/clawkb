@@ -6,6 +6,7 @@ import { getEntryRenderBlocks, runEntryAfterUpdateHooks, runEntryBeforeDeleteHoo
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
 import { logActivity } from "@/lib/activity";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 
 interface EntryImageInput {
   url: string;
@@ -158,6 +159,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   ).catch(() => {});
 
   logActivity("entry.updated", principal.id, entry.id, { title: entry.title }).catch(() => {});
+  dispatchWebhookEvent("entry.updated", { id: entry.id, title: entry.title, type: entry.type, source: entry.source });
 
   return NextResponse.json(serializeEntry(entry));
 }
@@ -179,6 +181,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   });
 
   logActivity("entry.deleted", principal.id, parseInt(id), { title: entry.title }).catch(() => {});
+  dispatchWebhookEvent("entry.deleted", { id: parseInt(id), title: entry.title });
 
   return NextResponse.json({ success: true });
 }
