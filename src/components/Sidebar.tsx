@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { Link, useRouter, usePathname } from "@/i18n/navigation";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import { useEffect, useState, useRef } from "react";
 import {
   LayoutDashboard,
   FileText,
@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Sun,
   Moon,
+  Globe,
   Star,
   Trash2,
   Activity,
@@ -34,11 +35,11 @@ import { Suspense } from "react";
 import CollectionTree from "./CollectionTree";
 
 const browseItems = [
-  { href: "/entries",     label: "Entries",    icon: FileText },
-  { href: "/favorites",   label: "Favorites",  icon: Star },
-  { href: "/timeline",    label: "Timeline",   icon: Clock },
-  { href: "/graph",       label: "Graph",      icon: Network },
-  { href: "/tags",        label: "Tags",       icon: Tag },
+  { href: "/entries",     label: "entries",    icon: FileText },
+  { href: "/favorites",   label: "favorites",  icon: Star },
+  { href: "/timeline",    label: "timeline",   icon: Clock },
+  { href: "/graph",       label: "graph",      icon: Network },
+  { href: "/tags",        label: "tags",       icon: Tag },
 ];
 
 const browseHrefs = new Set(browseItems.map((i) => i.href));
@@ -60,8 +61,13 @@ export default function Sidebar({
   effectiveRole?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('Sidebar');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [localeOpen, setLocaleOpen] = useState(false);
+  const localeRef = useRef<HTMLDivElement>(null);
   const [browseOpen, setBrowseOpen] = useState(() => {
     // Auto-expand if user is on a browse page
     return browseHrefs.has(pathname);
@@ -69,6 +75,23 @@ export default function Sidebar({
   const [pluginItems, setPluginItems] = useState<Array<{ id: string; label: string; href: string }>>([]);
   const [trashCount, setTrashCount] = useState(0);
   const { theme, toggleTheme } = useTheme();
+
+  const localeOptions = [
+    { code: 'en', flag: '🇺🇸', label: 'English' },
+    { code: 'zh-TW', flag: '🇹🇼', label: '繁體中文' },
+    { code: 'zh-CN', flag: '🇨🇳', label: '简体中文' },
+    { code: 'ja', flag: '🇯🇵', label: '日本語' },
+  ] as const;
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (localeRef.current && !localeRef.current.contains(e.target as Node)) {
+        setLocaleOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetch("/api/plugins/sidebar")
@@ -122,40 +145,40 @@ export default function Sidebar({
         <Link
           href="/"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? "Dashboard" : undefined}
+          title={collapsed ? t('dashboard') : undefined}
           className={`sidebar-link ${isActive("/") && pathname === "/" ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
         >
           <LayoutDashboard className="sidebar-link-icon" />
-          <span className="sidebar-link-label">Dashboard</span>
+          <span className="sidebar-link-label">{t('dashboard')}</span>
         </Link>
 
         {/* Search */}
         <Link
           href="/search"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? "Search" : undefined}
+          title={collapsed ? t('search') : undefined}
           className={`sidebar-link ${isActive("/search") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
         >
           <Search className="sidebar-link-icon" />
-          <span className="sidebar-link-label">Search</span>
+          <span className="sidebar-link-label">{t('search')}</span>
         </Link>
 
         {/* Ask AI */}
         <Link
           href="/rag"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? "Ask AI" : undefined}
+          title={collapsed ? t('askAi') : undefined}
           className={`sidebar-link ${isActive("/rag") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
         >
           <Bot className="sidebar-link-icon" />
-          <span className="sidebar-link-label">Ask AI</span>
+          <span className="sidebar-link-label">{t('askAi')}</span>
         </Link>
 
         {/* Browse group */}
         {collapsed ? (
           <Link
             href="/entries"
-            title="Browse"
+            title={t('browse')}
             className={`sidebar-link ${isBrowseActive ? "active" : ""} collapsed`}
           >
             <Library className="sidebar-link-icon" />
@@ -167,7 +190,7 @@ export default function Sidebar({
               onClick={() => setBrowseOpen(!browseOpen)}
             >
               <Library className="sidebar-link-icon" />
-              <span className="sidebar-link-label">Browse</span>
+              <span className="sidebar-link-label">{t('browse')}</span>
               <ChevronDown
                 className="sidebar-group-chevron"
                 style={{ transform: browseOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
@@ -185,7 +208,7 @@ export default function Sidebar({
                       className={`sidebar-link sidebar-child-link ${isActive(item.href) ? "active" : ""}`}
                     >
                       <Icon className="sidebar-link-icon" />
-                      <span className="sidebar-link-label">{item.label}</span>
+                      <span className="sidebar-link-label">{t(item.label)}</span>
                     </Link>
                   );
                 })}
@@ -198,33 +221,33 @@ export default function Sidebar({
         <Link
           href="/activity"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? "Activity" : undefined}
+          title={collapsed ? t('activity') : undefined}
           className={`sidebar-link ${isActive("/activity") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
         >
           <Activity className="sidebar-link-icon" />
-          <span className="sidebar-link-label">Activity</span>
+          <span className="sidebar-link-label">{t('activity')}</span>
         </Link>
 
         {/* Import */}
         <Link
           href="/import"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? "Import" : undefined}
+          title={collapsed ? t('import') : undefined}
           className={`sidebar-link ${isActive("/import") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
         >
           <Upload className="sidebar-link-icon" />
-          <span className="sidebar-link-label">Import</span>
+          <span className="sidebar-link-label">{t('import')}</span>
         </Link>
 
         {/* Settings */}
         <Link
           href="/settings"
           onClick={() => setMobileOpen(false)}
-          title={collapsed ? "Settings" : undefined}
+          title={collapsed ? t('settings') : undefined}
           className={`sidebar-link ${isActive("/settings") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
         >
           <Settings className="sidebar-link-icon" />
-          <span className="sidebar-link-label">Settings</span>
+          <span className="sidebar-link-label">{t('settings')}</span>
         </Link>
 
         {/* Trash (admin only) */}
@@ -232,12 +255,12 @@ export default function Sidebar({
           <Link
             href="/trash"
             onClick={() => setMobileOpen(false)}
-            title={collapsed ? "Trash" : undefined}
+            title={collapsed ? t('trash') : undefined}
             className={`sidebar-link ${isActive("/trash") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
           >
             <Trash2 className="sidebar-link-icon" />
             <span className="sidebar-link-label">
-              Trash
+              {t('trash')}
               {trashCount > 0 && (
                 <span style={{ marginLeft: 6, fontSize: "0.65rem", background: "var(--danger)", color: "#fff", padding: "1px 6px", borderRadius: 999, fontWeight: 600 }}>{trashCount}</span>
               )}
@@ -268,15 +291,45 @@ export default function Sidebar({
         <button
           onClick={toggleTheme}
           className="sidebar-theme-btn"
-          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          title={theme === "dark" ? t('switchToLight') : t('switchToDark')}
         >
           {theme === "dark" ? <Sun className="sidebar-theme-icon" /> : <Moon className="sidebar-theme-icon" />}
-          <span className="sidebar-link-label">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+          <span className="sidebar-link-label">{theme === "dark" ? t('lightMode') : t('darkMode')}</span>
         </button>
+        <div className="sidebar-locale-picker" ref={localeRef}>
+          <button
+            onClick={() => setLocaleOpen(!localeOpen)}
+            className="sidebar-theme-btn"
+            title={t('language')}
+          >
+            <Globe className="sidebar-theme-icon" />
+            <span className="sidebar-link-label">
+              {localeOptions.find((o) => o.code === locale)?.flag}{" "}
+              {localeOptions.find((o) => o.code === locale)?.label}
+            </span>
+          </button>
+          {localeOpen && (
+            <div className="sidebar-locale-dropdown">
+              {localeOptions.map((opt) => (
+                <button
+                  key={opt.code}
+                  className={`sidebar-locale-option${opt.code === locale ? " active" : ""}`}
+                  onClick={() => {
+                    router.replace(pathname, { locale: opt.code });
+                    setLocaleOpen(false);
+                  }}
+                >
+                  <span>{opt.flag}</span>
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="sidebar-collapse-btn"
-          title={collapsed ? "Expand" : "Collapse"}
+          title={collapsed ? t('expand') : t('collapse')}
         >
           {collapsed ? <ChevronRight className="sidebar-chevron" /> : <ChevronLeft className="sidebar-chevron" />}
         </button>
@@ -299,7 +352,7 @@ export default function Sidebar({
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); signOut({ callbackUrl: "/login" }); }}
             className="sidebar-logout"
-            title="Sign out"
+            title={t('signOut')}
           >
             <LogOut className="sidebar-logout-icon" />
           </button>
@@ -635,6 +688,52 @@ export default function Sidebar({
         }
         .sidebar-logout:hover { color: var(--text); }
         .sidebar-logout-icon { width: 16px; height: 16px; }
+
+        /* ═══ Locale Picker ═══ */
+        .sidebar-locale-picker {
+          position: relative;
+        }
+        .sidebar-locale-dropdown {
+          position: absolute;
+          bottom: 100%;
+          left: 4px;
+          right: 4px;
+          background: var(--surface-raised);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 4px;
+          margin-bottom: 4px;
+          box-shadow: var(--shadow-md);
+          z-index: 50;
+        }
+        .sidebar-locale-option {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 8px 10px;
+          border: none;
+          background: none;
+          color: var(--text-secondary);
+          font-size: 0.84rem;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .sidebar-locale-option:hover {
+          color: var(--text);
+          background: var(--surface-hover);
+        }
+        .sidebar-locale-option.active {
+          color: var(--accent);
+          background: var(--accent-muted);
+        }
+        .sidebar.collapsed .sidebar-locale-dropdown {
+          left: 68px;
+          bottom: 0;
+          right: auto;
+          min-width: 160px;
+        }
       `}</style>
     </>
   );

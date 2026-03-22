@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { formatRelativeDate } from "@/lib/utils";
 
 interface RelatedEntry {
@@ -15,6 +16,7 @@ interface RelatedEntry {
 }
 
 export default function RelatedEntries({ entryId }: { entryId: number }) {
+  const t = useTranslations('RelatedEntries');
   const [entries, setEntries] = useState<RelatedEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,7 +37,7 @@ export default function RelatedEntries({ entryId }: { entryId: number }) {
         fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)",
         textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12,
       }}>
-        Related Entries
+        {t('title')}
       </h2>
 
       {loading ? (

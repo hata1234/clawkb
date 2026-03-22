@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   ChevronRight,
   ChevronDown,
@@ -40,6 +42,7 @@ function CollectionNode({
   onSelect: (id: number) => void;
   onAction: (action: string, collection: Collection) => void;
 }) {
+  const t = useTranslations('Collections');
   const [expanded, setExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const hasChildren = node.children.length > 0;
@@ -81,13 +84,13 @@ function CollectionNode({
                   <div style={{ position: "fixed", inset: 0, zIndex: 60 }} onClick={() => setShowMenu(false)} />
                   <div className="collection-menu">
                     <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onAction("rename", node); }}>
-                      <Pencil style={{ width: 12, height: 12 }} /> Rename
+                      <Pencil style={{ width: 12, height: 12 }} /> {t('rename')}
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onAction("add-child", node); }}>
-                      <FolderPlus style={{ width: 12, height: 12 }} /> Add Sub-collection
+                      <FolderPlus style={{ width: 12, height: 12 }} /> {t('addSubCollection')}
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onAction("delete", node); }} className="collection-menu-danger">
-                      <Trash2 style={{ width: 12, height: 12 }} /> Delete
+                      <Trash2 style={{ width: 12, height: 12 }} /> {t('delete')}
                     </button>
                   </div>
                 </>
@@ -116,6 +119,8 @@ function CollectionNode({
 }
 
 export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
+  const t = useTranslations('Collections');
+  const tc = useTranslations('Common');
   const [collections, setCollections] = useState<Collection[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [createName, setCreateName] = useState("");
@@ -171,7 +176,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
       setCreateName("");
       setShowCreate(true);
     } else if (action === "delete") {
-      if (confirm(`Delete collection "${collection.name}"?`)) {
+      if (confirm(t('deleteConfirm', { name: collection.name }))) {
         await fetch(`/api/collections/${collection.id}`, { method: "DELETE" });
         fetchCollections();
       }
@@ -192,7 +197,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
 
   if (collapsed) {
     return (
-      <div className="collection-tree-collapsed" title="Collections">
+      <div className="collection-tree-collapsed" title={t('title')}>
         <Folder style={{ width: 18, height: 18, color: "var(--text-secondary)" }} />
         <style>{collectionStyles}</style>
       </div>
@@ -202,8 +207,8 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="collection-tree">
       <div className="collection-tree-header">
-        <span className="collection-tree-label">Collections</span>
-        <button className="collection-tree-add" onClick={() => { setShowCreate(!showCreate); setCreateParentId(null); }} title="New collection">
+        <span className="collection-tree-label">{t('title')}</span>
+        <button className="collection-tree-add" onClick={() => { setShowCreate(!showCreate); setCreateParentId(null); }} title={t('newCollection')}>
           <Plus style={{ width: 14, height: 14 }} />
         </button>
       </div>
@@ -217,9 +222,9 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
             onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setEditingId(null); }}
             className="collection-inline-input"
             autoFocus
-            placeholder="Collection name"
+            placeholder={t('collectionName')}
           />
-          <button onClick={handleRename} className="collection-inline-btn">Save</button>
+          <button onClick={handleRename} className="collection-inline-btn">{tc('save')}</button>
         </div>
       )}
 
@@ -232,9 +237,9 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
             onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setShowCreate(false); }}
             className="collection-inline-input"
             autoFocus
-            placeholder={createParentId ? "Sub-collection name" : "Collection name"}
+            placeholder={createParentId ? t('subCollectionName') : t('collectionName')}
           />
-          <button onClick={handleCreate} className="collection-inline-btn">Add</button>
+          <button onClick={handleCreate} className="collection-inline-btn">{tc('add')}</button>
         </div>
       )}
 
@@ -251,7 +256,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
           />
         ))}
         {collections.length === 0 && (
-          <p className="collection-empty">No collections yet</p>
+          <p className="collection-empty">{t('noCollections')}</p>
         )}
       </div>
 

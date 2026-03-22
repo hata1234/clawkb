@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import MarkdownRenderer from "./MarkdownRenderer";
@@ -88,6 +89,8 @@ const labelStyle: React.CSSProperties = {
 
 export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const router = useRouter();
+  const t = useTranslations('EntryForm');
+  const tc = useTranslations('Common');
   const settings = useSettings();
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -180,14 +183,14 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Failed to save entry");
+        throw new Error(data.error || t('failedToSave'));
       }
 
       const data = await res.json();
       router.push(`/entries/${data.id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : t('somethingWrong'));
     } finally {
       setSaving(false);
     }
@@ -218,7 +221,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
           borderRadius: "var(--radius-md)",
         }}>
           <LayoutTemplate style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} />
-          <span style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 500, flexShrink: 0 }}>Template:</span>
+          <span style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 500, flexShrink: 0 }}>{t('template')}</span>
           {templates.map(tpl => (
             <button
               key={tpl.id}
@@ -244,7 +247,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
 
       <div className="form-row-2col">
         <div>
-          <label style={labelStyle}>Collections</label>
+          <label style={labelStyle}>{t('collections')}</label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, minHeight: 38, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "6px 10px", alignItems: "center" }}>
             {selectedCollectionIds.map((cid) => {
               const col = allCollections.find((c) => c.id === cid);
@@ -263,7 +266,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
               }}
               style={{ ...selectStyle, width: "auto", minWidth: 120, padding: "4px 8px", fontSize: "0.75rem", border: "none", background: "transparent" }}
             >
-              <option value="">+ Add...</option>
+              <option value="">{t('addCollection')}</option>
               {allCollections.filter((c) => !selectedCollectionIds.includes(c.id)).map((c) => (
                 <option key={c.id} value={c.id}>{c.icon || "📁"} {c.name}</option>
               ))}
@@ -271,7 +274,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
           </div>
         </div>
         <div>
-          <label style={labelStyle}>Source</label>
+          <label style={labelStyle}>{t('source')}</label>
           <select name="source" value={form.source} onChange={handleChange} style={selectStyle}>
             {sourceOptions.map((s) => (<option key={s} value={s}>{s}</option>))}
           </select>
@@ -279,41 +282,41 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       </div>
 
       <div>
-        <label style={labelStyle}>Title</label>
-        <input type="text" name="title" value={form.title} onChange={handleChange} required placeholder="Entry title" style={inputStyle} />
+        <label style={labelStyle}>{t('title')}</label>
+        <input type="text" name="title" value={form.title} onChange={handleChange} required placeholder={t('titlePlaceholder')} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>Summary</label>
-        <input type="text" name="summary" value={form.summary} onChange={handleChange} placeholder="Brief summary (optional)" style={inputStyle} />
+        <label style={labelStyle}>{t('summary')}</label>
+        <input type="text" name="summary" value={form.summary} onChange={handleChange} placeholder={t('summaryPlaceholder')} style={inputStyle} />
       </div>
 
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-          <label style={{ ...labelStyle, marginBottom: 0 }}>Content (Markdown)</label>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>{t('contentMarkdown')}</label>
           <button type="button" onClick={() => setShowPreview(!showPreview)}
             style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.75rem", color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>
             {showPreview ? <EyeOff style={{ width: 14, height: 14 }} /> : <Eye style={{ width: 14, height: 14 }} />}
-            {showPreview ? "Edit" : "Preview"}
+            {showPreview ? t('editToggle') : t('previewToggle')}
           </button>
         </div>
         {showPreview ? (
           <div style={{ minHeight: 200, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 16 }}>
-            {form.content ? <MarkdownRenderer content={form.content} /> : <p style={{ color: "var(--text-dim)", fontSize: "0.875rem" }}>Nothing to preview</p>}
+            {form.content ? <MarkdownRenderer content={form.content} /> : <p style={{ color: "var(--text-dim)", fontSize: "0.875rem" }}>{t('nothingToPreview')}</p>}
           </div>
         ) : (
-          <MentionTextarea name="content" value={form.content} onChange={handleChange} rows={10} placeholder="Full content in Markdown (optional)"
+          <MentionTextarea name="content" value={form.content} onChange={handleChange} rows={10} placeholder={t('contentPlaceholder')}
             style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 200 }} />
         )}
       </div>
 
       <div className="form-row-2col">
         <div>
-          <label style={labelStyle}>URL</label>
-          <input type="url" name="url" value={form.url} onChange={handleChange} placeholder="https://..." style={inputStyle} />
+          <label style={labelStyle}>{t('url')}</label>
+          <input type="url" name="url" value={form.url} onChange={handleChange} placeholder={t('urlPlaceholder')} style={inputStyle} />
         </div>
         <div>
-          <label style={labelStyle}>Status</label>
+          <label style={labelStyle}>{t('status')}</label>
           <select name="status" value={form.status} onChange={handleChange} style={selectStyle}>
             {statusOptions.map((s) => (
               <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>
@@ -325,8 +328,8 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       <ImageUpload images={images} onChange={setImages} />
 
       <div>
-        <label style={labelStyle}>Tags</label>
-        <input type="text" name="tags" value={form.tags} onChange={handleChange} placeholder="Comma-separated tags, e.g. ai, finance, crypto" style={inputStyle} />
+        <label style={labelStyle}>{t('tagsLabel')}</label>
+        <input type="text" name="tags" value={form.tags} onChange={handleChange} placeholder={t('tagsPlaceholder')} style={inputStyle} />
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 8 }}>
@@ -339,7 +342,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
           opacity: saving ? 0.5 : 1,
         }}>
           <Save style={{ width: 16, height: 16 }} />
-          {saving ? "Saving..." : mode === "create" ? "Create Entry" : "Save Changes"}
+          {saving ? t('saving') : mode === "create" ? t('createEntry') : t('saveChanges')}
         </button>
         <button type="button" onClick={() => router.back()} style={{
           padding: "10px 20px",
@@ -348,7 +351,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
           border: "1px solid var(--border)",
           borderRadius: "var(--radius-md)", cursor: "pointer",
         }}>
-          Cancel
+          {tc('cancel')}
         </button>
       </div>
 

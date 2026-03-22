@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
 
 interface UploadedImage {
@@ -19,6 +20,7 @@ interface ImageUploadProps {
 }
 
 export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageUploadProps) {
+  const t = useTranslations('ImageUpload');
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -35,7 +37,7 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
       }
       return await res.json();
     } catch {
-      alert("Upload failed");
+      alert(t('uploadFailed'));
       return null;
     }
   };
@@ -68,7 +70,7 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
         display: "block", fontSize: "0.85rem", color: "var(--text-secondary)",
         fontWeight: 500, marginBottom: 8,
       }}>
-        Images
+        {t('label')}
       </label>
 
       {/* Image grid */}
@@ -99,7 +101,7 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
               <input
                 value={img.caption || ""}
                 onChange={(e) => updateCaption(idx, e.target.value)}
-                placeholder="Caption..."
+                placeholder={t('captionPlaceholder')}
                 style={{
                   width: "100%", boxSizing: "border-box",
                   background: "var(--background)", border: "none",
@@ -136,10 +138,10 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
             <>
               <Upload style={{ width: 20, height: 20, color: "var(--text-muted)", margin: "0 auto 8px" }} />
               <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                Drop images here or click to upload
+                {t('dropOrClick')}
               </p>
               <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 4 }}>
-                PNG, JPG, WebP, GIF, SVG — max 20MB each
+                {t('formats')}
               </p>
             </>
           )}

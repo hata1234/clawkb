@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { X, Copy, Link2, Trash2, Lock, Check, Loader2, Eye, Clock, Shield, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -28,11 +29,11 @@ interface ShareDialogProps {
 }
 
 const EXPIRY_OPTIONS = [
-  { label: "No expiry", value: 0 },
-  { label: "1 hour", value: 1 },
-  { label: "24 hours", value: 24 },
-  { label: "7 days", value: 168 },
-  { label: "30 days", value: 720 },
+  { key: "noExpiry", value: 0 },
+  { key: "1hour", value: 1 },
+  { key: "24hours", value: 24 },
+  { key: "7days", value: 168 },
+  { key: "30days", value: 720 },
 ];
 
 // Extract [[entry:ID|title]] from content
@@ -78,6 +79,8 @@ const btnBase: React.CSSProperties = {
 };
 
 export default function ShareDialog({ entryId, entryContent, onClose }: ShareDialogProps) {
+  const t = useTranslations('Share');
+  const tc = useTranslations('Common');
   const [links, setLinks] = useState<ShareLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -161,7 +164,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <Link2 style={{ width: 18, height: 18, color: "var(--accent)" }} />
-            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.15rem", color: "var(--text)" }}>Share Entry</h2>
+            <h2 style={{ fontFamily: "var(--font-heading)", fontSize: "1.15rem", color: "var(--text)" }}>{t('title')}</h2>
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4 }}>
             <X style={{ width: 18, height: 18 }} />
@@ -176,11 +179,11 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
               <input type="checkbox" checked={usePassword} onChange={(e) => setUsePassword(e.target.checked)}
                 style={{ accentColor: "var(--accent)" }} />
               <Shield style={{ width: 14, height: 14 }} />
-              Password protect
+              {t('passwordProtect')}
             </label>
             {usePassword && (
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password" style={inputStyle} />
+                placeholder={t('enterPassword')} style={inputStyle} />
             )}
 
             {/* Expiry */}
@@ -189,7 +192,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
               <select value={expiryHours} onChange={(e) => setExpiryHours(Number(e.target.value))}
                 style={{ ...inputStyle, width: "auto", flex: 1 }}>
                 {EXPIRY_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  <option key={opt.value} value={opt.value}>{t(`expiry.${opt.key}`)}</option>
                 ))}
               </select>
             </div>
@@ -198,7 +201,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Eye style={{ width: 14, height: 14, color: "var(--text-muted)", flexShrink: 0 }} />
               <input type="number" value={maxViews} onChange={(e) => setMaxViews(e.target.value)}
-                placeholder="Max views (unlimited)" min={1} style={{ ...inputStyle, flex: 1 }} />
+                placeholder={t('maxViewsPlaceholder')} min={1} style={{ ...inputStyle, flex: 1 }} />
             </div>
 
             {/* Internal links selection */}
@@ -207,15 +210,15 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                   <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
                     <FileText style={{ width: 14, height: 14 }} />
-                    Linked Entries ({internalLinks.length})
+                    {t('linkedEntries', { count: internalLinks.length })}
                   </span>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={selectAllLinked} style={{ ...btnBase, padding: "3px 8px", fontSize: "0.7rem", background: "transparent", color: "var(--accent)", border: "1px solid var(--border)" }}>All</button>
-                    <button onClick={deselectAllLinked} style={{ ...btnBase, padding: "3px 8px", fontSize: "0.7rem", background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>None</button>
+                    <button onClick={selectAllLinked} style={{ ...btnBase, padding: "3px 8px", fontSize: "0.7rem", background: "transparent", color: "var(--accent)", border: "1px solid var(--border)" }}>{tc('all')}</button>
+                    <button onClick={deselectAllLinked} style={{ ...btnBase, padding: "3px 8px", fontSize: "0.7rem", background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>{tc('none')}</button>
                   </div>
                 </div>
                 <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginBottom: 8 }}>
-                  This entry references other entries. Select which to include in the share. Unselected ones will show a 🔒 lock.
+                  {t('linkedEntriesHint')}
                 </p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {internalLinks.map((le) => (
@@ -240,7 +243,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
               style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", justifyContent: "center",
                 opacity: creating || (usePassword && !password) ? 0.5 : 1 }}>
               {creating ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Link2 style={{ width: 14, height: 14 }} />}
-              Create Share Link
+              {t('createShareLink')}
             </button>
           </div>
         </div>
@@ -248,7 +251,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
         {/* Existing links */}
         <div>
           <h3 style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
-            Active Links
+            {t('activeLinks')}
           </h3>
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", padding: 20 }}>
@@ -256,7 +259,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
             </div>
           ) : links.length === 0 ? (
             <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", textAlign: "center", padding: "16px 0" }}>
-              No active share links
+              {t('noActiveLinks')}
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -266,46 +269,46 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                     <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{formatDate(link.createdAt)}</span>
                     {link.hasPassword && (
                       <span style={{ fontSize: "0.7rem", color: "var(--accent)", display: "flex", alignItems: "center", gap: 3 }}>
-                        <Lock style={{ width: 10, height: 10 }} /> Protected
+                        <Lock style={{ width: 10, height: 10 }} /> {t('protected')}
                       </span>
                     )}
                     {link.expiresAt && (
                       <span style={{ fontSize: "0.7rem", color: "var(--text-dim)" }}>
-                        Expires {formatDate(link.expiresAt)}
+                        {t('expires', { date: formatDate(link.expiresAt) })}
                       </span>
                     )}
                     <span style={{ fontSize: "0.7rem", color: "var(--text-dim)" }}>
-                      {link.viewCount} view{link.viewCount !== 1 ? "s" : ""}{link.maxViews !== null ? ` / ${link.maxViews} max` : ""}
+                      {t('views', { count: link.viewCount })}{link.maxViews !== null ? ` / ${link.maxViews} max` : ""}
                     </span>
                   </div>
                   {/* Show linked entries count */}
                   {link.linkedShares && link.linkedShares.length > 0 && (
                     <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 8, display: "flex", alignItems: "center", gap: 4 }}>
                       <FileText style={{ width: 11, height: 11 }} />
-                      Includes {link.linkedShares.length} linked {link.linkedShares.length === 1 ? "entry" : "entries"}
+                      {t('includesLinked', { count: link.linkedShares.length })}
                     </div>
                   )}
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => copyUrl(link)}
                       style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: copiedId === link.id ? "var(--accent)" : "var(--text-secondary)", fontSize: "0.75rem", padding: "5px 10px" }}>
                       {copiedId === link.id ? <Check style={{ width: 12, height: 12 }} /> : <Copy style={{ width: 12, height: 12 }} />}
-                      {copiedId === link.id ? "Copied!" : "Copy URL"}
+                      {copiedId === link.id ? tc('copied') : tc('copyUrl')}
                     </button>
                     {confirmRevoke === link.id ? (
                       <>
                         <button onClick={() => revokeLink(link.id)}
                           style={{ ...btnBase, background: "var(--danger)", color: "#fff", fontSize: "0.75rem", padding: "5px 10px" }}>
-                          Confirm
+                          {t('confirmRevoke')}
                         </button>
                         <button onClick={() => setConfirmRevoke(null)}
                           style={{ ...btnBase, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: "0.75rem", padding: "5px 10px" }}>
-                          Cancel
+                          {tc('cancel')}
                         </button>
                       </>
                     ) : (
                       <button onClick={() => setConfirmRevoke(link.id)}
                         style={{ ...btnBase, background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)", color: "var(--danger)", fontSize: "0.75rem", padding: "5px 10px" }}>
-                        <Trash2 style={{ width: 12, height: 12 }} /> Revoke
+                        <Trash2 style={{ width: 12, height: 12 }} /> {tc('revoke')}
                       </button>
                     )}
                   </div>

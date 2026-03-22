@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import StatusBadge from "./StatusBadge";
 import { formatRelativeDate } from "@/lib/utils";
 import { Image as ImageIcon, Star, Link as LinkIcon, Tag, AlertCircle, CheckCircle, Info, Zap } from "lucide-react";
@@ -86,6 +87,7 @@ function renderCardElement(el: CardElement) {
 }
 
 export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; onToggleFavorite?: (id: number) => void }) {
+  const t = useTranslations('EntryCard');
   const topRight = entry.cardElements?.filter((el) => el.position === "top-right") || [];
   const bottomLeft = entry.cardElements?.filter((el) => el.position === "bottom-left") || [];
   const metaRow = entry.cardElements?.filter((el) => el.position === "meta-row") || [];
@@ -102,7 +104,7 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
           <button
             className="entry-card-star"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(entry.id); }}
-            title={entry.isFavorited ? "Remove from favorites" : "Add to favorites"}
+            title={entry.isFavorited ? t('removeFromFavorites') : t('addToFavorites')}
           >
             <Star style={{ width: 16, height: 16, fill: entry.isFavorited ? "var(--accent)" : "none", color: entry.isFavorited ? "var(--accent)" : "var(--text-dim)" }} />
           </button>
@@ -155,7 +157,7 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
             {entry.collections && entry.collections.length > 2 && (
               <>
                 <span className="entry-meta-dot">·</span>
-                <span className="entry-meta-item">+{entry.collections.length - 2} collections</span>
+                <span className="entry-meta-item">{t('moreCollections', { count: entry.collections.length - 2 })}</span>
               </>
             )}
             {entry.tags.length > 0 && (

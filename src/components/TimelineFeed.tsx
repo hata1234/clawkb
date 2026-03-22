@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { formatRelativeDate } from "@/lib/utils";
 import { SOURCE_OPTIONS } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
@@ -39,6 +40,8 @@ function groupByDate(entries: Entry[]): Map<string, Entry[]> {
 }
 
 export default function TimelineFeed() {
+  const t = useTranslations('Timeline');
+  const tc = useTranslations('Common');
   const [entries, setEntries] = useState<Entry[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -94,8 +97,8 @@ export default function TimelineFeed() {
     <div>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>Library</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>Timeline</h1>
+        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>{t('label')}</p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>{t('title')}</h1>
       </div>
 
       {/* Filter chips */}
@@ -105,7 +108,7 @@ export default function TimelineFeed() {
           onChange={(e) => setSourceFilter(e.target.value)}
           className="timeline-filter-select"
         >
-          <option value="">All Sources</option>
+          <option value="">{t('allSources')}</option>
           {SOURCE_OPTIONS.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -119,7 +122,7 @@ export default function TimelineFeed() {
               setSourceFilter("");
             }}
           >
-            Clear
+            {tc('clear')}
           </button>
         )}
       </div>
@@ -133,7 +136,7 @@ export default function TimelineFeed() {
 
       {/* Timeline */}
       {!loading && entries.length === 0 && (
-        <p className="timeline-empty">No entries found.</p>
+        <p className="timeline-empty">{t('noEntries')}</p>
       )}
 
       {!loading && entries.length > 0 && (
@@ -205,10 +208,10 @@ export default function TimelineFeed() {
           >
             {loadingMore ? (
               <>
-                <Loader2 className="timeline-spinner-sm" /> Loading…
+                <Loader2 className="timeline-spinner-sm" /> {tc('loading')}
               </>
             ) : (
-              "Load More"
+              t('loadMore')
             )}
           </button>
         </div>

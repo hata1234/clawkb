@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
   new: { bg: "rgba(251,191,36,0.1)", text: "var(--status-new)", dot: "var(--status-new)" },
   interested: { bg: "rgba(96,165,250,0.1)", text: "var(--status-interested)", dot: "var(--status-interested)" },
@@ -9,6 +11,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
 };
 
 export default function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations('StatusBadge');
   const style = STATUS_STYLES[status] || STATUS_STYLES.archived;
 
   return (
@@ -38,7 +41,7 @@ export default function StatusBadge({ status }: { status: string }) {
           flexShrink: 0,
         }}
       />
-      {status.replace("_", " ")}
+      {t.has(status) ? t(status) : status.replace("_", " ")}
     </span>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { History, ChevronDown, ChevronUp, GitCompareArrows } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { diffLines, diffWords } from "diff";
@@ -129,6 +130,7 @@ function FieldDiff({ label, oldVal, newVal }: { label: string; oldVal: string; n
 /* ═══ Diff View ═══ */
 
 function RevisionDiff({ older, newer }: { older: Revision; newer: Revision }) {
+  const t = useTranslations('RevisionHistory');
   return (
     <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
       <FieldDiff label="Title" oldVal={older.title} newVal={newer.title} />
@@ -141,7 +143,7 @@ function RevisionDiff({ older, newer }: { older: Revision; newer: Revision }) {
       {older.title === newer.title && older.status === newer.status && older.type === newer.type && older.source === newer.source
         && (older.summary || "") === (newer.summary || "") && (older.content || "") === (newer.content || "")
         && JSON.stringify(older.tags) === JSON.stringify(newer.tags) && (
-        <p style={{ fontSize: "0.82rem", color: "var(--text-dim)", fontStyle: "italic" }}>No differences found.</p>
+        <p style={{ fontSize: "0.82rem", color: "var(--text-dim)", fontStyle: "italic" }}>{t('noDifferences')}</p>
       )}
     </div>
   );
@@ -152,6 +154,7 @@ function RevisionDiff({ older, newer }: { older: Revision; newer: Revision }) {
 const CURRENT_ID = -1; // sentinel for "Current (live)" pseudo-revision
 
 export default function RevisionHistory({ entryId, currentTitle, currentEntry }: RevisionHistoryProps) {
+  const t = useTranslations('RevisionHistory');
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [expandedRevision, setExpandedRevision] = useState<number | null>(null);
@@ -240,7 +243,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
             fontSize: "0.72rem", fontWeight: 600, color: "var(--text-dim)",
             textTransform: "uppercase", letterSpacing: "0.08em", margin: 0,
           }}>
-            Revision History ({revisions.length})
+            {t('title', { count: revisions.length })}
           </h2>
           {expanded
             ? <ChevronUp style={{ width: 14, height: 14, color: "var(--text-dim)", marginLeft: "auto" }} />
@@ -261,7 +264,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
             }}
           >
             <GitCompareArrows style={{ width: 12, height: 12 }} />
-            Diff
+            {t('diff')}
           </button>
         )}
       </div>
@@ -272,7 +275,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
           {/* Selectors */}
           <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontWeight: 600 }}>FROM</span>
+              <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontWeight: 600 }}>{t('from')}</span>
               <select
                 value={diffA ?? ""}
                 onChange={e => setDiffA(parseInt(e.target.value))}
@@ -283,7 +286,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
                 }}
               >
                 {currentRevision && (
-                  <option value={CURRENT_ID}>● Current (live)</option>
+                  <option value={CURRENT_ID}>{t('currentLive')}</option>
                 )}
                 {revisions.map((rev, idx) => (
                   <option key={rev.id} value={rev.id}>
@@ -294,7 +297,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
             </div>
             <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>→</span>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontWeight: 600 }}>TO</span>
+              <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontWeight: 600 }}>{t('to')}</span>
               <select
                 value={diffB ?? ""}
                 onChange={e => setDiffB(parseInt(e.target.value))}
@@ -305,7 +308,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
                 }}
               >
                 {currentRevision && (
-                  <option value={CURRENT_ID}>● Current (live)</option>
+                  <option value={CURRENT_ID}>{t('currentLive')}</option>
                 )}
                 {revisions.map((rev, idx) => (
                   <option key={rev.id} value={rev.id}>
@@ -320,7 +323,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
           {revA && revB && revA.id !== revB.id ? (
             <RevisionDiff older={revA} newer={revB} />
           ) : revA && revB && revA.id === revB.id ? (
-            <p style={{ fontSize: "0.82rem", color: "var(--text-dim)", fontStyle: "italic" }}>Select two different revisions to compare.</p>
+            <p style={{ fontSize: "0.82rem", color: "var(--text-dim)", fontStyle: "italic" }}>{t('selectDifferent')}</p>
           ) : null}
         </div>
       )}
@@ -381,7 +384,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
                     {idx === 0 && currentRevision ? (
                       <>
                         <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--accent)", marginBottom: 8 }}>
-                          ● Changes since this revision → Current (live)
+                          {t('changesSince')}
                         </div>
                         <RevisionDiff older={rev} newer={currentRevision} />
                       </>
@@ -410,7 +413,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
                         {rev.content && (
                           <details style={{ marginTop: 4 }}>
                             <summary style={{ color: "var(--text-dim)", fontSize: "0.78rem", cursor: "pointer", userSelect: "none" }}>
-                              Full content snapshot (initial version)
+                              {t('fullContentSnapshot')}
                             </summary>
                             <pre style={{
                               marginTop: 8, padding: 12,

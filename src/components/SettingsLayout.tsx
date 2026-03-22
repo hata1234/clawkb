@@ -1,22 +1,23 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook, Bot } from "lucide-react";
 
 const tabs = [
-  { href: "/settings", label: "General", icon: Settings, exact: true },
-  { href: "/settings/collections", label: "Collections", icon: FolderOpen },
-  { href: "/settings/users", label: "Users", icon: Users },
-  { href: "/settings/permissions", label: "Permissions", icon: Lock },
-  { href: "/settings/auth", label: "Auth", icon: Shield },
-  { href: "/settings/plugins", label: "Plugins", icon: Puzzle },
-  { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
-  { href: "/settings/rag", label: "RAG / AI", icon: Bot },
+  { href: "/settings" as const, labelKey: "general", icon: Settings, exact: true },
+  { href: "/settings/collections" as const, labelKey: "collections", icon: FolderOpen },
+  { href: "/settings/users" as const, labelKey: "users", icon: Users },
+  { href: "/settings/permissions" as const, labelKey: "permissions", icon: Lock },
+  { href: "/settings/auth" as const, labelKey: "auth", icon: Shield },
+  { href: "/settings/plugins" as const, labelKey: "plugins", icon: Puzzle },
+  { href: "/settings/webhooks" as const, labelKey: "webhooks", icon: Webhook },
+  { href: "/settings/rag" as const, labelKey: "rag", icon: Bot },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const t = useTranslations("Settings");
 
   function isActive(tab: typeof tabs[0]) {
     if (tab.exact) return pathname === tab.href;
@@ -26,8 +27,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   return (
     <div style={{ maxWidth: 1040 }}>
       <div style={{ marginBottom: 20 }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>System</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>Settings</h1>
+        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>{t("label")}</p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>{t("title")}</h1>
       </div>
 
       <nav className="settings-tabs" style={{
@@ -61,7 +62,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
               }}
             >
               <Icon style={{ width: 15, height: 15 }} />
-              {tab.label}
+              {t(tab.labelKey)}
             </Link>
           );
         })}

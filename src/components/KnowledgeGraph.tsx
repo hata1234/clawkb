@@ -10,7 +10,8 @@ import {
   type SimulationNodeDatum,
   type SimulationLinkDatum,
 } from "d3-force";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { X, SlidersHorizontal } from "lucide-react";
 
@@ -59,6 +60,7 @@ function nodeRadius(degree: number): number {
 /* ═══ Component ═══ */
 
 export default function KnowledgeGraph() {
+  const t = useTranslations('Graph');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<ReturnType<typeof forceSimulation<GraphNode>> | null>(null);
@@ -692,15 +694,15 @@ export default function KnowledgeGraph() {
       {loading && (
         <div className="kg-loading">
           <div className="kg-loading-spinner" />
-          <span>Loading graph…</span>
+          <span>{t('loading')}</span>
         </div>
       )}
 
       {/* Empty state */}
       {!loading && nodes.length === 0 && (
         <div className="kg-empty">
-          <p>No entries with embeddings found.</p>
-          <p className="kg-empty-sub">Create entries and enable auto-embedding to see the knowledge graph.</p>
+          <p>{t('emptyTitle')}</p>
+          <p className="kg-empty-sub">{t('emptyHint')}</p>
         </div>
       )}
 
@@ -732,14 +734,14 @@ export default function KnowledgeGraph() {
       {filtersOpen && (
         <div className="kg-filters">
           <div className="kg-filters-header">
-            <span className="kg-filters-title">Filters</span>
+            <span className="kg-filters-title">{t('filters')}</span>
             <button className="kg-filters-close" onClick={() => setFiltersOpen(false)}>
               <X style={{ width: 16, height: 16 }} />
             </button>
           </div>
 
           <div className="kg-filters-section">
-            <label className="kg-filters-label">Type</label>
+            <label className="kg-filters-label">{t('type')}</label>
             <div className="kg-filters-checks">
               {TYPE_OPTIONS.map((type) => (
                 <label key={type} className="kg-check">
@@ -757,7 +759,7 @@ export default function KnowledgeGraph() {
 
           <div className="kg-filters-section">
             <label className="kg-filters-label">
-              Similarity threshold: <strong>{threshold.toFixed(2)}</strong>
+              {t('similarityThreshold')} <strong>{threshold.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -775,7 +777,7 @@ export default function KnowledgeGraph() {
           </div>
 
           <div className="kg-filters-legend">
-            <span className="kg-filters-label">Legend</span>
+            <span className="kg-filters-label">{t('legend')}</span>
             <div className="kg-legend-items">
               {TYPE_OPTIONS.map((type) => (
                 <div key={type} className="kg-legend-item">
@@ -806,11 +808,11 @@ export default function KnowledgeGraph() {
           )}
           <div className="kg-panel-connections">
             <span className="kg-panel-conn-label">
-              {selectedNode.degree} connection{selectedNode.degree !== 1 ? "s" : ""}
+              {t('connections', { count: selectedNode.degree })}
             </span>
           </div>
           <Link href={`/entries/${selectedNode.id}`} className="kg-panel-link">
-            View Entry →
+            {t('viewEntry')}
           </Link>
         </div>
       )}
@@ -831,7 +833,7 @@ export default function KnowledgeGraph() {
               <p className="kg-panel-summary">{selectedNode.summary}</p>
             )}
             <Link href={`/entries/${selectedNode.id}`} className="kg-panel-link">
-              View Entry →
+              {t('viewEntry')}
             </Link>
           </div>
         </div>
