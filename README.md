@@ -56,6 +56,11 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 - Hooks: `entry.serialize`, `entryCard.render`, `entry.afterQuery`
 - Built-in: backlinks, related-entries, auto-tag, entry-templates, export
 
+### Internationalization
+- 🌐 **i18n** — 4 languages: English, 繁體中文, 简体中文, 日本語 (via next-intl)
+- 🔤 **Language Switcher** — In-app sidebar language selector with flag emojis
+- 🔗 **Locale Routing** — `/en/`, `/zh-TW/`, `/zh-CN/`, `/ja/` URL prefix routing
+
 ### UI
 - 🌙 **Dark Theme** — Editorial dark UI, responsive on mobile and desktop
 - 📊 **Dashboard** — Stats overview with charts and recent entries
@@ -305,6 +310,7 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 - [x] Webhooks with HMAC-SHA256 signed delivery
 - [x] PDF export with CJK support and password encryption
 - [x] Import (Markdown / JSON / CSV batch import with preview UI)
+- [x] i18n — 4 languages (EN / zh-TW / zh-CN / ja) with next-intl locale routing
 - [x] Collections (hierarchical folders, replacing old Type system)
 - [x] Internal links (`[[entry:ID|title]]`)
 - [x] Share links (time-limited + password-protected)
@@ -312,7 +318,6 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 
 ### 🔜 Planned
 - [ ] Global floating AI chatbox (Ask AI accessible from any page)
-- [ ] i18n (EN / zh-TW / zh-CN / ja)
 - [ ] Collaborative editing (Yjs / Liveblocks)
 - [ ] Email verification flow (SMTP integration)
 - [ ] Public sharing mode (public slug, no login required)
