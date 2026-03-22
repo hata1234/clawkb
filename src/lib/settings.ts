@@ -53,6 +53,17 @@ export const DEFAULT_PLUGIN_SETTINGS = {
   states: {} as Record<string, { enabled: boolean }>,
 };
 
+export const DEFAULT_SMTP = {
+  host: "",
+  port: 587,
+  secure: false,
+  user: "",
+  pass: "",
+  fromAddress: "",
+  fromName: "ClawKB",
+  enabled: false,
+};
+
 export const DEFAULT_RAG = {
   provider: "spark-vllm" as "openai" | "ollama" | "spark-vllm" | "disabled",
   baseUrl: "http://192.168.1.113:8888/v1",
@@ -83,6 +94,16 @@ export interface StorageConfig {
   bucket: string;
   publicUrl: string;
 }
+export interface SmtpConfig {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  fromAddress: string;
+  fromName: string;
+  enabled: boolean;
+}
 export interface RagConfig {
   provider: "openai" | "ollama" | "spark-vllm" | "disabled";
   baseUrl: string;
@@ -102,6 +123,7 @@ export interface AllSettings {
   auth:           typeof DEFAULT_AUTH;
   plugins:        typeof DEFAULT_PLUGIN_SETTINGS;
   rag:            RagConfig;
+  smtp:           SmtpConfig;
 }
 
 // ─── Server-side helpers ──────────────────────────────────────────────────
@@ -137,5 +159,6 @@ export async function getAllSettings(): Promise<AllSettings> {
     auth:           (map.auth           as typeof DEFAULT_AUTH) ?? DEFAULT_AUTH,
     plugins:        (map.plugins        as typeof DEFAULT_PLUGIN_SETTINGS) ?? DEFAULT_PLUGIN_SETTINGS,
     rag:            (map.rag            as RagConfig)                      ?? DEFAULT_RAG,
+    smtp:           (map.smtp           as SmtpConfig)                     ?? DEFAULT_SMTP,
   };
 }

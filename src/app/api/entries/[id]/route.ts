@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
+import { dispatchNotification } from "@/lib/notifications";
 
 interface EntryImageInput {
   url: string;
@@ -161,6 +162,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   logActivity("entry.updated", principal.id, entry.id, { title: entry.title }).catch(() => {});
   dispatchWebhookEvent("entry.updated", { id: entry.id, title: entry.title, type: entry.type, source: entry.source });
 
+  // Notify users who favorited this entry about the update
+  notifyFavoriters(entry.id, entry.title, principal.id).catch(() => {});
+
   return NextResponse.json(serializeEntry(entry));
 }
 
@@ -184,4 +188,19 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   dispatchWebhookEvent("entry.deleted", { id: parseInt(id), title: entry.title });
 
   return NextResponse.json({ success: true });
+}
+
+async function notifyFavoriters(entryId: number, entryTitle: string, editorId: number | null) {
+  const favorites = await prisma.userFavorite.findMany({
+    where: { entryId },
+    select: { userId: true },
+  });
+  for (const fav of favorites) {
+    if (fav.userId === editorId) continue; // Don't notify the editor
+    dispatchNotification(fav.userId, {
+      type: "entry_update",
+      title: `"${entryTitle}" was updated`,
+      link: `/entries/${entryId}`,
+    }).catch(() => {});
+  }
 }

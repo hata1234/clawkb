@@ -1,5 +1,6 @@
 import { createHmac } from "crypto";
 import { prisma } from "./prisma";
+import { dispatchNotification } from "./notifications";
 
 export type WebhookEvent =
   | "entry.created"
@@ -61,6 +62,9 @@ async function deliverWebhook(
   await prisma.webhookDelivery.create({
     data: { webhookId, event, payload: body, status: lastStatus, response: lastResponse, attempts: MAX_ATTEMPTS },
   }).catch(() => {});
+
+  // Notify admins about webhook failure
+  notifyAdminsWebhookFailure(webhookId, url, event).catch(() => {});
 }
 
 export function dispatchWebhookEvent(event: WebhookEvent, data: Record<string, unknown>) {
@@ -86,6 +90,23 @@ export function dispatchWebhookEvent(event: WebhookEvent, data: Record<string, u
       // Silently fail — webhook errors must never affect main flows
     }
   })();
+}
+
+async function notifyAdminsWebhookFailure(webhookId: number, url: string, event: string) {
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: "admin", approvalStatus: "approved" },
+      select: { id: true },
+    });
+    for (const admin of admins) {
+      dispatchNotification(admin.id, {
+        type: "system",
+        title: `Webhook delivery failed after ${MAX_ATTEMPTS} attempts`,
+        body: `Webhook #${webhookId} (${url}) failed for event: ${event}`,
+        link: "/settings/webhooks",
+      }).catch(() => {});
+    }
+  } catch { /* silently fail */ }
 }
 
 export function generateWebhookSecret(): string {

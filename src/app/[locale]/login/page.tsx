@@ -208,6 +208,8 @@ function LoginForm() {
           {t('tagline')}
           <br />
           <Link href="/register" style={{ color: "var(--accent)", textDecoration: "none" }}>{t('createAccount')}</Link>
+          {" · "}
+          <Link href="/forgot-password" style={{ color: "var(--accent)", textDecoration: "none" }}>{t('forgotPassword')}</Link>
         </p>
       </div>
 

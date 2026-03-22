@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_AUTH, getSetting } from "@/lib/settings";
 import { makeVerificationToken, serializeUser, userWithGroupInclude } from "@/lib/users";
+import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   const settings = await getSetting("auth", DEFAULT_AUTH);
@@ -57,6 +58,11 @@ export async function POST(request: Request) {
     },
     include: userWithGroupInclude,
   });
+
+  // Send verification email if SMTP enabled and email verification required
+  if (verificationToken && email) {
+    sendVerificationEmail({ email, displayName, username }, verificationToken).catch(() => {});
+  }
 
   return NextResponse.json({
     user: serializeUser(user),

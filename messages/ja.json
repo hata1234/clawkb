@@ -271,7 +271,8 @@
     "signingIn": "サインイン中...",
     "signIn": "サインイン",
     "tagline": "人間とAIエージェントの協働のためのナレッジベース",
-    "createAccount": "アカウントを作成"
+    "createAccount": "アカウントを作成",
+    "forgotPassword": "パスワードをお忘れですか？"
   },
   "Register": {
     "title": "アカウント作成",
@@ -500,7 +501,8 @@
     "tabStorage": "ストレージ",
     "tokenCreatedCopyNow": "トークンが作成されました — 今すぐコピーしてください！",
     "tokenShownOnce": "このトークンは一度だけ表示されます。安全に保管してください。",
-    "rag": "RAG / AI"
+    "rag": "RAG / AI",
+    "smtp": "SMTP / メール"
   },
   "AuthSettings": {
     "allowRegistration": "ユーザー登録を許可",
@@ -789,6 +791,61 @@
     "report": "レポート",
     "reference": "リファレンス",
     "project_note": "プロジェクトノート"
+  },
+  "SmtpSettings": {
+    "title": "SMTP / メール",
+    "description": "通知、認証メール、パスワードリセット用の送信メール設定を構成します。",
+    "enableSmtp": "SMTPメールを有効にする",
+    "host": "SMTPホスト",
+    "port": "ポート",
+    "secure": "SSL/TLSを使用",
+    "username": "ユーザー名",
+    "usernamePlaceholder": "SMTPユーザー名またはメールアドレス",
+    "password": "パスワード",
+    "passwordPlaceholder": "SMTPパスワード",
+    "fromAddress": "差出人アドレス",
+    "fromName": "差出人名",
+    "saved": "SMTP設定が保存されました",
+    "testSuccess": "SMTP接続の検証に成功しました",
+    "testFailed": "SMTP接続に失敗しました",
+    "networkError": "ネットワークエラー — SMTPサーバーに接続できません"
+  },
+  "Notifications": {
+    "title": "通知",
+    "markAllRead": "すべて既読にする",
+    "loading": "読み込み中...",
+    "empty": "通知はまだありません"
+  },
+  "ForgotPassword": {
+    "title": "パスワードを忘れた場合",
+    "subtitle": "パスワードリセットリンクを受け取るメールアドレスを入力してください。",
+    "email": "メールアドレス",
+    "emailPlaceholder": "メールアドレスを入力",
+    "sendResetLink": "リセットリンクを送信",
+    "sending": "送信中...",
+    "sentMessage": "そのメールアドレスにアカウントが存在する場合、リセットリンクが送信されました。受信トレイを確認してください。",
+    "backToLogin": "ログインに戻る",
+    "failed": "リセットリンクの送信に失敗しました",
+    "networkError": "ネットワークエラー。もう一度お試しください。"
+  },
+  "ResetPassword": {
+    "title": "パスワードリセット",
+    "subtitle": "新しいパスワードを入力してください。",
+    "newPassword": "新しいパスワード",
+    "newPasswordPlaceholder": "新しいパスワードを入力",
+    "confirmPassword": "パスワード確認",
+    "confirmPasswordPlaceholder": "新しいパスワードを確認",
+    "resetPassword": "パスワードをリセット",
+    "resetting": "リセット中...",
+    "successMessage": "パスワードが正常にリセットされました。ログインページにリダイレクトしています...",
+    "goToLogin": "ログインへ",
+    "backToLogin": "ログインに戻る",
+    "invalidToken": "無効または不明なリセットトークンです。",
+    "requestNewLink": "新しいリセットリンクをリクエスト",
+    "passwordMismatch": "パスワードが一致しません",
+    "passwordTooShort": "パスワードは8文字以上必要です",
+    "failed": "パスワードのリセットに失敗しました",
+    "networkError": "ネットワークエラー。もう一度お試しください。"
   },
   "Metadata": {
     "title": "ClawKB",

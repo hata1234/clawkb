@@ -33,6 +33,7 @@ import { signOut } from "next-auth/react";
 import { useTheme } from "./ThemeProvider";
 import { Suspense } from "react";
 import CollectionTree from "./CollectionTree";
+import NotificationBell from "./NotificationBell";
 
 const browseItems = [
   { href: "/entries",     label: "entries",    icon: FileText },
@@ -286,8 +287,9 @@ export default function Sidebar({
       {/* Collection tree */}
       <Suspense fallback={null}><CollectionTree collapsed={collapsed} /></Suspense>
 
-      {/* Theme toggle + Collapse toggle */}
+      {/* Notifications + Theme toggle + Collapse toggle */}
       <div className="sidebar-bottom-actions">
+        <NotificationBell collapsed={collapsed} />
         <button
           onClick={toggleTheme}
           className="sidebar-theme-btn"

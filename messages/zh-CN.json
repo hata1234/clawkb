@@ -271,7 +271,8 @@
     "signingIn": "登录中...",
     "signIn": "登录",
     "tagline": "面向人机协作的知识库",
-    "createAccount": "创建账户"
+    "createAccount": "创建账户",
+    "forgotPassword": "忘记密码？"
   },
   "Register": {
     "title": "创建账户",
@@ -500,7 +501,8 @@
     "tabStorage": "存储",
     "tokenCreatedCopyNow": "令牌已创建 — 请立即复制！",
     "tokenShownOnce": "此令牌只会显示一次，请妥善保存。",
-    "rag": "RAG / AI"
+    "rag": "RAG / AI",
+    "smtp": "SMTP / 邮件"
   },
   "AuthSettings": {
     "allowRegistration": "允许用户注册",
@@ -789,6 +791,61 @@
     "report": "报告",
     "reference": "参考资料",
     "project_note": "项目笔记"
+  },
+  "SmtpSettings": {
+    "title": "SMTP / 邮件",
+    "description": "配置外发邮件设置，用于通知、验证邮件和密码重置。",
+    "enableSmtp": "启用 SMTP 邮件",
+    "host": "SMTP 主机",
+    "port": "端口",
+    "secure": "使用 SSL/TLS",
+    "username": "用户名",
+    "usernamePlaceholder": "SMTP 用户名或邮箱",
+    "password": "密码",
+    "passwordPlaceholder": "SMTP 密码",
+    "fromAddress": "发件人地址",
+    "fromName": "发件人名称",
+    "saved": "SMTP 设置已保存",
+    "testSuccess": "SMTP 连接验证成功",
+    "testFailed": "SMTP 连接失败",
+    "networkError": "网络错误 — 无法连接 SMTP 服务器"
+  },
+  "Notifications": {
+    "title": "通知",
+    "markAllRead": "全部标为已读",
+    "loading": "加载中...",
+    "empty": "暂无通知"
+  },
+  "ForgotPassword": {
+    "title": "忘记密码",
+    "subtitle": "输入您的邮箱以接收密码重置链接。",
+    "email": "邮箱",
+    "emailPlaceholder": "输入您的邮箱",
+    "sendResetLink": "发送重置链接",
+    "sending": "发送中...",
+    "sentMessage": "如果该邮箱存在账户，重置链接已发送。请检查您的收件箱。",
+    "backToLogin": "返回登录",
+    "failed": "发送重置链接失败",
+    "networkError": "网络错误，请重试。"
+  },
+  "ResetPassword": {
+    "title": "重置密码",
+    "subtitle": "请在下方输入您的新密码。",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "输入新密码",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "确认新密码",
+    "resetPassword": "重置密码",
+    "resetting": "重置中...",
+    "successMessage": "密码已成功重置。正在跳转到登录页面...",
+    "goToLogin": "前往登录",
+    "backToLogin": "返回登录",
+    "invalidToken": "无效或缺少重置令牌。",
+    "requestNewLink": "请求新的重置链接",
+    "passwordMismatch": "密码不一致",
+    "passwordTooShort": "密码至少需要 8 个字符",
+    "failed": "密码重置失败",
+    "networkError": "网络错误，请重试。"
   },
   "Metadata": {
     "title": "ClawKB",

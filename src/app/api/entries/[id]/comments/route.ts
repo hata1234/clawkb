@@ -4,6 +4,7 @@ import { commentWithAuthorInclude, serializeComment } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
+import { dispatchNotification } from "@/lib/notifications";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
@@ -55,6 +56,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   logActivity("comment.created", principal.id, entryId, { commentId: comment.id, entryTitle: entry.title }).catch(() => {});
   dispatchWebhookEvent("comment.created", { id: comment.id, entryId, entryTitle: entry.title, authorId: principal.id });
+
+  // Notify entry author about the comment (if different from commenter)
+  if (entry.authorId && entry.authorId !== principal.id) {
+    dispatchNotification(entry.authorId, {
+      type: "comment",
+      title: `${principal.displayName} commented on "${entry.title}"`,
+      body: content.slice(0, 200),
+      link: `/entries/${entryId}`,
+    }).catch(() => {});
+  }
 
   return NextResponse.json({ comment: serializeComment(comment) }, { status: 201 });
 }

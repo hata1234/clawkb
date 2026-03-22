@@ -2,7 +2,7 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook, Bot } from "lucide-react";
+import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook, Bot, Mail } from "lucide-react";
 
 const tabs = [
   { href: "/settings" as const, labelKey: "general", icon: Settings, exact: true },
@@ -13,6 +13,7 @@ const tabs = [
   { href: "/settings/plugins" as const, labelKey: "plugins", icon: Puzzle },
   { href: "/settings/webhooks" as const, labelKey: "webhooks", icon: Webhook },
   { href: "/settings/rag" as const, labelKey: "rag", icon: Bot },
+  { href: "/settings/smtp" as const, labelKey: "smtp", icon: Mail },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

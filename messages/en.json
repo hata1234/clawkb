@@ -271,7 +271,8 @@
     "signingIn": "Signing in...",
     "signIn": "Sign in",
     "tagline": "Knowledge base for Human–AI Agent collaboration",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "forgotPassword": "Forgot password?"
   },
   "Register": {
     "title": "Create Account",
@@ -500,7 +501,8 @@
     "tabStorage": "Storage",
     "tokenCreatedCopyNow": "Token created — copy now!",
     "tokenShownOnce": "This token will only be shown once. Keep it safe.",
-    "rag": "RAG / AI"
+    "rag": "RAG / AI",
+    "smtp": "SMTP / Email"
   },
   "AuthSettings": {
     "allowRegistration": "Allow user registration",
@@ -789,6 +791,61 @@
     "report": "Report",
     "reference": "Reference",
     "project_note": "Project Note"
+  },
+  "SmtpSettings": {
+    "title": "SMTP / Email",
+    "description": "Configure outgoing email settings for notifications, verification emails, and password resets.",
+    "enableSmtp": "Enable SMTP email",
+    "host": "SMTP Host",
+    "port": "Port",
+    "secure": "Use SSL/TLS",
+    "username": "Username",
+    "usernamePlaceholder": "SMTP username or email",
+    "password": "Password",
+    "passwordPlaceholder": "SMTP password",
+    "fromAddress": "From Address",
+    "fromName": "From Name",
+    "saved": "SMTP settings saved",
+    "testSuccess": "SMTP connection verified successfully",
+    "testFailed": "SMTP connection failed",
+    "networkError": "Network error — cannot reach SMTP server"
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "loading": "Loading...",
+    "empty": "No notifications yet"
+  },
+  "ForgotPassword": {
+    "title": "Forgot Password",
+    "subtitle": "Enter your email to receive a password reset link.",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "sendResetLink": "Send Reset Link",
+    "sending": "Sending...",
+    "sentMessage": "If an account with that email exists, a reset link has been sent. Check your inbox.",
+    "backToLogin": "Back to login",
+    "failed": "Failed to send reset link",
+    "networkError": "Network error. Please try again."
+  },
+  "ResetPassword": {
+    "title": "Reset Password",
+    "subtitle": "Enter your new password below.",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm new password",
+    "resetPassword": "Reset Password",
+    "resetting": "Resetting...",
+    "successMessage": "Password has been reset successfully. Redirecting to login...",
+    "goToLogin": "Go to login",
+    "backToLogin": "Back to login",
+    "invalidToken": "Invalid or missing reset token.",
+    "requestNewLink": "Request a new reset link",
+    "passwordMismatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "failed": "Failed to reset password",
+    "networkError": "Network error. Please try again."
   },
   "Metadata": {
     "title": "ClawKB",

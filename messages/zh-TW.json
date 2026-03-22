@@ -271,7 +271,8 @@
     "signingIn": "登入中...",
     "signIn": "登入",
     "tagline": "為人類與 AI Agent 協作打造的知識庫",
-    "createAccount": "建立帳號"
+    "createAccount": "建立帳號",
+    "forgotPassword": "忘記密碼？"
   },
   "Register": {
     "title": "建立帳號",
@@ -500,7 +501,8 @@
     "tabStorage": "儲存空間",
     "tokenCreatedCopyNow": "權杖已建立 — 請立即複製！",
     "tokenShownOnce": "此權杖只會顯示一次，請妥善保存。",
-    "rag": "RAG / AI"
+    "rag": "RAG / AI",
+    "smtp": "SMTP / 郵件"
   },
   "AuthSettings": {
     "allowRegistration": "允許使用者註冊",
@@ -789,6 +791,61 @@
     "report": "報告",
     "reference": "參考資料",
     "project_note": "專案筆記"
+  },
+  "SmtpSettings": {
+    "title": "SMTP / 郵件",
+    "description": "設定外寄郵件設定，用於通知、驗證郵件和密碼重設。",
+    "enableSmtp": "啟用 SMTP 郵件",
+    "host": "SMTP 主機",
+    "port": "連接埠",
+    "secure": "使用 SSL/TLS",
+    "username": "使用者名稱",
+    "usernamePlaceholder": "SMTP 使用者名稱或電子郵件",
+    "password": "密碼",
+    "passwordPlaceholder": "SMTP 密碼",
+    "fromAddress": "寄件者地址",
+    "fromName": "寄件者名稱",
+    "saved": "SMTP 設定已儲存",
+    "testSuccess": "SMTP 連線驗證成功",
+    "testFailed": "SMTP 連線失敗",
+    "networkError": "網路錯誤 — 無法連線到 SMTP 伺服器"
+  },
+  "Notifications": {
+    "title": "通知",
+    "markAllRead": "全部標為已讀",
+    "loading": "載入中...",
+    "empty": "尚無通知"
+  },
+  "ForgotPassword": {
+    "title": "忘記密碼",
+    "subtitle": "輸入您的電子郵件以接收密碼重設連結。",
+    "email": "電子郵件",
+    "emailPlaceholder": "輸入您的電子郵件",
+    "sendResetLink": "發送重設連結",
+    "sending": "發送中...",
+    "sentMessage": "如果該電子郵件存在帳號，重設連結已發送。請檢查您的收件匣。",
+    "backToLogin": "返回登入",
+    "failed": "發送重設連結失敗",
+    "networkError": "網路錯誤，請重試。"
+  },
+  "ResetPassword": {
+    "title": "重設密碼",
+    "subtitle": "請在下方輸入您的新密碼。",
+    "newPassword": "新密碼",
+    "newPasswordPlaceholder": "輸入新密碼",
+    "confirmPassword": "確認密碼",
+    "confirmPasswordPlaceholder": "確認新密碼",
+    "resetPassword": "重設密碼",
+    "resetting": "重設中...",
+    "successMessage": "密碼已成功重設。正在跳轉至登入頁面...",
+    "goToLogin": "前往登入",
+    "backToLogin": "返回登入",
+    "invalidToken": "無效或缺少重設權杖。",
+    "requestNewLink": "請求新的重設連結",
+    "passwordMismatch": "密碼不一致",
+    "passwordTooShort": "密碼至少需要 8 個字元",
+    "failed": "密碼重設失敗",
+    "networkError": "網路錯誤，請重試。"
   },
   "Metadata": {
     "title": "ClawKB",
