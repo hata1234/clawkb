@@ -25,6 +25,7 @@ import {
   Search,
   Library,
   Bot,
+  Upload,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -202,6 +203,17 @@ export default function Sidebar({
         >
           <Activity className="sidebar-link-icon" />
           <span className="sidebar-link-label">Activity</span>
+        </Link>
+
+        {/* Import */}
+        <Link
+          href="/import"
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? "Import" : undefined}
+          className={`sidebar-link ${isActive("/import") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        >
+          <Upload className="sidebar-link-icon" />
+          <span className="sidebar-link-label">Import</span>
         </Link>
 
         {/* Settings */}
