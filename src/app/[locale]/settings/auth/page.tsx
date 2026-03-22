@@ -5,6 +5,8 @@ import { DEFAULT_AUTH, getSetting } from "@/lib/settings";
 import AuthSettingsClient from "./auth-settings-client";
 import SettingsLayout from "@/components/SettingsLayout";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsAuthPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);

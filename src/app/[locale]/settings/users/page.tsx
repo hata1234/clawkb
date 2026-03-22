@@ -4,6 +4,8 @@ import { getSessionPrincipal } from "@/lib/auth";
 import UsersAdminClient from "./users-admin-client";
 import SettingsLayout from "@/components/SettingsLayout";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsUsersPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);

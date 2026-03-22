@@ -23,18 +23,19 @@ export async function POST(request: Request) {
 
     await transporter.verify();
 
-    // Send test email to the current user if they have an email
-    if (principal.email) {
+    // Send test email — prefer user's email, fallback to fromAddress/user
+    const recipient = principal.email || cfg.fromAddress || cfg.user;
+    if (recipient) {
       await transporter.sendMail({
         from: cfg.fromName ? `"${cfg.fromName}" <${cfg.fromAddress}>` : cfg.fromAddress || cfg.user,
-        to: principal.email,
+        to: recipient,
         subject: "ClawKB SMTP Test",
-        html: `<p>This is a test email from ClawKB. SMTP is configured correctly!</p>`,
+        html: `<p>This is a test email from ClawKB. SMTP is configured correctly! ✅</p><p style="color:#888;font-size:12px">Sent at ${new Date().toISOString()}</p>`,
       });
-      return NextResponse.json({ ok: true, message: `Test email sent to ${principal.email}` });
+      return NextResponse.json({ ok: true, message: `Test email sent to ${recipient}` });
     }
 
-    return NextResponse.json({ ok: true, message: "SMTP connection verified successfully" });
+    return NextResponse.json({ ok: true, message: "SMTP connection verified successfully (no recipient email found)" });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Connection failed";
     return NextResponse.json({ error: message, message }, { status: 500 });

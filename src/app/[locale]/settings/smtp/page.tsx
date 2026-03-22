@@ -5,6 +5,8 @@ import { getAllSettings } from "@/lib/settings";
 import SettingsLayout from "@/components/SettingsLayout";
 import SmtpSettingsClient from "./SmtpSettingsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function SmtpSettingsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
