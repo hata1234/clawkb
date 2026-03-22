@@ -499,7 +499,8 @@
     "tabOptions": "选项",
     "tabStorage": "存储",
     "tokenCreatedCopyNow": "令牌已创建 — 请立即复制！",
-    "tokenShownOnce": "此令牌只会显示一次，请妥善保存。"
+    "tokenShownOnce": "此令牌只会显示一次，请妥善保存。",
+    "rag": "RAG / AI"
   },
   "AuthSettings": {
     "allowRegistration": "允许用户注册",
@@ -535,7 +536,9 @@
     "edit": "编辑",
     "iconPlaceholder": "📁",
     "noCollectionsYet": "暂无集合。",
-    "noParentRoot": "无上级（根级别）"
+    "noParentRoot": "无上级（根级别）",
+    "collectionsCount": "{count} 个集合",
+    "entriesCount": "{count} 个条目"
   },
   "Permissions": {
     "title": "权限组",

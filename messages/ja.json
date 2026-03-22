@@ -499,7 +499,8 @@
     "tabOptions": "オプション",
     "tabStorage": "ストレージ",
     "tokenCreatedCopyNow": "トークンが作成されました — 今すぐコピーしてください！",
-    "tokenShownOnce": "このトークンは一度だけ表示されます。安全に保管してください。"
+    "tokenShownOnce": "このトークンは一度だけ表示されます。安全に保管してください。",
+    "rag": "RAG / AI"
   },
   "AuthSettings": {
     "allowRegistration": "ユーザー登録を許可",
@@ -535,7 +536,9 @@
     "edit": "編集",
     "iconPlaceholder": "📁",
     "noCollectionsYet": "コレクションはまだありません。",
-    "noParentRoot": "親なし（ルート）"
+    "noParentRoot": "親なし（ルート）",
+    "collectionsCount": "{count} 個のコレクション",
+    "entriesCount": "{count} 件のエントリ"
   },
   "Permissions": {
     "title": "権限グループ",

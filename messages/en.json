@@ -499,7 +499,8 @@
     "tabOptions": "Options",
     "tabStorage": "Storage",
     "tokenCreatedCopyNow": "Token created — copy now!",
-    "tokenShownOnce": "This token will only be shown once. Keep it safe."
+    "tokenShownOnce": "This token will only be shown once. Keep it safe.",
+    "rag": "RAG / AI"
   },
   "AuthSettings": {
     "allowRegistration": "Allow user registration",
@@ -535,7 +536,9 @@
     "edit": "Edit",
     "iconPlaceholder": "📁",
     "noCollectionsYet": "No collections yet.",
-    "noParentRoot": "No parent (root)"
+    "noParentRoot": "No parent (root)",
+    "collectionsCount": "{count} collections",
+    "entriesCount": "{count} entries"
   },
   "Permissions": {
     "title": "Permission Groups",

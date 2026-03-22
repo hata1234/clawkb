@@ -499,7 +499,8 @@
     "tabOptions": "選項",
     "tabStorage": "儲存空間",
     "tokenCreatedCopyNow": "權杖已建立 — 請立即複製！",
-    "tokenShownOnce": "此權杖只會顯示一次，請妥善保存。"
+    "tokenShownOnce": "此權杖只會顯示一次，請妥善保存。",
+    "rag": "RAG / AI"
   },
   "AuthSettings": {
     "allowRegistration": "允許使用者註冊",
@@ -535,7 +536,9 @@
     "edit": "編輯",
     "iconPlaceholder": "📁",
     "noCollectionsYet": "尚無集合。",
-    "noParentRoot": "無上層（根層級）"
+    "noParentRoot": "無上層（根層級）",
+    "collectionsCount": "{count} 個集合",
+    "entriesCount": "{count} 個條目"
   },
   "Permissions": {
     "title": "權限群組",
