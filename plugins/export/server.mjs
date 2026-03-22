@@ -145,12 +145,75 @@ function datestamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
+// ── CJK font auto-download + cache ──────────────────────────────────
+
+const FONT_CDN_URL =
+  "https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/SubsetOTF/TC/NotoSansCJKtc-Regular.otf";
+
+async function resolveFontPath() {
+  const fs = await import("fs");
+  const path = await import("path");
+
+  // 1. Check settings-configured path
+  const settingsPath = path.join(process.cwd(), "data", "settings.json");
+  try {
+    const settings = JSON.parse(fs.readFileSync(settingsPath, "utf-8"));
+    if (settings.pdfFontPath && fs.existsSync(settings.pdfFontPath)) {
+      return settings.pdfFontPath;
+    }
+  } catch {}
+
+  // 2. Default cache location
+  const cacheDir = path.join(process.cwd(), "data", "fonts");
+  const cachedFont = path.join(cacheDir, "NotoSansCJKtc-Regular.otf");
+
+  if (fs.existsSync(cachedFont)) return cachedFont;
+
+  // 3. Auto-download
+  console.log("[export] Downloading CJK font from CDN…");
+  try {
+    fs.mkdirSync(cacheDir, { recursive: true });
+    const res = await fetch(FONT_CDN_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = Buffer.from(await res.arrayBuffer());
+    fs.writeFileSync(cachedFont, buf);
+    console.log(`[export] CJK font cached at ${cachedFont} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
+    return cachedFont;
+  } catch (err) {
+    console.error("[export] Failed to download CJK font:", err.message);
+    return null;
+  }
+}
+
 // ── PDF generation ──────────────────────────────────────────────────
 
 async function toPdf(entries, password) {
   const { jsPDF } = await import("jspdf");
+  const fs = await import("fs");
+  const path = await import("path");
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+  // Load CJK font (auto-downloaded if needed)
+  const fontPath = await resolveFontPath();
+  let fontFamily = "helvetica";
+  let cjkMissing = false;
+
+  if (fontPath) {
+    const fontData = fs.readFileSync(fontPath);
+    const fontBase64 = fontData.toString("base64");
+    const fontFileName = path.basename(fontPath);
+    doc.addFileToVFS(fontFileName, fontBase64);
+    doc.addFont(fontFileName, "NotoSansTC", "normal");
+    doc.addFont(fontFileName, "NotoSansTC", "bold");
+    doc.addFont(fontFileName, "NotoSansTC", "italic");
+    doc.addFont(fontFileName, "NotoSansTC", "bolditalic");
+    doc.setFont("NotoSansTC");
+    fontFamily = "NotoSansTC";
+  } else {
+    cjkMissing = true;
+    doc.setFont("helvetica");
+  }
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = { top: 56, bottom: 56, left: 56, right: 56 };
@@ -180,7 +243,7 @@ async function toPdf(entries, password) {
       color = [51, 51, 51],
       indent = 0,
       lineHeight = 1.5,
-      fontName = "helvetica",
+      fontName = fontFamily,
     } = opts;
 
     doc.setFont(fontName, fontStyle);
@@ -216,7 +279,7 @@ async function toPdf(entries, password) {
         const isHeader = r === 0;
 
         // Calculate row height
-        doc.setFont("helvetica", isHeader ? "bold" : "normal");
+        doc.setFont(fontFamily, isHeader ? "bold" : "normal");
         doc.setFontSize(9);
         let maxH = 14;
         for (let c = 0; c < row.length; c++) {
@@ -235,7 +298,7 @@ async function toPdf(entries, password) {
           }
           doc.setDrawColor(200, 200, 200);
           doc.rect(cx, y - 10, colW, maxH, "S");
-          doc.setFont("helvetica", isHeader ? "bold" : "normal");
+          doc.setFont(fontFamily, isHeader ? "bold" : "normal");
           doc.setFontSize(9);
           doc.setTextColor(51, 51, 51);
           const cellLines = doc.splitTextToSize(row[c].trim(), colW - cellPad * 2);
@@ -266,7 +329,7 @@ async function toPdf(entries, password) {
         ensureSpace(14);
         doc.setFillColor(245, 245, 245);
         doc.rect(margin.left, y - 10, contentW, 14, "F");
-        writeText(line || " ", { fontSize: 9, fontName: "courier", color: [80, 80, 80], lineHeight: 1.3 });
+        writeText(line || " ", { fontSize: 9, fontName: fontFamily, color: [80, 80, 80], lineHeight: 1.3 });
         continue;
       }
 
@@ -310,7 +373,7 @@ async function toPdf(entries, password) {
         const text = bulletMatch[3];
         const indent = 16 + depth * 16;
         ensureSpace(15);
-        doc.setFont("helvetica", "normal");
+        doc.setFont(fontFamily, "normal");
         doc.setFontSize(10);
         doc.setTextColor(51, 51, 51);
         doc.text(bullet, margin.left + indent - 10, y);
@@ -432,7 +495,7 @@ async function toPdf(entries, password) {
     const totalPages = doc.internal.getNumberOfPages();
     for (let p = 1; p <= totalPages; p++) {
       doc.setPage(p);
-      doc.setFont("helvetica", "normal");
+      doc.setFont(fontFamily, "normal");
       doc.setFontSize(8);
       doc.setTextColor(160, 160, 160);
       doc.text(`ClawKB Export — ${datestamp()}`, margin.left, pageH - 28);
@@ -440,11 +503,24 @@ async function toPdf(entries, password) {
     }
   }
 
+  // Add CJK fallback notice if font was unavailable
+  if (cjkMissing) {
+    doc.setPage(1);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.setTextColor(180, 80, 80);
+    doc.text(
+      "Note: CJK characters may not display correctly. Configure a CJK font in Settings > Export.",
+      margin.left,
+      pageH - 14,
+    );
+  }
+
   let pdfBytes = doc.output("arraybuffer");
 
-  // Encrypt with password if provided
+  // Encrypt with password if provided (pure JS — no external binary needed)
   if (password) {
-    const { PDFDocument } = await import("pdf-lib");
+    const { PDFDocument } = await import("pdf-lib-with-encrypt");
     const pdfDoc = await PDFDocument.load(pdfBytes);
     pdfBytes = await pdfDoc.save({
       userPassword: password,

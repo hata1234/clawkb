@@ -12,29 +12,54 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
 ## Features
 
-- 📝 **Customizable entry types** — Default types included (opportunity, report, reference, project note); add, rename, or remove via Settings
-- 🔍 **Hybrid search** — Vector (pgvector) + full-text (tsvector) + fuzzy (ILIKE) cascading pipeline, with a dedicated search page and ⌘K quick-search modal
-- 📂 **Collections** — Hierarchical folders to organize entries into a tree structure
-- 🏷️ **Tags & status tracking** — Filter, organize, and track entry lifecycle
-- 💬 **Comments** — Per-entry comment threads for discussion and notes
-- ⭐ **Favorites** — Star entries for quick access from the `/favorites` page
-- 🗑️ **Soft delete & Trash** — Deleted entries go to trash; restore or permanently delete from `/trash` (admin)
-- 📊 **Activity feed** — Automatic logging of all CRUD and comment actions, viewable at `/activity`
-- 🕸️ **Knowledge graph** — Visual graph of entry relationships at `/graph`
-- 📅 **Timeline** — Chronological view of entries at `/timeline`
-- 🤖 **Agent-friendly API** — Bearer-token authenticated REST endpoints for cron jobs and AI agents
-- 🖼️ **Image attachments** — Upload via any S3-compatible object storage (MinIO, AWS S3, Cloudflare R2, etc.)
-- 📤 **Export** — CSV and JSON export with filters from the UI or API
-- 🔒 **Multi-user auth** — Session-based login (NextAuth.js), user registration, role groups (admin/editor/viewer), per-user API tokens
-- 🔌 **Plugin system** — Extensible hooks (`entry.serialize`, `entryCard.render`, `entry.afterQuery`) with built-in plugins:
-  - **Backlinks** — Bi-directional link detection (`#id` and `/entries/id` references)
-  - **Related Entries** — Discover semantically similar entries
-  - **Auto-tag** — Automatic tag suggestions
-  - **Entry Templates** — Predefined templates for new entries
-  - **Export** — Extended export formats
+### Core — Entries
+- 📝 **Rich Editor** — TipTap markdown editor with live preview
+- 📂 **Collections** — Hierarchical folder tree; entries can belong to multiple collections
+- 🏷️ **Tags & Status Tracking** — Filter, organize, and track entry lifecycle (new → interested → in_progress → done / dismissed)
+- 🔗 **Internal Links** — `[[entry:ID|title]]` Notion-style mentions with `[[` trigger search menu
+- 🖼️ **Image Attachments** — Upload via any S3-compatible storage (MinIO, AWS S3, R2)
+- 📋 **Metadata (JSON)** — Custom JSON metadata per entry
+
+### Search & Discovery
+- 🔍 **Hybrid Search** — Vector (pgvector) + fuzzy (ILIKE) cascading pipeline
+- ⌘ **Quick Search** — `⌘K` global search modal
+- 🕸️ **Knowledge Graph** — Interactive d3-force visualization at `/graph`
+- 📅 **Timeline** — Chronological entry view at `/timeline`
+- 🔙 **Backlinks** — Bi-directional link detection
+- 🧲 **Related Entries** — Semantically similar entry recommendations via embeddings
+
+### Collaboration
+- 👥 **Multi-user Auth** — NextAuth.js sessions, registration + login
+- 🛡️ **ACL Permission System** — Custom groups (Administrators / Editors / Viewers) with fine-grained permissions (read/edit/delete/create × global/collection/entry/own scope)
+- 💬 **Comments** — Per-entry discussion threads
+- 📜 **Revision History** — Auto-versioning with inline diff viewer; compare any two revisions or diff against current live content
+- 📊 **Activity Log** — Automatic CRUD + comment action logging at `/activity`
+- ⭐ **Favorites** — Star entries for quick access at `/favorites`
+- 🗑️ **Soft Delete & Trash** — Trash with restore and permanent delete (admin)
+- 🔗 **Share Links** — Time-limited, password-protected sharing for external access without login
+
+### AI & Agent Integration
+- 🤖 **Agent-friendly REST API** — 30+ endpoints with Bearer token auth
+- 🔑 **Per-user API Tokens** — Create and revoke multiple tokens per user
+- 📡 **Agent Registration** — Programmatic agent account creation via `/api/auth/register-agent`
+- 🧠 **RAG Query (Ask AI)** — `/api/rag` endpoint: vector retrieve → LLM synthesize with SSE streaming; chat UI at `/rag` with source citations
+- 🔔 **Webhooks** — HMAC-SHA256 signed event delivery with 3× exponential backoff retry; events: entry.created/updated/deleted/restored, comment.created
+- 🔌 **Gateway Auto-Recall** — OpenClaw Gateway plugin for automatic RAG injection into agent conversations, with sender-based ACL (owner full recall / public sender limited to public collections / unauthorized zero recall)
+
+### Import & Export
+- 📥 **Import** — Batch import from Markdown (.md), JSON, or CSV files with drag-and-drop UI, preview table, duplicate detection (skip/overwrite/create new)
+- 📤 **Export** — CSV, JSON, Markdown, and PDF formats with filter options
+- 📄 **PDF Export** — Formatted PDF with markdown rendering (headers, lists, tables, code blocks), CJK support (auto-downloads Noto Sans TC font), optional password encryption
+
+### Plugin System
+- 🔌 **File-based plugins** — `plugins/` directory with `manifest.json` + `server.mjs`
+- Hooks: `entry.serialize`, `entryCard.render`, `entry.afterQuery`
+- Built-in: backlinks, related-entries, auto-tag, entry-templates, export
+
+### UI
+- 🌙 **Dark Theme** — Editorial dark UI, responsive on mobile and desktop
 - 📊 **Dashboard** — Stats overview with charts and recent entries
-- ⚙️ **Settings** — Configure entry types, embedding provider, object storage, users, and plugins from the web UI
-- 🌙 **Dark theme** — Editorial dark UI, responsive on mobile and desktop
+- ⚙️ **Settings** — Configure entry types, embedding, object storage, users, plugins, permissions, webhooks, RAG, and more
 
 ## Tech Stack
 
@@ -119,11 +144,15 @@ docker compose up -d
 ClawKB includes a built-in Settings page (`/settings`) where you can configure:
 
 - **Entry Types** — Add, rename, or remove entry type categories
-- **Embedding** — Switch between Ollama, OpenAI, or other providers; change model
+- **Collections** — Manage hierarchical folder structure
+- **Embedding** — Switch between Ollama, OpenAI, or other providers; change model; rebuild embeddings
 - **Object Storage** — Configure S3-compatible storage connection
 - **Users** — Manage users and role groups (admin)
+- **Permissions** — Fine-grained ACL with custom groups
 - **API Tokens** — Create per-user API tokens for agent access
 - **Plugins** — Enable/disable and configure plugins
+- **Webhooks** — Manage webhook endpoints and view delivery history
+- **RAG / AI** — Configure LLM provider for Ask AI feature
 
 ## API
 
@@ -138,7 +167,9 @@ All API endpoints are under `/api/`. Access requires either a session cookie or 
 | `PATCH` | `/api/entries/[id]` | Update entry fields |
 | `DELETE` | `/api/entries/[id]` | Soft-delete entry |
 | **Search** | | |
-| `POST` | `/api/search` | Hybrid search (vector + full-text + fuzzy) |
+| `POST` | `/api/search` | Hybrid search (vector + fuzzy) |
+| **RAG** | | |
+| `POST` | `/api/rag` | RAG query — vector retrieve → LLM synthesize (supports SSE streaming) |
 | **Collections** | | |
 | `GET` | `/api/collections` | List collections tree |
 | `POST` | `/api/collections` | Create collection |
@@ -147,6 +178,14 @@ All API endpoints are under `/api/`. Access requires either a session cookie or 
 | **Comments** | | |
 | `GET` | `/api/entries/[id]/comments` | List comments on entry |
 | `POST` | `/api/entries/[id]/comments` | Add comment |
+| **Import** | | |
+| `POST` | `/api/import` | Batch import entries (Markdown, JSON, CSV) |
+| **Webhooks** | | |
+| `GET` | `/api/webhooks` | List webhooks |
+| `POST` | `/api/webhooks` | Create webhook |
+| `PATCH` | `/api/webhooks/[id]` | Update webhook |
+| `DELETE` | `/api/webhooks/[id]` | Delete webhook |
+| `GET` | `/api/webhooks/[id]/deliveries` | Webhook delivery history |
 | **Favorites** | | |
 | `GET` | `/api/favorites` | List starred entries |
 | `POST` | `/api/favorites` | Toggle star on entry |
@@ -168,8 +207,6 @@ All API endpoints are under `/api/`. Access requires either a session cookie or 
 | **Other** | | |
 | `GET` | `/api/stats` | Dashboard statistics |
 | `GET` | `/api/tags` | List all tags |
-| `GET` | `/api/export` | Export entries as CSV or JSON |
-| `POST` | `/api/upload` | Upload image attachment |
 | `GET` | `/api/settings` | Get current settings |
 | `PATCH` | `/api/settings` | Update settings |
 
@@ -199,6 +236,29 @@ curl -X POST http://localhost:3500/api/search \
   -d '{"query": "passive income automation"}'
 ```
 
+### Example: Ask AI (RAG)
+
+```bash
+curl -X POST http://localhost:3500/api/rag \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -d '{"query": "What do we know about DGX Spark setup?", "stream": true}'
+```
+
+### Example: Import
+
+```bash
+# JSON import
+curl -X POST http://localhost:3500/api/import \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -F 'files=@entries.json'
+
+# Markdown import (multiple files)
+curl -X POST http://localhost:3500/api/import \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -F 'files=@note1.md' -F 'files=@note2.md'
+```
+
 ## Architecture
 
 ```
@@ -208,7 +268,12 @@ Browser/Mobile → Reverse Proxy (Caddy/Nginx) → Next.js :3500 → PostgreSQL 
                                               (REST API)         (Ollama / OpenAI)
                                                     ↓
                                               Plugin System
-                                              (backlinks, auto-tag, templates, ...)
+                                              (backlinks, auto-tag, templates, export, ...)
+
+OpenClaw Gateway ──(clawkb-recall plugin)──→ ClawKB API
+                                              ↓
+                                         Auto-RAG injection
+                                         into agent conversations
 ```
 
 ## Plugins
@@ -229,15 +294,31 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 | `related-entries` | Finds semantically similar entries via embeddings |
 | `auto-tag` | Suggests tags based on entry content |
 | `entry-templates` | Predefined templates for common entry types |
-| `export` | Extended export formats and options |
+| `export` | CSV, JSON, Markdown, and PDF export with CJK support and optional encryption |
 
 ## Roadmap
 
-- [ ] ACL permission system (custom groups + fine-grained read/edit/delete/create per type/entry)
-- [ ] Revision diff viewer
-- [ ] RAG query endpoint (query → retrieve → synthesize)
-- [ ] Webhook on new entry (notify agents)
-- [ ] Public sharing mode for selected entries
+### ✅ Completed
+- [x] ACL permission system (custom groups + fine-grained read/edit/delete/create per scope)
+- [x] Revision diff viewer (inline diff + Current live comparison)
+- [x] RAG query endpoint + Ask AI chat UI with streaming
+- [x] Webhooks with HMAC-SHA256 signed delivery
+- [x] PDF export with CJK support and password encryption
+- [x] Import (Markdown / JSON / CSV batch import with preview UI)
+- [x] Collections (hierarchical folders, replacing old Type system)
+- [x] Internal links (`[[entry:ID|title]]`)
+- [x] Share links (time-limited + password-protected)
+- [x] Gateway auto-recall plugin with sender ACL
+
+### 🔜 Planned
+- [ ] Global floating AI chatbox (Ask AI accessible from any page)
+- [ ] i18n (EN / zh-TW / zh-CN / ja)
+- [ ] Collaborative editing (Yjs / Liveblocks)
+- [ ] Email verification flow (SMTP integration)
+- [ ] Public sharing mode (public slug, no login required)
+- [ ] Notification system (in-app + SSE/WebSocket)
+- [ ] Mobile PWA
+- [ ] Batch operations (multi-select + bulk actions)
 
 ## License
 
