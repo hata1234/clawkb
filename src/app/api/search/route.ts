@@ -120,7 +120,7 @@ export async function POST(request: Request) {
   const filterInfo = buildFilterSQL(filters);
   const modes = requestedMode && requestedMode !== "auto"
     ? [requestedMode]
-    : ["vector", "fulltext", "ilike"];
+    : ["vector", "ilike"];
 
   // Try each mode in order
   for (const searchMode of modes) {
@@ -175,29 +175,6 @@ export async function POST(request: Request) {
         }
       } catch (err) {
         console.error("Vector search failed:", err);
-      }
-    }
-
-    if (searchMode === "fulltext") {
-      try {
-        const baseParams = [query, limit];
-        const { sql: filterClause, allParams } = resolveFilterParams(baseParams, filterInfo, 2);
-        const { rows } = await pool.query(
-          `SELECT e.id, e.type, e.source, e.title, e.summary, e.content, e.status, e.url,
-                  e."createdAt", e."updatedAt", e."authorId",
-                  ts_rank(e.tsv, plainto_tsquery('simple', $1)) as rank
-           FROM "Entry" e
-           WHERE e.tsv @@ plainto_tsquery('simple', $1) AND ${filterClause}
-           ORDER BY rank DESC
-           LIMIT $2`,
-          allParams
-        );
-        if (rows.length > 0) {
-          const enriched = await enrichResults(rows, query, "fulltext");
-          return NextResponse.json({ results: enriched, query, mode: "fulltext", total: rows.length });
-        }
-      } catch (err) {
-        console.error("Fulltext search failed:", err);
       }
     }
 

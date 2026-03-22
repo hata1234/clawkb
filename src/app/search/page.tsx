@@ -281,7 +281,6 @@ function SearchPageInner() {
               <select value={mode} onChange={(e) => setMode(e.target.value)} style={selectStyle}>
                 <option value="auto">Auto (recommended)</option>
                 <option value="vector">Semantic (vector)</option>
-                <option value="fulltext">Full-text</option>
                 <option value="ilike">Keyword (ILIKE)</option>
               </select>
             </div>

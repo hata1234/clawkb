@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook } from "lucide-react";
+import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook, Bot } from "lucide-react";
 
 const tabs = [
   { href: "/settings", label: "General", icon: Settings, exact: true },
@@ -12,6 +12,7 @@ const tabs = [
   { href: "/settings/auth", label: "Auth", icon: Shield },
   { href: "/settings/plugins", label: "Plugins", icon: Puzzle },
   { href: "/settings/webhooks", label: "Webhooks", icon: Webhook },
+  { href: "/settings/rag", label: "RAG / AI", icon: Bot },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {

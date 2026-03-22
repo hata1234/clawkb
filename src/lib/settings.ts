@@ -53,6 +53,16 @@ export const DEFAULT_PLUGIN_SETTINGS = {
   states: {} as Record<string, { enabled: boolean }>,
 };
 
+export const DEFAULT_RAG = {
+  provider: "spark-vllm" as "openai" | "ollama" | "spark-vllm" | "disabled",
+  baseUrl: "http://192.168.1.113:8888/v1",
+  model: "Qwen/Qwen3.5-35B-A3B-FP8",
+  apiKey: "",
+  topK: 5,
+  maxTokens: 1024,
+  systemPrompt: "You are a knowledge base assistant. Answer based on the provided context. Cite entry IDs when referencing specific entries. If the context doesn't contain the answer, say so.",
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────
 export interface EntryTypeOption { id: string; label: string; icon: string }
 export interface StatusOption    { id: string; label: string }
@@ -73,6 +83,16 @@ export interface StorageConfig {
   bucket: string;
   publicUrl: string;
 }
+export interface RagConfig {
+  provider: "openai" | "ollama" | "spark-vllm" | "disabled";
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+  topK: number;
+  maxTokens: number;
+  systemPrompt: string;
+}
+
 export interface AllSettings {
   entry_types:    EntryTypeOption[];
   source_options: string[];
@@ -81,6 +101,7 @@ export interface AllSettings {
   storage:        StorageConfig;
   auth:           typeof DEFAULT_AUTH;
   plugins:        typeof DEFAULT_PLUGIN_SETTINGS;
+  rag:            RagConfig;
 }
 
 // ─── Server-side helpers ──────────────────────────────────────────────────
@@ -115,5 +136,6 @@ export async function getAllSettings(): Promise<AllSettings> {
     storage:        (map.storage        as StorageConfig)     ?? DEFAULT_STORAGE,
     auth:           (map.auth           as typeof DEFAULT_AUTH) ?? DEFAULT_AUTH,
     plugins:        (map.plugins        as typeof DEFAULT_PLUGIN_SETTINGS) ?? DEFAULT_PLUGIN_SETTINGS,
+    rag:            (map.rag            as RagConfig)                      ?? DEFAULT_RAG,
   };
 }

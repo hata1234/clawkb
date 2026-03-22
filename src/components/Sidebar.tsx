@@ -24,6 +24,7 @@ import {
   Activity,
   Search,
   Library,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -136,6 +137,17 @@ export default function Sidebar({
         >
           <Search className="sidebar-link-icon" />
           <span className="sidebar-link-label">Search</span>
+        </Link>
+
+        {/* Ask AI */}
+        <Link
+          href="/rag"
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? "Ask AI" : undefined}
+          className={`sidebar-link ${isActive("/rag") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        >
+          <Bot className="sidebar-link-icon" />
+          <span className="sidebar-link-label">Ask AI</span>
         </Link>
 
         {/* Browse group */}

@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json();
   const { key, value } = body as { key: string; value: unknown };
 
-  const validKeys = ["entry_types", "source_options", "status_options", "embedding", "storage", "auth", "plugins"];
+  const validKeys = ["entry_types", "source_options", "status_options", "embedding", "storage", "auth", "plugins", "rag"];
   if (!validKeys.includes(key)) {
     return NextResponse.json({ error: "Invalid setting key" }, { status: 400 });
   }
