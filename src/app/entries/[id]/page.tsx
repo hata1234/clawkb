@@ -501,7 +501,16 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      {!editing && <RevisionHistory entryId={entry.id} currentTitle={entry.title} />}
+      {!editing && <RevisionHistory entryId={entry.id} currentTitle={entry.title} currentEntry={{
+        title: entry.title,
+        summary: entry.summary,
+        content: entry.content,
+        status: entry.status,
+        type: entry.type,
+        source: entry.source,
+        tags: entry.tags,
+        author: entry.author,
+      }} />}
 
       {!editing && entry.pluginRender?.map((block) => {
         if (block.type === "related-entries") {

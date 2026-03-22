@@ -129,18 +129,45 @@ export async function POST(request: Request) {
         const queryEmbedding = await generateEmbedding(query);
         if (queryEmbedding) {
           const vectorStr = `[${queryEmbedding.join(",")}]`;
-          const baseParams = [vectorStr, limit];
-          const { sql: filterClause, allParams } = resolveFilterParams(baseParams, filterInfo, 3);
-          const { rows } = await pool.query(
-            `SELECT e.id, e.type, e.source, e.title, e.summary, e.content, e.status, e.url,
+          const baseParams = [vectorStr];
+          const { sql: filterClause, allParams } = resolveFilterParams(baseParams, filterInfo, 2);
+
+          // Search entry_chunks first, fall back to Entry.embedding
+          const { rows: chunkRows } = await pool.query(
+            `SELECT DISTINCT ON (e.id)
+                    e.id, e.type, e.source, e.title, e.summary, e.content, e.status, e.url,
                     e."createdAt", e."updatedAt", e."authorId",
-                    1 - (e.embedding <=> $1::vector) as similarity
-             FROM "Entry" e
-             WHERE e.embedding IS NOT NULL AND ${filterClause}
-             ORDER BY similarity DESC
-             LIMIT $2`,
+                    1 - (c.embedding <=> $1::vector) as similarity,
+                    c.chunk_text as matched_chunk
+             FROM entry_chunks c
+             JOIN "Entry" e ON e.id = c.entry_id
+             WHERE c.embedding IS NOT NULL AND ${filterClause}
+             ORDER BY e.id, similarity DESC`,
             allParams
           );
+
+          let rows;
+          if (chunkRows.length > 0) {
+            // Re-sort by similarity after DISTINCT ON
+            rows = chunkRows.sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
+              (b.similarity as number) - (a.similarity as number)
+            ).slice(0, limit as number);
+          } else {
+            // Fallback to Entry.embedding for entries without chunks
+            const { rows: legacyRows } = await pool.query(
+              `SELECT e.id, e.type, e.source, e.title, e.summary, e.content, e.status, e.url,
+                      e."createdAt", e."updatedAt", e."authorId",
+                      1 - (e.embedding <=> $1::vector) as similarity,
+                      NULL as matched_chunk
+               FROM "Entry" e
+               WHERE e.embedding IS NOT NULL AND ${filterClause}
+               ORDER BY similarity DESC
+               LIMIT $2`,
+              [...allParams, limit]
+            );
+            rows = legacyRows;
+          }
+
           if (rows.length > 0) {
             const enriched = await enrichResults(rows, query, "vector");
             return NextResponse.json({ results: enriched, query, mode: "vector", total: rows.length });
@@ -154,7 +181,7 @@ export async function POST(request: Request) {
     if (searchMode === "fulltext") {
       try {
         const baseParams = [query, limit];
-        const { sql: filterClause, allParams } = resolveFilterParams(baseParams, filterInfo, 3);
+        const { sql: filterClause, allParams } = resolveFilterParams(baseParams, filterInfo, 2);
         const { rows } = await pool.query(
           `SELECT e.id, e.type, e.source, e.title, e.summary, e.content, e.status, e.url,
                   e."createdAt", e."updatedAt", e."authorId",
@@ -264,7 +291,7 @@ async function enrichResults(
       author: entry?.author
         ? { id: entry.author.id, displayName: entry.author.displayName || entry.author.username, avatarUrl: entry.author.avatarUrl }
         : null,
-      snippet: extractSnippet(row.content as string | null, query),
+      snippet: (row.matched_chunk as string) || extractSnippet(row.content as string | null, query),
       highlightedTitle: highlightText(row.title as string, query),
       highlightedSummary: highlightText(row.summary as string | null, query),
       similarity: mode === "vector" ? Math.round(((row.similarity as number) || 0) * 100) : null,

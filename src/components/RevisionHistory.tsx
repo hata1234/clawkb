@@ -23,9 +23,21 @@ interface Revision {
   } | null;
 }
 
+interface CurrentEntry {
+  title: string;
+  summary: string | null;
+  content: string | null;
+  status: string;
+  type: string;
+  source: string;
+  tags: { id: number; name: string }[] | string[];
+  author?: { id: number; displayName: string; avatarUrl: string | null } | null;
+}
+
 interface RevisionHistoryProps {
   entryId: number;
   currentTitle: string;
+  currentEntry?: CurrentEntry;
 }
 
 /* ═══ Inline Diff Renderer ═══ */
@@ -137,7 +149,9 @@ function RevisionDiff({ older, newer }: { older: Revision; newer: Revision }) {
 
 /* ═══ Main Component ═══ */
 
-export default function RevisionHistory({ entryId, currentTitle }: RevisionHistoryProps) {
+const CURRENT_ID = -1; // sentinel for "Current (live)" pseudo-revision
+
+export default function RevisionHistory({ entryId, currentTitle, currentEntry }: RevisionHistoryProps) {
   const [revisions, setRevisions] = useState<Revision[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [expandedRevision, setExpandedRevision] = useState<number | null>(null);
@@ -151,16 +165,54 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
       .then((data) => setRevisions(data.revisions || []));
   }, [entryId]);
 
-  const revA = useMemo(() => revisions.find(r => r.id === diffA) || null, [revisions, diffA]);
-  const revB = useMemo(() => revisions.find(r => r.id === diffB) || null, [revisions, diffB]);
+  // Build a pseudo-revision from the current live entry
+  const currentRevision: Revision | null = useMemo(() => {
+    if (!currentEntry) return null;
+    const tags = currentEntry.tags.map(t => typeof t === "string" ? t : t.name);
+    return {
+      id: CURRENT_ID,
+      title: currentEntry.title,
+      summary: currentEntry.summary,
+      content: currentEntry.content,
+      status: currentEntry.status,
+      type: currentEntry.type,
+      source: currentEntry.source,
+      tags,
+      editNote: null,
+      createdAt: new Date().toISOString(),
+      author: currentEntry.author ? { id: currentEntry.author.id, displayName: currentEntry.author.displayName, avatarUrl: currentEntry.author.avatarUrl } : null,
+    };
+  }, [currentEntry]);
+
+  // All options for diff selectors: current + revisions
+  const allOptions = useMemo(() => {
+    const list: Revision[] = [];
+    if (currentRevision) list.push(currentRevision);
+    list.push(...revisions);
+    return list;
+  }, [currentRevision, revisions]);
+
+  const findRev = (id: number | null) => {
+    if (id === null) return null;
+    if (id === CURRENT_ID) return currentRevision;
+    return revisions.find(r => r.id === id) || null;
+  };
+
+  const revA = useMemo(() => findRev(diffA), [revisions, currentRevision, diffA]);
+  const revB = useMemo(() => findRev(diffB), [revisions, currentRevision, diffB]);
 
   if (revisions.length === 0) return null;
 
   const toggleDiffMode = () => {
-    if (!diffMode && revisions.length >= 2) {
-      // Default: compare latest two
-      setDiffA(revisions[1].id);
-      setDiffB(revisions[0].id);
+    if (!diffMode) {
+      if (currentRevision && revisions.length >= 1) {
+        // Default: compare latest revision → current live
+        setDiffA(revisions[0].id);
+        setDiffB(CURRENT_ID);
+      } else if (revisions.length >= 2) {
+        setDiffA(revisions[1].id);
+        setDiffB(revisions[0].id);
+      }
     }
     setDiffMode(!diffMode);
     setExpandedRevision(null);
@@ -230,6 +282,9 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
                   fontSize: "0.8rem", color: "var(--text)", outline: "none",
                 }}
               >
+                {currentRevision && (
+                  <option value={CURRENT_ID}>● Current (live)</option>
+                )}
                 {revisions.map((rev, idx) => (
                   <option key={rev.id} value={rev.id}>
                     v{revisions.length - idx} — {rev.author?.displayName || "?"} — {formatDate(rev.createdAt)}
@@ -249,6 +304,9 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
                   fontSize: "0.8rem", color: "var(--text)", outline: "none",
                 }}
               >
+                {currentRevision && (
+                  <option value={CURRENT_ID}>● Current (live)</option>
+                )}
                 {revisions.map((rev, idx) => (
                   <option key={rev.id} value={rev.id}>
                     v{revisions.length - idx} — {rev.author?.displayName || "?"} — {formatDate(rev.createdAt)}
@@ -269,7 +327,7 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
 
       {/* List Mode */}
       {expanded && !diffMode && (
-        <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
+        <div style={{ display: "grid", gap: 10, marginTop: 16, overflow: "hidden" }}>
           {revisions.map((rev, idx) => {
             const isExpanded = expandedRevision === rev.id;
             const titleChanged = rev.title !== currentTitle;
@@ -279,15 +337,17 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
                 border: "1px solid var(--border)",
                 borderRadius: "var(--radius-md)",
                 padding: "12px 14px",
+                overflow: "hidden",
               }}>
                 <button
                   onClick={() => setExpandedRevision(isExpanded ? null : rev.id)}
                   style={{
                     display: "flex", alignItems: "center", justifyContent: "space-between",
                     width: "100%", background: "none", border: "none", cursor: "pointer", padding: 0, gap: 12,
+                    minWidth: 0, overflow: "hidden",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1, overflow: "hidden" }}>
                     <span style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
                       v{revisions.length - idx}
                     </span>
@@ -301,11 +361,11 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
                         : rev.author?.displayName?.charAt(0).toUpperCase() || "?"
                       }
                     </span>
-                    <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)", flexShrink: 0, whiteSpace: "nowrap" }}>
                       {rev.author?.displayName || "Unknown"}
                     </span>
                     {rev.editNote && (
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", minWidth: 0 }}>
                         — {rev.editNote}
                       </span>
                     )}
@@ -317,8 +377,15 @@ export default function RevisionHistory({ entryId, currentTitle }: RevisionHisto
 
                 {isExpanded && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
-                    {/* Quick diff with next older revision */}
-                    {idx < revisions.length - 1 ? (
+                    {/* Latest revision: diff against current live entry */}
+                    {idx === 0 && currentRevision ? (
+                      <>
+                        <div style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--accent)", marginBottom: 8 }}>
+                          ● Changes since this revision → Current (live)
+                        </div>
+                        <RevisionDiff older={rev} newer={currentRevision} />
+                      </>
+                    ) : idx < revisions.length - 1 ? (
                       <RevisionDiff older={revisions[idx + 1]} newer={rev} />
                     ) : (
                       <div style={{ display: "grid", gap: 8, fontSize: "0.82rem" }}>

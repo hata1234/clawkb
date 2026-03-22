@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   FileText,
   Tag,
-  FolderOpen,
   Settings,
   Clock,
   Network,
@@ -17,13 +16,14 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Sun,
   Moon,
-  UserCircle2,
   Star,
   Trash2,
   Activity,
   Search,
+  Library,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -31,19 +31,15 @@ import { useTheme } from "./ThemeProvider";
 import { Suspense } from "react";
 import CollectionTree from "./CollectionTree";
 
-const navItems = [
-  { href: "/",            label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/search",      label: "Search",     icon: Search },
+const browseItems = [
   { href: "/entries",     label: "Entries",    icon: FileText },
   { href: "/favorites",   label: "Favorites",  icon: Star },
   { href: "/timeline",    label: "Timeline",   icon: Clock },
   { href: "/graph",       label: "Graph",      icon: Network },
-  { href: "/collections", label: "Collections", icon: FolderOpen },
   { href: "/tags",        label: "Tags",       icon: Tag },
-  { href: "/activity",    label: "Activity",   icon: Activity },
-  { href: "/profile",     label: "Profile",    icon: UserCircle2 },
-  { href: "/settings",    label: "Settings",   icon: Settings },
 ];
+
+const browseHrefs = new Set(browseItems.map((i) => i.href));
 
 type NavItem = {
   href: string;
@@ -64,6 +60,10 @@ export default function Sidebar({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(() => {
+    // Auto-expand if user is on a browse page
+    return browseHrefs.has(pathname);
+  });
   const [pluginItems, setPluginItems] = useState<Array<{ id: string; label: string; href: string }>>([]);
   const [trashCount, setTrashCount] = useState(0);
   const { theme, toggleTheme } = useTheme();
@@ -84,10 +84,17 @@ export default function Sidebar({
     }
   }, [effectiveRole]);
 
+  // Auto-expand browse when navigating to a browse page
+  useEffect(() => {
+    if (browseHrefs.has(pathname)) setBrowseOpen(true);
+  }, [pathname]);
+
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
+
+  const isBrowseActive = browseItems.some((item) => isActive(item.href));
 
   const nav = (
     <>
@@ -109,31 +116,124 @@ export default function Sidebar({
 
       {/* Nav links */}
       <nav className="sidebar-nav">
-        {([...
-          navItems,
-          ...(effectiveRole === "admin" ? [{ href: "/trash", label: "Trash", icon: Trash2 }] : []),
-          ...pluginItems,
-        ] as NavItem[]).map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              title={collapsed ? item.label : undefined}
-              className={`sidebar-link ${active ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        {/* Dashboard */}
+        <Link
+          href="/"
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? "Dashboard" : undefined}
+          className={`sidebar-link ${isActive("/") && pathname === "/" ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        >
+          <LayoutDashboard className="sidebar-link-icon" />
+          <span className="sidebar-link-label">Dashboard</span>
+        </Link>
+
+        {/* Search */}
+        <Link
+          href="/search"
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? "Search" : undefined}
+          className={`sidebar-link ${isActive("/search") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        >
+          <Search className="sidebar-link-icon" />
+          <span className="sidebar-link-label">Search</span>
+        </Link>
+
+        {/* Browse group */}
+        {collapsed ? (
+          <Link
+            href="/entries"
+            title="Browse"
+            className={`sidebar-link ${isBrowseActive ? "active" : ""} collapsed`}
+          >
+            <Library className="sidebar-link-icon" />
+          </Link>
+        ) : (
+          <div className="sidebar-group">
+            <button
+              className={`sidebar-link sidebar-group-toggle ${isBrowseActive ? "active" : ""}`}
+              onClick={() => setBrowseOpen(!browseOpen)}
             >
-              {Icon ? <Icon className="sidebar-link-icon" /> : <span className="sidebar-plugin-dot" />}
-              <span className="sidebar-link-label">
-                {item.label}
-                {item.href === "/trash" && trashCount > 0 && (
-                  <span style={{ marginLeft: 6, fontSize: "0.65rem", background: "var(--danger)", color: "#fff", padding: "1px 6px", borderRadius: 999, fontWeight: 600 }}>{trashCount}</span>
-                )}
-              </span>
-            </Link>
-          );
-        })}
+              <Library className="sidebar-link-icon" />
+              <span className="sidebar-link-label">Browse</span>
+              <ChevronDown
+                className="sidebar-group-chevron"
+                style={{ transform: browseOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
+              />
+            </button>
+            {browseOpen && (
+              <div className="sidebar-group-children">
+                {browseItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`sidebar-link sidebar-child-link ${isActive(item.href) ? "active" : ""}`}
+                    >
+                      <Icon className="sidebar-link-icon" />
+                      <span className="sidebar-link-label">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Activity */}
+        <Link
+          href="/activity"
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? "Activity" : undefined}
+          className={`sidebar-link ${isActive("/activity") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        >
+          <Activity className="sidebar-link-icon" />
+          <span className="sidebar-link-label">Activity</span>
+        </Link>
+
+        {/* Settings */}
+        <Link
+          href="/settings"
+          onClick={() => setMobileOpen(false)}
+          title={collapsed ? "Settings" : undefined}
+          className={`sidebar-link ${isActive("/settings") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+        >
+          <Settings className="sidebar-link-icon" />
+          <span className="sidebar-link-label">Settings</span>
+        </Link>
+
+        {/* Trash (admin only) */}
+        {effectiveRole === "admin" && (
+          <Link
+            href="/trash"
+            onClick={() => setMobileOpen(false)}
+            title={collapsed ? "Trash" : undefined}
+            className={`sidebar-link ${isActive("/trash") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+          >
+            <Trash2 className="sidebar-link-icon" />
+            <span className="sidebar-link-label">
+              Trash
+              {trashCount > 0 && (
+                <span style={{ marginLeft: 6, fontSize: "0.65rem", background: "var(--danger)", color: "#fff", padding: "1px 6px", borderRadius: 999, fontWeight: 600 }}>{trashCount}</span>
+              )}
+            </span>
+          </Link>
+        )}
+
+        {/* Plugin items */}
+        {pluginItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => setMobileOpen(false)}
+            title={collapsed ? item.label : undefined}
+            className={`sidebar-link ${isActive(item.href) ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
+          >
+            <span className="sidebar-plugin-dot" />
+            <span className="sidebar-link-label">{item.label}</span>
+          </Link>
+        ))}
       </nav>
 
       {/* Collection tree */}
@@ -158,8 +258,8 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* User section */}
-      <div className="sidebar-user">
+      {/* User section — click to go to Profile */}
+      <Link href="/profile" className="sidebar-user" onClick={() => setMobileOpen(false)}>
         <div className="sidebar-user-inner">
           <div className="sidebar-avatar">
             {avatarUrl ? (
@@ -173,14 +273,14 @@ export default function Sidebar({
             {effectiveRole ? <span className="sidebar-user-role">{effectiveRole}</span> : null}
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); signOut({ callbackUrl: "/login" }); }}
             className="sidebar-logout"
             title="Sign out"
           >
             <LogOut className="sidebar-logout-icon" />
           </button>
         </div>
-      </div>
+      </Link>
     </>
   );
 
@@ -236,7 +336,9 @@ export default function Sidebar({
           .sidebar.collapsed .sidebar-logo-text,
           .sidebar.collapsed .sidebar-link-label,
           .sidebar.collapsed .sidebar-username,
-          .sidebar.collapsed .sidebar-logout {
+          .sidebar.collapsed .sidebar-logout,
+          .sidebar.collapsed .sidebar-group-chevron,
+          .sidebar.collapsed .sidebar-user-copy {
             display: none;
           }
           .sidebar.collapsed .sidebar-theme-btn {
@@ -314,7 +416,12 @@ export default function Sidebar({
           display: flex;
           flex-direction: column;
           gap: 4px;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: var(--border) transparent;
         }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .sidebar-link {
           display: flex;
           align-items: center;
@@ -326,6 +433,11 @@ export default function Sidebar({
           color: var(--text-secondary);
           text-decoration: none;
           transition: all 0.15s ease;
+          border: none;
+          background: none;
+          width: 100%;
+          cursor: pointer;
+          text-align: left;
         }
         .sidebar-link:hover {
           color: var(--text);
@@ -347,6 +459,37 @@ export default function Sidebar({
           background: var(--accent);
           margin: 0 5px;
           flex-shrink: 0;
+        }
+
+        /* ═══ Browse Group ═══ */
+        .sidebar-group {
+          display: flex;
+          flex-direction: column;
+        }
+        .sidebar-group-toggle {
+          position: relative;
+        }
+        .sidebar-group-chevron {
+          width: 14px;
+          height: 14px;
+          margin-left: auto;
+          color: var(--text-dim);
+          transition: transform 0.2s ease;
+          flex-shrink: 0;
+        }
+        .sidebar-group-children {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          padding-left: 12px;
+        }
+        .sidebar-child-link {
+          padding: 7px 12px;
+          font-size: 0.82rem;
+        }
+        .sidebar-child-link .sidebar-link-icon {
+          width: 16px;
+          height: 16px;
         }
 
         /* ═══ Bottom Actions ═══ */
@@ -405,6 +548,13 @@ export default function Sidebar({
         .sidebar-user {
           border-top: 1px solid var(--border);
           padding: 12px 8px;
+          text-decoration: none;
+          display: block;
+          transition: background 0.15s;
+          border-radius: 0;
+        }
+        .sidebar-user:hover {
+          background: var(--surface-hover);
         }
         .sidebar-user-inner {
           display: flex;

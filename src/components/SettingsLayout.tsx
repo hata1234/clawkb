@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, Users, Shield, Puzzle, Lock } from "lucide-react";
+import { Settings, Users, Shield, Puzzle, Lock, FolderOpen } from "lucide-react";
 
 const tabs = [
   { href: "/settings", label: "General", icon: Settings, exact: true },
+  { href: "/settings/collections", label: "Collections", icon: FolderOpen },
   { href: "/settings/users", label: "Users", icon: Users },
   { href: "/settings/permissions", label: "Permissions", icon: Lock },
   { href: "/settings/auth", label: "Auth", icon: Shield },

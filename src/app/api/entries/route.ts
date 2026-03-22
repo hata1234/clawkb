@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { canCreateEntries, getRequestPrincipal } from "@/lib/auth";
 import { serializeEntry, entryWithAuthorInclude } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
-import { generateAndStoreEmbedding } from "@/lib/embedding";
+import { generateAndStoreChunks } from "@/lib/embedding";
 import { getEntryCardElements, runEntryAfterCreateHooks, runEntryAfterQueryHooks, runEntryBeforeCreateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { logActivity } from "@/lib/activity";
 
@@ -30,6 +30,24 @@ interface EntryMutationInput {
   collectionIds?: number[];
 }
 
+
+// Recursively collect collection IDs (self + all descendants)
+async function getCollectionIdsRecursive(rootId: number): Promise<number[]> {
+  const all = await prisma.collection.findMany({ select: { id: true, parentId: true } });
+  const ids: number[] = [rootId];
+  const queue = [rootId];
+  while (queue.length > 0) {
+    const parentId = queue.shift()!;
+    for (const c of all) {
+      if (c.parentId === parentId && !ids.includes(c.id)) {
+        ids.push(c.id);
+        queue.push(c.id);
+      }
+    }
+  }
+  return ids;
+}
+
 export async function GET(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -53,7 +71,7 @@ export async function GET(request: Request) {
     ...(status && { status }),
     ...(source && { source }),
     ...(tag && { tags: { some: { name: tag } } }),
-    ...(collectionId && { collections: { some: { id: parseInt(collectionId) } } }),
+    ...(collectionId && { collections: { some: { id: { in: await getCollectionIdsRecursive(parseInt(collectionId)) } } } }),
     ...(search && {
       OR: [
         ...(/^\d+$/.test(search) ? [{ id: parseInt(search) }] : []),
@@ -164,8 +182,8 @@ export async function POST(request: Request) {
     include: entryWithAuthorInclude,
   });
 
-  // Fire-and-forget embedding generation (don't block response)
-  generateAndStoreEmbedding(entry).catch(() => {});
+  // Fire-and-forget chunked embedding generation (don't block response)
+  generateAndStoreChunks(entry).catch(() => {});
 
   // Auto-tag if no manual tags provided (fire-and-forget)
   runEntryAfterCreateHooks(entry as unknown as Record<string, unknown>, hookedBody as unknown as Record<string, unknown>, principal).catch(() => {});

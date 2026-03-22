@@ -62,6 +62,7 @@ export interface EmbeddingConfig {
   ollamaModel?: string;
   openaiApiKey?: string;
   openaiModel?: string;
+  openaiBaseUrl?: string;
 }
 export interface StorageConfig {
   endpoint: string;

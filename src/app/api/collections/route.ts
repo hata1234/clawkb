@@ -14,12 +14,12 @@ export async function GET(request: Request) {
   });
 
   // Build tree structure
-  type CollectionNode = (typeof collections)[number] & { children: CollectionNode[] };
+  type CollectionNode = (typeof collections)[number] & { children: CollectionNode[]; totalEntries: number };
   const map = new Map<number, CollectionNode>();
   const roots: CollectionNode[] = [];
 
   for (const c of collections) {
-    map.set(c.id, { ...c, children: [] });
+    map.set(c.id, { ...c, children: [], totalEntries: c._count.entries });
   }
   for (const c of collections) {
     const node = map.get(c.id)!;
@@ -29,6 +29,17 @@ export async function GET(request: Request) {
       roots.push(node);
     }
   }
+
+  // Compute recursive entry counts (post-order)
+  function computeTotalEntries(node: CollectionNode): number {
+    let total = node._count.entries;
+    for (const child of node.children) {
+      total += computeTotalEntries(child);
+    }
+    node.totalEntries = total;
+    return total;
+  }
+  for (const root of roots) computeTotalEntries(root);
 
   return NextResponse.json({ collections: roots, flat: collections });
 }

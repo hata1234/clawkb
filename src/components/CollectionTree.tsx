@@ -21,6 +21,7 @@ interface Collection {
   color: string | null;
   parentId: number | null;
   _count: { entries: number; children: number };
+  totalEntries?: number;
   children: Collection[];
 }
 
@@ -67,7 +68,7 @@ function CollectionNode({
         {!sidebarCollapsed && (
           <>
             <span className="collection-name">{node.name}</span>
-            <span className="collection-count">{node._count.entries}</span>
+            <span className="collection-count">{node.totalEntries ?? node._count.entries}</span>
             <div style={{ position: "relative" }}>
               <button
                 className="collection-menu-btn"

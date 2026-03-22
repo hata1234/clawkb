@@ -11,11 +11,17 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session) redirect("/login");
 
-  const [total, byType, byStatus, bySource, thisWeek, recent] = await Promise.all([
+  const [total, byStatus, bySource, byCollection, thisWeek, recent] = await Promise.all([
     prisma.entry.count(),
-    prisma.entry.groupBy({ by: ["type"], _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
     prisma.entry.groupBy({ by: ["status"], _count: { id: true } }),
     prisma.entry.groupBy({ by: ["source"], _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
+    prisma.$queryRaw<{ id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]>`
+      SELECT c.id, c.name, c.color, c.icon, count(ec."B") as entry_count
+      FROM collections c
+      LEFT JOIN "_EntryCollections" ec ON ec."A" = c.id
+      GROUP BY c.id, c.name, c.color, c.icon
+      ORDER BY count(ec."B") DESC, c.id
+    `,
     prisma.entry.count({
       where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
     }),
@@ -28,16 +34,20 @@ export default async function DashboardPage() {
 
   const newCount = byStatus.find((s) => s.status === "new")?._count.id || 0;
   const interestedCount = byStatus.find((s) => s.status === "interested")?._count.id || 0;
-  const maxTypeCount = Math.max(...byType.map(t => t._count.id), 1);
+  
+  const collections = byCollection.map(c => ({
+    ...c,
+    entry_count: Number(c.entry_count),
+  }));
+  const maxCollectionCount = Math.max(...collections.map(c => c.entry_count), 1);
   const maxSourceCount = Math.max(...bySource.map(s => s._count.id), 1);
 
-  const typeColors: Record<string, string> = {
-    design: "#C9A96E",
-    reference: "#60A5FA",
-    project_note: "#4ADE80",
-    report: "#A78BFA",
-    opportunity: "#F97316",
-  };
+  // Default palette for collections without a custom color
+  const defaultPalette = [
+    "#C9A96E", "#60A5FA", "#4ADE80", "#A78BFA", "#F97316",
+    "#F472B6", "#FBBF24", "#34D399", "#818CF8", "#FB923C",
+    "#E879F9", "#38BDF8", "#A3E635", "#FDA4AF", "#71717A",
+  ];
 
   const sourceColors: Record<string, string> = {
     "pod-daily": "#C9A96E",
@@ -49,6 +59,10 @@ export default async function DashboardPage() {
     "web": "#FBBF24",
     "manual": "#71717A",
   };
+
+  function collectionColor(c: { color: string | null }, idx: number): string {
+    return c.color || defaultPalette[idx % defaultPalette.length];
+  }
 
   return (
     <div>
@@ -73,23 +87,23 @@ export default async function DashboardPage() {
 
       {/* Charts Row */}
       <div className="dash-charts-row">
-        {/* By Type Chart */}
+        {/* By Collection Chart */}
         <div className="dash-chart-card animate-fade-in-up stagger-2">
-          <h3 className="dash-chart-title">By Type</h3>
+          <h3 className="dash-chart-title">By Collection</h3>
           <div className="dash-bar-chart">
-            {byType.map((t) => (
-              <Link key={t.type} href={`/entries?type=${t.type}`} className="dash-bar-row">
-                <span className="dash-bar-label">{t.type.replace("_", " ")}</span>
+            {collections.map((c, i) => (
+              <Link key={c.id} href={`/entries?collectionId=${c.id}`} className="dash-bar-row">
+                <span className="dash-bar-label">{c.icon ? `${c.icon} ` : ""}{c.name}</span>
                 <div className="dash-bar-track">
                   <div
                     className="dash-bar-fill"
                     style={{
-                      width: `${(t._count.id / maxTypeCount) * 100}%`,
-                      background: typeColors[t.type] || "var(--accent)",
+                      width: `${(c.entry_count / maxCollectionCount) * 100}%`,
+                      background: collectionColor(c, i),
                     }}
                   />
                 </div>
-                <span className="dash-bar-value">{t._count.id}</span>
+                <span className="dash-bar-value">{c.entry_count}</span>
               </Link>
             ))}
           </div>
@@ -118,19 +132,22 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* By Type Cards (original) */}
-      {byType.length > 0 && (
+      {/* By Collection Cards */}
+      {collections.length > 0 && (
         <div className="dash-type-grid">
-          {byType.map((t, i) => (
+          {collections.map((c, i) => (
             <Link
-              key={t.type}
-              href={`/entries?type=${t.type}`}
+              key={c.id}
+              href={`/entries?collectionId=${c.id}`}
               className={`dash-type-card card-hover animate-fade-in-up stagger-${Math.min(i + 1, 5)}`}
             >
-              <div className={`type-bar type-bar-${t.type}`} style={{ top: 8, bottom: 8 }} />
+              <div
+                className="type-bar"
+                style={{ top: 8, bottom: 8, background: collectionColor(c, i) }}
+              />
               <div style={{ paddingLeft: 4 }}>
-                <p className="dash-type-label">{t.type.replace("_", " ")}</p>
-                <p className="dash-type-value">{t._count.id}</p>
+                <p className="dash-type-label">{c.icon ? `${c.icon} ` : ""}{c.name}</p>
+                <p className="dash-type-value">{c.entry_count}</p>
               </div>
             </Link>
           ))}
@@ -248,10 +265,9 @@ export default async function DashboardPage() {
         }
         .dash-bar-row:hover { opacity: 0.8; }
         .dash-bar-label {
-          width: 90px;
+          width: 110px;
           font-size: 0.75rem;
           color: var(--text-secondary);
-          text-transform: capitalize;
           flex-shrink: 0;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -299,10 +315,17 @@ export default async function DashboardPage() {
           transition: border-color 0.15s ease;
         }
         .dash-type-card:hover { border-color: var(--border-hover); }
+        .type-bar {
+          position: absolute;
+          left: 0;
+          top: 8px;
+          bottom: 8px;
+          width: 3px;
+          border-radius: 2px;
+        }
         .dash-type-label {
           font-size: 0.75rem;
           color: var(--text-muted);
-          text-transform: capitalize;
           font-weight: 500;
         }
         .dash-type-value {

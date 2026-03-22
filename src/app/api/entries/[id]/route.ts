@@ -4,6 +4,7 @@ import { canDeleteEntry, canEditEntry, getRequestPrincipal } from "@/lib/auth";
 import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
 import { getEntryRenderBlocks, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { prisma } from "@/lib/prisma";
+import { generateAndStoreChunks } from "@/lib/embedding";
 import { logActivity } from "@/lib/activity";
 
 interface EntryImageInput {
@@ -144,6 +145,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
     include: entryWithAuthorInclude,
   });
+
+  // Re-chunk embeddings if content-related fields changed
+  if (title !== undefined || summary !== undefined || content !== undefined) {
+    generateAndStoreChunks(entry).catch(() => {});
+  }
 
   runEntryAfterUpdateHooks(
     entry as unknown as Record<string, unknown>,
