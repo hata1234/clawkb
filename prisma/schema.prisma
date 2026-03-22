@@ -15,7 +15,8 @@ model User {
   passwordHash             String
   avatarUrl                String?
   bio                      String?
-  role                     String         @default("viewer")
+  role                     String         @default("viewer") // legacy — kept for backwards compat reads; use roleId going forward
+  roleId                   Int?
   groupId                  Int?
   approvalStatus           String         @default("approved")
   emailVerifiedAt          DateTime?
@@ -25,7 +26,8 @@ model User {
   createdById              Int?
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
-  group                    RoleGroup?     @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  directRole               Role?          @relation("UserDirectRole", fields: [roleId], references: [id], onDelete: SetNull)
+  group                    Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
   createdBy                User?          @relation("UserProvisioning", fields: [createdById], references: [id], onDelete: SetNull)
   createdUsers             User[]         @relation("UserProvisioning")
   entries                  Entry[]        @relation("EntryAuthor")
@@ -33,11 +35,49 @@ model User {
   revisions                EntryRevision[]
   favorites                UserFavorite[]
   activityLogs             ActivityLog[]
-  permissionGroups         UserGroup[]
   shareLinks               ShareLink[]
   notifications            Notification[]
   resetPasswordToken       String?        @unique
   resetPasswordExpires     DateTime?
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  builtIn     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  permissions Permission[]
+  users       User[]       @relation("UserDirectRole")
+  groups      Group[]
+
+  @@map("roles")
+}
+
+model Group {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  roleId      Int?
+  role        Role?   @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  users       User[]
+
+  @@map("groups")
+}
+
+model Permission {
+  id     Int    @id @default(autoincrement())
+  roleId Int
+  action String // "read" | "create" | "edit" | "delete" | "manage_settings" | "manage_users"
+  scope  String // "global" | "own" | "collection" | "entry"
+  scopeId Int?   // collection ID or entry ID when scope is "collection" or "entry"
+
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, action, scope, scopeId])
+  @@map("permissions")
 }
 
 model Entry {
@@ -88,14 +128,6 @@ model Tag {
   id      Int     @id @default(autoincrement())
   name    String  @unique
   entries Entry[] @relation("EntryTags")
-}
-
-model RoleGroup {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String?
-  role        String  @default("viewer")
-  users       User[]
 }
 
 model EntryComment {
@@ -197,45 +229,6 @@ model ActivityLog {
   @@index([createdAt])
   @@index([entryId])
   @@map("activity_log")
-}
-
-model PermissionGroup {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
-  builtIn     Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  permissions Permission[]
-  users       UserGroup[]
-
-  @@map("permission_groups")
-}
-
-model Permission {
-  id      Int    @id @default(autoincrement())
-  groupId Int
-  action  String // "read" | "create" | "edit" | "delete" | "manage_settings" | "manage_users"
-  scope   String // "global" | "own" | "collection" | "entry"
-  scopeId Int?   // collection ID or entry ID when scope is "collection" or "entry"
-
-  group PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  @@unique([groupId, action, scope, scopeId])
-  @@map("permissions")
-}
-
-model UserGroup {
-  id      Int @id @default(autoincrement())
-  userId  Int
-  groupId Int
-
-  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, groupId])
-  @@map("user_groups")
 }
 
 model ShareLink {

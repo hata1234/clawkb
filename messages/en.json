@@ -502,7 +502,9 @@
     "tokenCreatedCopyNow": "Token created — copy now!",
     "tokenShownOnce": "This token will only be shown once. Keep it safe.",
     "rag": "RAG / AI",
-    "smtp": "SMTP / Email"
+    "smtp": "SMTP / Email",
+    "roles": "Roles",
+    "groups": "Groups"
   },
   "AuthSettings": {
     "allowRegistration": "Allow user registration",
@@ -662,7 +664,10 @@
     "failedToRemoveGroup": "Failed to remove group",
     "failedToUpdateUser": "Failed to update user",
     "noGroup": "No group",
-    "users": "Users"
+    "users": "Users",
+    "roleOverride": "Role Override",
+    "inheritFromGroup": "Inherit from Group",
+    "effectiveRole": "Effective Role"
   },
   "Webhooks": {
     "title": "Webhooks",
@@ -850,5 +855,40 @@
   "Metadata": {
     "title": "ClawKB",
     "description": "A knowledge base built for Human–AI Agent collaboration"
+  },
+  "Roles": {
+    "title": "Roles",
+    "description": "Manage roles and their permissions",
+    "createRole": "Create Role",
+    "editRole": "Edit Role",
+    "deleteRole": "Delete Role",
+    "roleName": "Role Name",
+    "roleDescription": "Description",
+    "builtIn": "Built-in",
+    "permissions": "Permissions",
+    "read": "Read",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "manageSettings": "Manage Settings",
+    "manageUsers": "Manage Users",
+    "confirmDelete": "Are you sure you want to delete this role?",
+    "cannotDeleteBuiltIn": "Built-in roles cannot be deleted",
+    "noRoles": "No roles found",
+    "usersWithRole": "users with this role"
+  },
+  "Groups": {
+    "title": "Groups",
+    "description": "Organize users into groups with default roles",
+    "createGroup": "Create Group",
+    "editGroup": "Edit Group",
+    "deleteGroup": "Delete Group",
+    "groupName": "Group Name",
+    "groupDescription": "Description",
+    "defaultRole": "Default Role",
+    "memberCount": "Members",
+    "confirmDelete": "Are you sure you want to delete this group?",
+    "noGroups": "No groups found",
+    "noRole": "No Role Assigned"
   }
 }

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { createApiToken, verifyRawApiToken, type ApiTokenType } from "./auth-token";
-import { getEffectiveRole, type AppRole, normalizeRole } from "./roles";
+import { getEffectiveRoleName, normalizeRole, type AppRole } from "./roles";
 import { getUserPermissions, hasPermission, type PermissionAction } from "./permissions";
 
 interface UserPermission {
@@ -19,9 +19,9 @@ export interface AppPrincipal {
   email: string | null;
   displayName: string;
   avatarUrl: string | null;
-  role: AppRole;
-  groupRole: AppRole | null;
-  effectiveRole: AppRole;
+  role: string;           // direct role name (or legacy role string)
+  groupRole: string | null; // group's role name
+  effectiveRole: AppRole;  // resolved effective role
   approvalStatus: string;
   agent: boolean;
   authMethod: "session" | "token";
@@ -30,19 +30,26 @@ export interface AppPrincipal {
   permissions: UserPermission[];
 }
 
+/** Prisma include for loading user with role chain */
+const userWithRoleChainInclude = {
+  directRole: { include: { permissions: true } },
+  group: { include: { role: { include: { permissions: true } } } },
+};
+
 type DbUser = Awaited<ReturnType<typeof findUserById>>;
 
 async function principalFromUser(user: NonNullable<DbUser>, authMethod: "session" | "token", token?: { id: number; tokenType: ApiTokenType }): Promise<AppPrincipal> {
   const permissions = await getUserPermissions(user.id);
+  const effectiveRoleName = getEffectiveRoleName(user);
   return {
     id: user.id,
     username: user.username,
     email: user.email,
     displayName: user.displayName || user.username,
     avatarUrl: user.avatarUrl,
-    role: normalizeRole(user.role),
-    groupRole: user.group ? normalizeRole(user.group.role) : null,
-    effectiveRole: getEffectiveRole(user),
+    role: user.directRole?.name?.toLowerCase() ?? normalizeRole(user.role),
+    groupRole: user.group?.role?.name?.toLowerCase() ?? null,
+    effectiveRole: normalizeRole(effectiveRoleName),
     approvalStatus: user.approvalStatus,
     agent: user.agent,
     authMethod,
@@ -55,14 +62,14 @@ async function principalFromUser(user: NonNullable<DbUser>, authMethod: "session
 async function findUserByUsername(username: string) {
   return prisma.user.findUnique({
     where: { username },
-    include: { group: true },
+    include: userWithRoleChainInclude,
   });
 }
 
 async function findUserById(id: number) {
   return prisma.user.findUnique({
     where: { id },
-    include: { group: true },
+    include: userWithRoleChainInclude,
   });
 }
 
@@ -86,13 +93,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
         if (!isValid) return null;
 
+        const effectiveRole = normalizeRole(getEffectiveRoleName(user));
+
         return {
           id: String(user.id),
           name: user.displayName || user.username,
           username: user.username,
           email: user.email,
-          role: normalizeRole(user.role),
-          effectiveRole: getEffectiveRole(user),
+          role: effectiveRole,
+          effectiveRole,
           avatarUrl: user.avatarUrl,
           agent: user.agent,
         };
@@ -118,12 +127,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const user = await findUserById(Number(token.id));
       if (!user) return session;
 
+      const effectiveRole = normalizeRole(getEffectiveRoleName(user));
+
       session.user.id = String(user.id);
       session.user.username = user.username;
       session.user.name = user.displayName || user.username;
       session.user.email = user.email ?? "";
-      session.user.role = normalizeRole(user.role);
-      session.user.effectiveRole = getEffectiveRole(user);
+      session.user.role = effectiveRole;
+      session.user.effectiveRole = effectiveRole;
       session.user.avatarUrl = user.avatarUrl;
       session.user.agent = user.agent;
       session.user.approvalStatus = user.approvalStatus;
@@ -195,60 +206,37 @@ export function jsonError(message: string, status: number) {
 }
 
 export function canManageSettings(principal: AppPrincipal) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "manage_settings");
-  }
-  return principal.effectiveRole === "admin";
+  return hasPermission(principal.permissions, "manage_settings");
 }
 
 export function canManageUsers(principal: AppPrincipal) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "manage_users");
-  }
-  return principal.effectiveRole === "admin";
+  return hasPermission(principal.permissions, "manage_users");
 }
 
 export function canCreateEntries(principal: AppPrincipal) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "create");
-  }
-  return principal.effectiveRole === "admin" || principal.effectiveRole === "editor";
+  return hasPermission(principal.permissions, "create");
 }
 
 export function canEditEntry(principal: AppPrincipal, entryAuthorId: number | null) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "edit", {
-      entryAuthorId,
-      userId: principal.id,
-    });
-  }
-  if (principal.effectiveRole === "admin") return true;
-  if (principal.effectiveRole !== "editor") return false;
-  return principal.id !== null && principal.id === entryAuthorId;
+  return hasPermission(principal.permissions, "edit", {
+    entryAuthorId,
+    userId: principal.id,
+  });
 }
 
 export function canDeleteEntry(principal: AppPrincipal, entryAuthorId: number | null) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "delete", {
-      entryAuthorId,
-      userId: principal.id,
-    });
-  }
-  return principal.effectiveRole === "admin";
+  return hasPermission(principal.permissions, "delete", {
+    entryAuthorId,
+    userId: principal.id,
+  });
 }
 
 export function canCreateComment(principal: AppPrincipal, _entryAuthorId: number | null) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "create");
-  }
-  return principal.effectiveRole === "admin" || principal.effectiveRole === "editor";
+  return hasPermission(principal.permissions, "create");
 }
 
 export function canReadEntries(principal: AppPrincipal) {
-  if (principal.permissions.length > 0) {
-    return hasPermission(principal.permissions, "read");
-  }
-  return true; // All roles can read in old system
+  return hasPermission(principal.permissions, "read");
 }
 
 export async function issueUserToken(userId: number, name: string, tokenType: ApiTokenType = "user") {

@@ -8,19 +8,32 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!canManageUsers(principal)) return jsonError("Forbidden", 403);
 
   const { id } = await params;
-  const groupId = parseInt(id);
-  const { name, description } = await request.json();
+  const groupId = Number(id);
+  const { name, description, roleId } = await request.json();
 
-  const group = await prisma.permissionGroup.update({
+  const group = await prisma.group.update({
     where: { id: groupId },
     data: {
-      ...(name && { name }),
+      ...(name && { name: name.trim() }),
       ...(description !== undefined && { description: description || null }),
+      ...(roleId !== undefined && { roleId: roleId ? Number(roleId) : null }),
     },
-    include: { permissions: true, users: true },
+    include: {
+      role: { select: { id: true, name: true } },
+      _count: { select: { users: true } },
+    },
   });
 
-  return NextResponse.json(group);
+  return NextResponse.json({
+    group: {
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      roleId: group.roleId,
+      role: group.role ? { id: group.role.id, name: group.role.name } : null,
+      memberCount: group._count.users,
+    },
+  });
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -29,12 +42,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!canManageUsers(principal)) return jsonError("Forbidden", 403);
 
   const { id } = await params;
-  const groupId = parseInt(id);
+  const groupId = Number(id);
 
-  const group = await prisma.permissionGroup.findUnique({ where: { id: groupId } });
+  const group = await prisma.group.findUnique({ where: { id: groupId } });
   if (!group) return jsonError("Group not found", 404);
-  if (group.builtIn) return jsonError("Cannot delete built-in groups", 400);
 
-  await prisma.permissionGroup.delete({ where: { id: groupId } });
+  // Unassign users from this group first
+  await prisma.user.updateMany({ where: { groupId }, data: { groupId: null } });
+  await prisma.group.delete({ where: { id: groupId } });
+
   return NextResponse.json({ ok: true });
 }

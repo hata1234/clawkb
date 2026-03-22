@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 export type PermissionAction = "read" | "create" | "edit" | "delete" | "manage_settings" | "manage_users";
 export type PermissionScope = "global" | "own" | "collection" | "entry";
 
-interface UserPermission {
+export interface UserPermission {
   action: string;
   scope: string;
   scopeId: number | null;
@@ -18,25 +18,44 @@ const SCOPE_RANK: Record<string, number> = {
 };
 
 /**
- * Load all permissions for a user across all their permission groups.
+ * Load effective permissions for a user.
+ * Resolution order: User.directRole.permissions ?? User.group.role.permissions ?? []
  */
 export async function getUserPermissions(userId: number): Promise<UserPermission[]> {
-  const userGroups = await prisma.userGroup.findMany({
-    where: { userId },
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
     include: {
+      directRole: { include: { permissions: true } },
       group: {
-        include: { permissions: true },
+        include: {
+          role: { include: { permissions: true } },
+        },
       },
     },
   });
 
-  const permissions: UserPermission[] = [];
-  for (const ug of userGroups) {
-    for (const p of ug.group.permissions) {
-      permissions.push({ action: p.action, scope: p.scope, scopeId: p.scopeId });
-    }
+  if (!user) return [];
+
+  // Use direct role if set
+  if (user.directRole?.permissions && user.directRole.permissions.length > 0) {
+    return user.directRole.permissions.map((p) => ({
+      action: p.action,
+      scope: p.scope,
+      scopeId: p.scopeId,
+    }));
   }
-  return permissions;
+
+  // Fall back to group's role
+  if (user.group?.role?.permissions && user.group.role.permissions.length > 0) {
+    return user.group.role.permissions.map((p) => ({
+      action: p.action,
+      scope: p.scope,
+      scopeId: p.scopeId,
+    }));
+  }
+
+  // No permissions configured — return viewer-level (read only)
+  return [{ action: "read", scope: "global", scopeId: null }];
 }
 
 /**
@@ -69,12 +88,6 @@ export function hasPermission(
     // Entry scope: check if the requested entry matches
     if (p.scope === "entry" && opts?.scope === "entry" && p.scopeId === opts.scopeId) {
       return true;
-    }
-
-    // Hierarchy: if user has collection scope and we're checking entry scope, still valid
-    if (p.scope === "collection" && opts?.scope === "entry") {
-      // Would need to check if entry belongs to the collection - handled at call site
-      continue;
     }
 
     // If no specific scope requirement, accept any non-own scope

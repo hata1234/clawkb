@@ -502,7 +502,9 @@
     "tokenCreatedCopyNow": "權杖已建立 — 請立即複製！",
     "tokenShownOnce": "此權杖只會顯示一次，請妥善保存。",
     "rag": "RAG / AI",
-    "smtp": "SMTP / 郵件"
+    "smtp": "SMTP / 郵件",
+    "roles": "角色",
+    "groups": "群組"
   },
   "AuthSettings": {
     "allowRegistration": "允許使用者註冊",
@@ -662,7 +664,10 @@
     "failedToRemoveGroup": "移除群組失敗",
     "failedToUpdateUser": "更新使用者失敗",
     "noGroup": "無群組",
-    "users": "使用者"
+    "users": "使用者",
+    "roleOverride": "角色覆寫",
+    "inheritFromGroup": "繼承群組角色",
+    "effectiveRole": "生效角色"
   },
   "Webhooks": {
     "title": "Webhooks",
@@ -850,5 +855,40 @@
   "Metadata": {
     "title": "ClawKB",
     "description": "為人類與 AI Agent 協作打造的知識庫"
+  },
+  "Roles": {
+    "title": "角色管理",
+    "description": "管理角色及其權限",
+    "createRole": "建立角色",
+    "editRole": "編輯角色",
+    "deleteRole": "刪除角色",
+    "roleName": "角色名稱",
+    "roleDescription": "描述",
+    "builtIn": "內建",
+    "permissions": "權限",
+    "read": "讀取",
+    "create": "建立",
+    "edit": "編輯",
+    "delete": "刪除",
+    "manageSettings": "管理設定",
+    "manageUsers": "管理使用者",
+    "confirmDelete": "確定要刪除此角色嗎？",
+    "cannotDeleteBuiltIn": "無法刪除內建角色",
+    "noRoles": "沒有角色",
+    "usersWithRole": "位使用者"
+  },
+  "Groups": {
+    "title": "群組管理",
+    "description": "將使用者組織到群組中，設定預設角色",
+    "createGroup": "建立群組",
+    "editGroup": "編輯群組",
+    "deleteGroup": "刪除群組",
+    "groupName": "群組名稱",
+    "groupDescription": "描述",
+    "defaultRole": "預設角色",
+    "memberCount": "成員",
+    "confirmDelete": "確定要刪除此群組嗎？",
+    "noGroups": "沒有群組",
+    "noRole": "未指定角色"
   }
 }

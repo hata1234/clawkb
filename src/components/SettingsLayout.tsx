@@ -2,14 +2,15 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook, Bot, Mail } from "lucide-react";
+import { Settings, Users, Shield, Puzzle, Lock, FolderOpen, Webhook, Bot, Mail, UserCog } from "lucide-react";
 
 const tabs = [
   { href: "/settings" as const, labelKey: "general", icon: Settings, exact: true },
   { href: "/settings/collections" as const, labelKey: "collections", icon: FolderOpen },
   { href: "/settings/users" as const, labelKey: "users", icon: Users },
-  { href: "/settings/permissions" as const, labelKey: "permissions", icon: Lock },
-  { href: "/settings/auth" as const, labelKey: "auth", icon: Shield },
+  { href: "/settings/roles" as const, labelKey: "roles", icon: Shield },
+  { href: "/settings/groups" as const, labelKey: "groups", icon: UserCog },
+  { href: "/settings/auth" as const, labelKey: "auth", icon: Lock },
   { href: "/settings/plugins" as const, labelKey: "plugins", icon: Puzzle },
   { href: "/settings/webhooks" as const, labelKey: "webhooks", icon: Webhook },
   { href: "/settings/rag" as const, labelKey: "rag", icon: Bot },

@@ -502,7 +502,9 @@
     "tokenCreatedCopyNow": "トークンが作成されました — 今すぐコピーしてください！",
     "tokenShownOnce": "このトークンは一度だけ表示されます。安全に保管してください。",
     "rag": "RAG / AI",
-    "smtp": "SMTP / メール"
+    "smtp": "SMTP / メール",
+    "roles": "ロール",
+    "groups": "グループ"
   },
   "AuthSettings": {
     "allowRegistration": "ユーザー登録を許可",
@@ -662,7 +664,10 @@
     "failedToRemoveGroup": "グループの削除に失敗しました",
     "failedToUpdateUser": "ユーザーの更新に失敗しました",
     "noGroup": "グループなし",
-    "users": "ユーザー"
+    "users": "ユーザー",
+    "roleOverride": "ロール上書き",
+    "inheritFromGroup": "グループから継承",
+    "effectiveRole": "有効なロール"
   },
   "Webhooks": {
     "title": "Webhooks",
@@ -850,5 +855,40 @@
   "Metadata": {
     "title": "ClawKB",
     "description": "人間とAIエージェントの協働のためのナレッジベース"
+  },
+  "Roles": {
+    "title": "ロール管理",
+    "description": "ロールとその権限を管理",
+    "createRole": "ロール作成",
+    "editRole": "ロール編集",
+    "deleteRole": "ロール削除",
+    "roleName": "ロール名",
+    "roleDescription": "説明",
+    "builtIn": "ビルトイン",
+    "permissions": "権限",
+    "read": "読み取り",
+    "create": "作成",
+    "edit": "編集",
+    "delete": "削除",
+    "manageSettings": "設定管理",
+    "manageUsers": "ユーザー管理",
+    "confirmDelete": "このロールを削除しますか？",
+    "cannotDeleteBuiltIn": "ビルトインロールは削除できません",
+    "noRoles": "ロールがありません",
+    "usersWithRole": "人のユーザー"
+  },
+  "Groups": {
+    "title": "グループ管理",
+    "description": "ユーザーをグループに整理し、デフォルトロールを設定",
+    "createGroup": "グループ作成",
+    "editGroup": "グループ編集",
+    "deleteGroup": "グループ削除",
+    "groupName": "グループ名",
+    "groupDescription": "説明",
+    "defaultRole": "デフォルトロール",
+    "memberCount": "メンバー",
+    "confirmDelete": "このグループを削除しますか？",
+    "noGroups": "グループがありません",
+    "noRole": "ロール未指定"
   }
 }
