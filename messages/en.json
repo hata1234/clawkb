@@ -29,7 +29,14 @@
     "revoke": "Revoke",
     "saving": "Saving...",
     "apply": "Apply",
-    "or": "or"
+    "or": "or",
+    "copiedToClipboard": "Copied to clipboard",
+    "id": "ID",
+    "label": "Label",
+    "saveFailed": "Save failed",
+    "saved": "Saved",
+    "testConnection": "Test Connection",
+    "description": "Description"
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -164,7 +171,8 @@
     "createEntry": "Create Entry",
     "saveChanges": "Save Changes",
     "failedToSave": "Failed to save entry",
-    "somethingWrong": "Something went wrong"
+    "somethingWrong": "Something went wrong",
+    "saving": "Saving..."
   },
   "Search": {
     "label": "Knowledge Base",
@@ -349,7 +357,8 @@
     "subCollectionName": "Sub-collection name",
     "rename": "Rename",
     "addSubCollection": "Add Sub-collection",
-    "deleteConfirm": "Delete collection \"{name}\"?"
+    "deleteConfirm": "Delete collection \"{name}\"?",
+    "delete": "Delete"
   },
   "RevisionHistory": {
     "title": "Revision History ({count})",
@@ -465,7 +474,32 @@
     "tokenRevoked": "Token revoked",
     "tokenRevokeFailed": "Failed to revoke token",
     "copiedToClipboard": "Copied to clipboard",
-    "revoked": "Revoked"
+    "revoked": "Revoked",
+    "apiTokensDescription": "Create tokens for scheduled agents and scripts to write entries via the API.",
+    "confirmEmbedMissing": "This will embed entries missing embeddings. Continue?",
+    "confirmRebuildAll": "This will re-embed ALL entries. This may take a few minutes. Continue?",
+    "created": "Created",
+    "embeddingConfigChangedWarning": "You changed the embedding provider / URL / model. After saving, it's recommended to rebuild all embeddings for consistent search results.",
+    "embeddingDisabledMessage": "Embeddings are disabled. Semantic search won't be available.",
+    "embeddingSettingsSaved": "Embedding settings saved",
+    "failedToCreateToken": "Failed to create token",
+    "failedToRevokeToken": "Failed to revoke token",
+    "lastUsed": "Last used",
+    "networkError": "Network error",
+    "never": "Never",
+    "newSourcePlaceholder": "new-source",
+    "noTokensYet": "No tokens yet.",
+    "rebuildFailedNetwork": "Rebuild failed: network error",
+    "revoke": "Revoke",
+    "statusIdPlaceholder": "status_id",
+    "statusLabelPlaceholder": "e.g. In Progress",
+    "storageSettingsSaved": "Storage settings saved",
+    "tabApiTokens": "API Tokens",
+    "tabEmbedding": "Embedding",
+    "tabOptions": "Options",
+    "tabStorage": "Storage",
+    "tokenCreatedCopyNow": "Token created — copy now!",
+    "tokenShownOnce": "This token will only be shown once. Keep it safe."
   },
   "AuthSettings": {
     "allowRegistration": "Allow user registration",
@@ -473,7 +507,10 @@
     "requireEmailVerification": "Require email verification",
     "allowAgentRegistration": "Allow agent registration API",
     "saved": "Auth settings saved.",
-    "saveFailed": "Failed to save settings"
+    "saveFailed": "Failed to save settings",
+    "authSettingsSaved": "Auth settings saved.",
+    "failedToSaveSettings": "Failed to save settings",
+    "requireAdminApproval": "Require admin approval"
   },
   "CollectionsSettings": {
     "count": "{count} collections",
@@ -488,7 +525,17 @@
     "createFirst": "Create your first collection",
     "deleteConfirm": "Delete \"{name}\"? Children will be moved up.",
     "entries": "{count} entries",
-    "addSub": "Add sub-collection"
+    "addSub": "Add sub-collection",
+    "addSubCollection": "Add sub-collection",
+    "collectionNamePlaceholder": "Collection name",
+    "colorPlaceholder": "#hex",
+    "createFirstCollection": "Create your first collection",
+    "delete": "Delete",
+    "descriptionPlaceholder": "Description (optional)",
+    "edit": "Edit",
+    "iconPlaceholder": "📁",
+    "noCollectionsYet": "No collections yet.",
+    "noParentRoot": "No parent (root)"
   },
   "Permissions": {
     "title": "Permission Groups",
@@ -517,7 +564,14 @@
     "scopeGlobal": "Global",
     "scopeOwn": "Own entries",
     "scopeCollection": "Collection",
-    "scopeEntry": "Entry"
+    "scopeEntry": "Entry",
+    "confirmDeleteGroup": "Are you sure you want to delete this permission group?",
+    "deleteGroup": "Delete group",
+    "optionalDescription": "Optional description",
+    "permissionGroups": "Permission Groups",
+    "permissionGroupsDescription": "Manage groups and their permissions. Users inherit all permissions from their groups.",
+    "removeFromGroup": "Remove from group",
+    "removePermission": "Remove permission"
   },
   "Plugins": {
     "installTitle": "Install New Plugin Skeleton",
@@ -535,7 +589,20 @@
     "apiBase": "API base: ",
     "removed": "Plugin removed.",
     "removeFailed": "Failed to remove plugin",
-    "pluginSettings": "Plugin Settings"
+    "pluginSettings": "Plugin Settings",
+    "builtIn": "Built-in",
+    "enabled": "Enabled",
+    "failedToInstallPlugin": "Failed to install plugin",
+    "failedToRemovePlugin": "Failed to remove plugin",
+    "failedToUpdatePlugin": "Failed to update plugin",
+    "hooksPlaceholder": "Comma-separated hooks",
+    "installNewPluginSkeleton": "Install New Plugin Skeleton",
+    "none": "None",
+    "pluginIdPlaceholder": "plugin-id",
+    "pluginNamePlaceholder": "Plugin name",
+    "pluginRemoved": "Plugin removed.",
+    "pluginSkeletonInstalled": "Plugin skeleton installed.",
+    "pluginStateUpdated": "Plugin state updated."
   },
   "RagSettings": {
     "title": "RAG / AI Assistant",
@@ -552,7 +619,12 @@
     "testConnection": "Test Connection",
     "networkError": "Network error — cannot reach the LLM endpoint",
     "saved": "RAG settings saved",
-    "saveFailed": "Save failed"
+    "saveFailed": "Save failed",
+    "apiKeyOptional": "API Key (optional)",
+    "ragAiAssistant": "RAG / AI Assistant",
+    "ragDescription": "Configure the LLM provider for the Ask AI feature. Uses OpenAI-compatible chat completions API.",
+    "ragDisabledMessage": "RAG is disabled. The Ask AI feature won't be available.",
+    "ragSettingsSaved": "RAG settings saved"
   },
   "Users": {
     "createUser": "Create User",
@@ -577,7 +649,15 @@
     "groupCreated": "Group created.",
     "groupCreateFailed": "Failed to create group",
     "groupRemoved": "Group removed.",
-    "groupRemoveFailed": "Failed to remove group"
+    "groupRemoveFailed": "Failed to remove group",
+    "agent": "Agent",
+    "effective": "Effective",
+    "failedToCreateGroup": "Failed to create group",
+    "failedToCreateUser": "Failed to create user",
+    "failedToRemoveGroup": "Failed to remove group",
+    "failedToUpdateUser": "Failed to update user",
+    "noGroup": "No group",
+    "users": "Users"
   },
   "Webhooks": {
     "title": "Webhooks",
@@ -601,7 +681,20 @@
     "webhookDisabled": "Webhook disabled",
     "webhookEnabled": "Webhook enabled",
     "webhookDeleted": "Webhook deleted",
-    "deleteFailed": "Failed to delete webhook"
+    "deleteFailed": "Failed to delete webhook",
+    "confirmDeleteWebhook": "Are you sure you want to delete this webhook and all its delivery logs?",
+    "failedToCreateWebhook": "Failed to create webhook",
+    "failedToDeleteWebhook": "Failed to delete webhook",
+    "nameOptional": "Name (optional)",
+    "noDeliveriesYet": "No deliveries yet.",
+    "noWebhooksYet": "No webhooks configured yet.",
+    "selectAtLeastOneEvent": "Please select at least one event",
+    "url": "URL",
+    "webhookNamePlaceholder": "My Webhook",
+    "webhookSecretCopyNow": "Webhook Secret — copy now!",
+    "webhookSecretDescription": "This secret is used to verify webhook signatures. Keep it safe — it won't be shown again.",
+    "webhooks": "Webhooks",
+    "webhooksDescription": "Webhooks send HTTP POST requests to your URL when events occur. Payloads are signed with HMAC-SHA256."
   },
   "Export": {
     "label": "Tools",
@@ -635,7 +728,14 @@
     "noData": "No data available.",
     "exportButton": "Export {count} entries as {format}",
     "exporting": "Exporting...",
-    "searchPlaceholder": "Search..."
+    "searchPlaceholder": "Search...",
+    "all": "All",
+    "export": "Export",
+    "exportDescription": "Download your entries in various formats.",
+    "noDataAvailable": "No data available.",
+    "noMatches": "No matches found.",
+    "search": "Search",
+    "tools": "Tools"
   },
   "Import": {
     "title": "Import Entries",
@@ -665,7 +765,14 @@
     "skippedOverwritten": "{skipped} skipped, {overwritten} overwritten",
     "errors": "Errors",
     "importButton": "Import {count} {count, plural, one {Entry} other {Entries}}",
-    "startOver": "Start Over"
+    "startOver": "Start Over",
+    "contentColumn": "Content",
+    "createNewAllowDuplicates": "Create new (allow duplicates)",
+    "dropFilesHere": "Drop files here or click to browse",
+    "importDescription": "Import entries from Markdown, JSON, or CSV files.",
+    "importEntries": "Import Entries",
+    "tags": "Tags",
+    "type": "Type"
   },
   "StatusBadge": {
     "new": "new",

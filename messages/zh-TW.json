@@ -29,7 +29,14 @@
     "revoke": "撤銷",
     "saving": "儲存中...",
     "apply": "套用",
-    "or": "或"
+    "or": "或",
+    "copiedToClipboard": "已複製到剪貼簿",
+    "id": "ID",
+    "label": "標籤",
+    "saveFailed": "儲存失敗",
+    "saved": "已儲存",
+    "testConnection": "測試連線",
+    "description": "描述"
   },
   "Sidebar": {
     "dashboard": "儀表板",
@@ -164,7 +171,8 @@
     "createEntry": "建立條目",
     "saveChanges": "儲存變更",
     "failedToSave": "儲存條目失敗",
-    "somethingWrong": "發生了一些問題"
+    "somethingWrong": "發生了一些問題",
+    "saving": "儲存中..."
   },
   "Search": {
     "label": "知識庫",
@@ -349,7 +357,8 @@
     "subCollectionName": "子集合名稱",
     "rename": "重新命名",
     "addSubCollection": "新增子集合",
-    "deleteConfirm": "確定要刪除集合「{name}」？"
+    "deleteConfirm": "確定要刪除集合「{name}」？",
+    "delete": "刪除"
   },
   "RevisionHistory": {
     "title": "修訂歷史（{count}）",
@@ -465,7 +474,32 @@
     "tokenRevoked": "權杖已撤銷",
     "tokenRevokeFailed": "撤銷權杖失敗",
     "copiedToClipboard": "已複製到剪貼簿",
-    "revoked": "已撤銷"
+    "revoked": "已撤銷",
+    "apiTokensDescription": "建立權杖，供排程代理和腳本透過 API 寫入條目。",
+    "confirmEmbedMissing": "這將嵌入缺少嵌入向量的條目。是否繼續？",
+    "confirmRebuildAll": "這將重新嵌入所有條目，可能需要幾分鐘。是否繼續？",
+    "created": "建立時間",
+    "embeddingConfigChangedWarning": "你已變更嵌入向量的提供者 / URL / 模型。儲存後，建議重建所有嵌入向量以確保搜尋結果一致。",
+    "embeddingDisabledMessage": "嵌入向量已停用。語意搜尋將無法使用。",
+    "embeddingSettingsSaved": "嵌入向量設定已儲存",
+    "failedToCreateToken": "建立權杖失敗",
+    "failedToRevokeToken": "撤銷權杖失敗",
+    "lastUsed": "最後使用",
+    "networkError": "網路錯誤",
+    "never": "從未",
+    "newSourcePlaceholder": "新來源名稱",
+    "noTokensYet": "尚無權杖。",
+    "rebuildFailedNetwork": "重建失敗：網路錯誤",
+    "revoke": "撤銷",
+    "statusIdPlaceholder": "狀態 ID",
+    "statusLabelPlaceholder": "例如：進行中",
+    "storageSettingsSaved": "儲存空間設定已儲存",
+    "tabApiTokens": "API 權杖",
+    "tabEmbedding": "嵌入向量",
+    "tabOptions": "選項",
+    "tabStorage": "儲存空間",
+    "tokenCreatedCopyNow": "權杖已建立 — 請立即複製！",
+    "tokenShownOnce": "此權杖只會顯示一次，請妥善保存。"
   },
   "AuthSettings": {
     "allowRegistration": "允許使用者註冊",
@@ -473,7 +507,10 @@
     "requireEmailVerification": "需要電子郵件驗證",
     "allowAgentRegistration": "允許代理註冊 API",
     "saved": "驗證設定已儲存。",
-    "saveFailed": "儲存設定失敗"
+    "saveFailed": "儲存設定失敗",
+    "authSettingsSaved": "驗證設定已儲存。",
+    "failedToSaveSettings": "儲存設定失敗",
+    "requireAdminApproval": "需要管理員核准"
   },
   "CollectionsSettings": {
     "count": "{count} 個集合",
@@ -488,7 +525,17 @@
     "createFirst": "建立你的第一個集合",
     "deleteConfirm": "確定要刪除「{name}」？子集合將移至上層。",
     "entries": "{count} 個條目",
-    "addSub": "新增子集合"
+    "addSub": "新增子集合",
+    "addSubCollection": "新增子集合",
+    "collectionNamePlaceholder": "集合名稱",
+    "colorPlaceholder": "#hex",
+    "createFirstCollection": "建立你的第一個集合",
+    "delete": "刪除",
+    "descriptionPlaceholder": "描述（選填）",
+    "edit": "編輯",
+    "iconPlaceholder": "📁",
+    "noCollectionsYet": "尚無集合。",
+    "noParentRoot": "無上層（根層級）"
   },
   "Permissions": {
     "title": "權限群組",
@@ -517,7 +564,14 @@
     "scopeGlobal": "全域",
     "scopeOwn": "自己的條目",
     "scopeCollection": "集合",
-    "scopeEntry": "條目"
+    "scopeEntry": "條目",
+    "confirmDeleteGroup": "確定要刪除此權限群組？",
+    "deleteGroup": "刪除群組",
+    "optionalDescription": "選填描述",
+    "permissionGroups": "權限群組",
+    "permissionGroupsDescription": "管理群組及其權限。使用者會繼承所屬群組的所有權限。",
+    "removeFromGroup": "從群組移除",
+    "removePermission": "移除權限"
   },
   "Plugins": {
     "installTitle": "安裝新外掛骨架",
@@ -535,7 +589,20 @@
     "apiBase": "API 基底路徑：",
     "removed": "外掛已移除。",
     "removeFailed": "移除外掛失敗",
-    "pluginSettings": "外掛設定"
+    "pluginSettings": "外掛設定",
+    "builtIn": "內建",
+    "enabled": "已啟用",
+    "failedToInstallPlugin": "安裝外掛失敗",
+    "failedToRemovePlugin": "移除外掛失敗",
+    "failedToUpdatePlugin": "更新外掛失敗",
+    "hooksPlaceholder": "以逗號分隔的 hooks",
+    "installNewPluginSkeleton": "安裝新外掛骨架",
+    "none": "無",
+    "pluginIdPlaceholder": "外掛 ID",
+    "pluginNamePlaceholder": "外掛名稱",
+    "pluginRemoved": "外掛已移除。",
+    "pluginSkeletonInstalled": "外掛骨架已安裝。",
+    "pluginStateUpdated": "外掛狀態已更新。"
   },
   "RagSettings": {
     "title": "RAG / AI 助理",
@@ -552,7 +619,12 @@
     "testConnection": "測試連線",
     "networkError": "網路錯誤 — 無法連線到 LLM 端點",
     "saved": "RAG 設定已儲存",
-    "saveFailed": "儲存失敗"
+    "saveFailed": "儲存失敗",
+    "apiKeyOptional": "API Key（選填）",
+    "ragAiAssistant": "RAG / AI 助理",
+    "ragDescription": "設定 AI 問答功能的 LLM 提供者。使用 OpenAI 相容的 chat completions API。",
+    "ragDisabledMessage": "RAG 已停用。AI 問答功能將無法使用。",
+    "ragSettingsSaved": "RAG 設定已儲存"
   },
   "Users": {
     "createUser": "建立使用者",
@@ -577,7 +649,15 @@
     "groupCreated": "群組已建立。",
     "groupCreateFailed": "建立群組失敗",
     "groupRemoved": "群組已移除。",
-    "groupRemoveFailed": "移除群組失敗"
+    "groupRemoveFailed": "移除群組失敗",
+    "agent": "代理",
+    "effective": "有效",
+    "failedToCreateGroup": "建立群組失敗",
+    "failedToCreateUser": "建立使用者失敗",
+    "failedToRemoveGroup": "移除群組失敗",
+    "failedToUpdateUser": "更新使用者失敗",
+    "noGroup": "無群組",
+    "users": "使用者"
   },
   "Webhooks": {
     "title": "Webhooks",
@@ -601,7 +681,20 @@
     "webhookDisabled": "Webhook 已停用",
     "webhookEnabled": "Webhook 已啟用",
     "webhookDeleted": "Webhook 已刪除",
-    "deleteFailed": "刪除 Webhook 失敗"
+    "deleteFailed": "刪除 Webhook 失敗",
+    "confirmDeleteWebhook": "確定要刪除此 Webhook 及其所有發送紀錄？",
+    "failedToCreateWebhook": "建立 Webhook 失敗",
+    "failedToDeleteWebhook": "刪除 Webhook 失敗",
+    "nameOptional": "名稱（選填）",
+    "noDeliveriesYet": "尚無發送紀錄。",
+    "noWebhooksYet": "尚未設定任何 Webhook。",
+    "selectAtLeastOneEvent": "請至少選擇一個事件",
+    "url": "URL",
+    "webhookNamePlaceholder": "我的 Webhook",
+    "webhookSecretCopyNow": "Webhook 密鑰 — 請立即複製！",
+    "webhookSecretDescription": "此密鑰用於驗證 Webhook 簽章。請妥善保存 — 之後將不會再顯示。",
+    "webhooks": "Webhooks",
+    "webhooksDescription": "Webhooks 會在事件發生時，發送 HTTP POST 請求到你的 URL。內容使用 HMAC-SHA256 簽章。"
   },
   "Export": {
     "label": "工具",
@@ -635,7 +728,14 @@
     "noData": "沒有可用資料。",
     "exportButton": "匯出 {count} 個條目為 {format}",
     "exporting": "匯出中...",
-    "searchPlaceholder": "搜尋..."
+    "searchPlaceholder": "搜尋...",
+    "all": "全部",
+    "export": "匯出",
+    "exportDescription": "以各種格式下載你的條目。",
+    "noDataAvailable": "沒有可用資料。",
+    "noMatches": "找不到符合項目。",
+    "search": "搜尋",
+    "tools": "工具"
   },
   "Import": {
     "title": "匯入條目",
@@ -665,7 +765,14 @@
     "skippedOverwritten": "已略過 {skipped} 個，已覆蓋 {overwritten} 個",
     "errors": "錯誤",
     "importButton": "匯入 {count} 個{count, plural, one {條目} other {條目}}",
-    "startOver": "重新開始"
+    "startOver": "重新開始",
+    "contentColumn": "內容",
+    "createNewAllowDuplicates": "建立新項目（允許重複）",
+    "dropFilesHere": "拖曳檔案至此或點擊瀏覽",
+    "importDescription": "從 Markdown、JSON 或 CSV 檔案匯入條目。",
+    "importEntries": "匯入條目",
+    "tags": "標籤",
+    "type": "類型"
   },
   "StatusBadge": {
     "new": "新建",

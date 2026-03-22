@@ -29,7 +29,14 @@
     "revoke": "取り消し",
     "saving": "保存中...",
     "apply": "適用",
-    "or": "または"
+    "or": "または",
+    "copiedToClipboard": "クリップボードにコピーしました",
+    "id": "ID",
+    "label": "ラベル",
+    "saveFailed": "保存に失敗しました",
+    "saved": "保存しました",
+    "testConnection": "接続テスト",
+    "description": "説明"
   },
   "Sidebar": {
     "dashboard": "ダッシュボード",
@@ -164,7 +171,8 @@
     "createEntry": "エントリーを作成",
     "saveChanges": "変更を保存",
     "failedToSave": "エントリーの保存に失敗しました",
-    "somethingWrong": "問題が発生しました"
+    "somethingWrong": "問題が発生しました",
+    "saving": "保存中..."
   },
   "Search": {
     "label": "ナレッジベース",
@@ -349,7 +357,8 @@
     "subCollectionName": "サブコレクション名",
     "rename": "名前を変更",
     "addSubCollection": "サブコレクションを追加",
-    "deleteConfirm": "コレクション「{name}」を削除しますか？"
+    "deleteConfirm": "コレクション「{name}」を削除しますか？",
+    "delete": "削除"
   },
   "RevisionHistory": {
     "title": "変更履歴 ({count})",
@@ -465,7 +474,32 @@
     "tokenRevoked": "トークンを取り消しました",
     "tokenRevokeFailed": "トークンの取り消しに失敗しました",
     "copiedToClipboard": "クリップボードにコピーしました",
-    "revoked": "取り消し済み"
+    "revoked": "取り消し済み",
+    "apiTokensDescription": "スケジュールされたエージェントやスクリプトがAPI経由でエントリを書き込むためのトークンを作成します。",
+    "confirmEmbedMissing": "埋め込みが不足しているエントリを埋め込みます。続行しますか？",
+    "confirmRebuildAll": "すべてのエントリを再埋め込みします。数分かかる場合があります。続行しますか？",
+    "created": "作成日時",
+    "embeddingConfigChangedWarning": "埋め込みプロバイダ / URL / モデルを変更しました。保存後、一貫した検索結果のためにすべての埋め込みを再構築することをお勧めします。",
+    "embeddingDisabledMessage": "埋め込みが無効です。セマンティック検索は利用できません。",
+    "embeddingSettingsSaved": "埋め込み設定を保存しました",
+    "failedToCreateToken": "トークンの作成に失敗しました",
+    "failedToRevokeToken": "トークンの取り消しに失敗しました",
+    "lastUsed": "最終使用",
+    "networkError": "ネットワークエラー",
+    "never": "なし",
+    "newSourcePlaceholder": "新しいソース名",
+    "noTokensYet": "トークンはまだありません。",
+    "rebuildFailedNetwork": "再構築に失敗しました：ネットワークエラー",
+    "revoke": "取り消し",
+    "statusIdPlaceholder": "ステータスID",
+    "statusLabelPlaceholder": "例：進行中",
+    "storageSettingsSaved": "ストレージ設定を保存しました",
+    "tabApiTokens": "APIトークン",
+    "tabEmbedding": "埋め込み",
+    "tabOptions": "オプション",
+    "tabStorage": "ストレージ",
+    "tokenCreatedCopyNow": "トークンが作成されました — 今すぐコピーしてください！",
+    "tokenShownOnce": "このトークンは一度だけ表示されます。安全に保管してください。"
   },
   "AuthSettings": {
     "allowRegistration": "ユーザー登録を許可",
@@ -473,7 +507,10 @@
     "requireEmailVerification": "メール認証を必須にする",
     "allowAgentRegistration": "エージェント登録APIを許可",
     "saved": "認証設定を保存しました。",
-    "saveFailed": "設定の保存に失敗しました"
+    "saveFailed": "設定の保存に失敗しました",
+    "authSettingsSaved": "認証設定を保存しました。",
+    "failedToSaveSettings": "設定の保存に失敗しました",
+    "requireAdminApproval": "管理者の承認が必要"
   },
   "CollectionsSettings": {
     "count": "{count} コレクション",
@@ -488,7 +525,17 @@
     "createFirst": "最初のコレクションを作成しましょう",
     "deleteConfirm": "「{name}」を削除しますか？子コレクションは上の階層に移動されます。",
     "entries": "{count} 件のエントリー",
-    "addSub": "サブコレクションを追加"
+    "addSub": "サブコレクションを追加",
+    "addSubCollection": "サブコレクションを追加",
+    "collectionNamePlaceholder": "コレクション名",
+    "colorPlaceholder": "#hex",
+    "createFirstCollection": "最初のコレクションを作成",
+    "delete": "削除",
+    "descriptionPlaceholder": "説明（任意）",
+    "edit": "編集",
+    "iconPlaceholder": "📁",
+    "noCollectionsYet": "コレクションはまだありません。",
+    "noParentRoot": "親なし（ルート）"
   },
   "Permissions": {
     "title": "権限グループ",
@@ -517,7 +564,14 @@
     "scopeGlobal": "グローバル",
     "scopeOwn": "自分のエントリー",
     "scopeCollection": "コレクション",
-    "scopeEntry": "エントリー"
+    "scopeEntry": "エントリー",
+    "confirmDeleteGroup": "この権限グループを削除してもよろしいですか？",
+    "deleteGroup": "グループを削除",
+    "optionalDescription": "任意の説明",
+    "permissionGroups": "権限グループ",
+    "permissionGroupsDescription": "グループとその権限を管理します。ユーザーはグループのすべての権限を継承します。",
+    "removeFromGroup": "グループから削除",
+    "removePermission": "権限を削除"
   },
   "Plugins": {
     "installTitle": "新規プラグインスケルトンをインストール",
@@ -535,7 +589,20 @@
     "apiBase": "APIベース: ",
     "removed": "プラグインを削除しました。",
     "removeFailed": "プラグインの削除に失敗しました",
-    "pluginSettings": "プラグイン設定"
+    "pluginSettings": "プラグイン設定",
+    "builtIn": "内蔵",
+    "enabled": "有効",
+    "failedToInstallPlugin": "プラグインのインストールに失敗しました",
+    "failedToRemovePlugin": "プラグインの削除に失敗しました",
+    "failedToUpdatePlugin": "プラグインの更新に失敗しました",
+    "hooksPlaceholder": "カンマ区切りのフック",
+    "installNewPluginSkeleton": "新しいプラグインスケルトンをインストール",
+    "none": "なし",
+    "pluginIdPlaceholder": "プラグインID",
+    "pluginNamePlaceholder": "プラグイン名",
+    "pluginRemoved": "プラグインを削除しました。",
+    "pluginSkeletonInstalled": "プラグインスケルトンをインストールしました。",
+    "pluginStateUpdated": "プラグインの状態を更新しました。"
   },
   "RagSettings": {
     "title": "RAG / AIアシスタント",
@@ -552,7 +619,12 @@
     "testConnection": "接続テスト",
     "networkError": "ネットワークエラー — LLMエンドポイントに接続できません",
     "saved": "RAG設定を保存しました",
-    "saveFailed": "保存に失敗しました"
+    "saveFailed": "保存に失敗しました",
+    "apiKeyOptional": "APIキー（任意）",
+    "ragAiAssistant": "RAG / AIアシスタント",
+    "ragDescription": "AI質問機能のLLMプロバイダを設定します。OpenAI互換のchat completions APIを使用します。",
+    "ragDisabledMessage": "RAGが無効です。AI質問機能は利用できません。",
+    "ragSettingsSaved": "RAG設定を保存しました"
   },
   "Users": {
     "createUser": "ユーザーを作成",
@@ -577,7 +649,15 @@
     "groupCreated": "グループを作成しました。",
     "groupCreateFailed": "グループの作成に失敗しました",
     "groupRemoved": "グループを削除しました。",
-    "groupRemoveFailed": "グループの削除に失敗しました"
+    "groupRemoveFailed": "グループの削除に失敗しました",
+    "agent": "エージェント",
+    "effective": "有効",
+    "failedToCreateGroup": "グループの作成に失敗しました",
+    "failedToCreateUser": "ユーザーの作成に失敗しました",
+    "failedToRemoveGroup": "グループの削除に失敗しました",
+    "failedToUpdateUser": "ユーザーの更新に失敗しました",
+    "noGroup": "グループなし",
+    "users": "ユーザー"
   },
   "Webhooks": {
     "title": "Webhooks",
@@ -601,7 +681,20 @@
     "webhookDisabled": "Webhookを無効にしました",
     "webhookEnabled": "Webhookを有効にしました",
     "webhookDeleted": "Webhookを削除しました",
-    "deleteFailed": "Webhookの削除に失敗しました"
+    "deleteFailed": "Webhookの削除に失敗しました",
+    "confirmDeleteWebhook": "このWebhookとすべての配信ログを削除してもよろしいですか？",
+    "failedToCreateWebhook": "Webhookの作成に失敗しました",
+    "failedToDeleteWebhook": "Webhookの削除に失敗しました",
+    "nameOptional": "名前（任意）",
+    "noDeliveriesYet": "配信履歴はまだありません。",
+    "noWebhooksYet": "Webhookはまだ設定されていません。",
+    "selectAtLeastOneEvent": "少なくとも1つのイベントを選択してください",
+    "url": "URL",
+    "webhookNamePlaceholder": "マイWebhook",
+    "webhookSecretCopyNow": "Webhookシークレット — 今すぐコピーしてください！",
+    "webhookSecretDescription": "このシークレットはWebhook署名の検証に使用されます。安全に保管してください — 再度表示されません。",
+    "webhooks": "Webhooks",
+    "webhooksDescription": "Webhooksはイベント発生時にURLにHTTP POSTリクエストを送信します。ペイロードはHMAC-SHA256で署名されます。"
   },
   "Export": {
     "label": "ツール",
@@ -635,7 +728,14 @@
     "noData": "データがありません。",
     "exportButton": "{count} 件のエントリーを{format}でエクスポート",
     "exporting": "エクスポート中...",
-    "searchPlaceholder": "検索..."
+    "searchPlaceholder": "検索...",
+    "all": "すべて",
+    "export": "エクスポート",
+    "exportDescription": "さまざまな形式でエントリをダウンロードします。",
+    "noDataAvailable": "データがありません。",
+    "noMatches": "一致する項目が見つかりません。",
+    "search": "検索",
+    "tools": "ツール"
   },
   "Import": {
     "title": "エントリーをインポート",
@@ -665,7 +765,14 @@
     "skippedOverwritten": "{skipped} 件スキップ、{overwritten} 件上書き",
     "errors": "エラー",
     "importButton": "{count} {count, plural, one {件をインポート} other {件をインポート}}",
-    "startOver": "最初からやり直す"
+    "startOver": "最初からやり直す",
+    "contentColumn": "コンテンツ",
+    "createNewAllowDuplicates": "新規作成（重複を許可）",
+    "dropFilesHere": "ファイルをドロップするかクリックして参照",
+    "importDescription": "Markdown、JSON、またはCSVファイルからエントリをインポートします。",
+    "importEntries": "エントリをインポート",
+    "tags": "タグ",
+    "type": "タイプ"
   },
   "StatusBadge": {
     "new": "新規",
