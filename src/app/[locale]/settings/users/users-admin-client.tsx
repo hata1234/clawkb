@@ -200,6 +200,16 @@ export default function UsersAdminClient() {
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                <input
+                  defaultValue={user.email || ""}
+                  placeholder={t('email')}
+                  style={inputStyle}
+                  onBlur={(event) => {
+                    const val = event.target.value.trim();
+                    if (val !== (user.email || "")) updateUser(user.id, { email: val || null });
+                  }}
+                  onKeyDown={(event) => { if (event.key === "Enter") (event.target as HTMLInputElement).blur(); }}
+                />
                 <select value={user.role} onChange={(event) => updateUser(user.id, { role: event.target.value })} style={inputStyle}>
                   {roles.map((role) => <option key={role} value={role}>{role}</option>)}
                 </select>
