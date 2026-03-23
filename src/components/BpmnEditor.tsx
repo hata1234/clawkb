@@ -4,26 +4,26 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { ZoomIn, ZoomOut, Maximize, Download, Save, FileCode } from "lucide-react";
 
-const EMPTY_BPMN = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/2.0/20100524/MODEL"
-                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/2.0/20100524/DI"
-                  xmlns:dc="http://www.omg.org/spec/DD/2.0/20100524/DC"
-                  id="Definitions_1"
-                  targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="Process_1" isExecutable="false">
-    <bpmn:startEvent id="StartEvent_1" name="Start" />
-  </bpmn:process>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">
-      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_1" bpmnElement="StartEvent_1">
-        <dc:Bounds x="180" y="160" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="186" y="203" width="24" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
-</bpmn:definitions>`;
+// Must match bpmn-js 18's internal namespace URIs exactly (no "2.0/" segment)
+const EMPTY_BPMN =
+  '<?xml version="1.0" encoding="UTF-8"?>' +
+  '<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' +
+                    'xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" ' +
+                    'xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" ' +
+                    'xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" ' +
+                    'targetNamespace="http://bpmn.io/schema/bpmn" ' +
+                    'id="Definitions_1">' +
+    '<bpmn:process id="Process_1" isExecutable="false">' +
+      '<bpmn:startEvent id="StartEvent_1"/>' +
+    '</bpmn:process>' +
+    '<bpmndi:BPMNDiagram id="BPMNDiagram_1">' +
+      '<bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">' +
+        '<bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">' +
+          '<dc:Bounds height="36.0" width="36.0" x="173.0" y="102.0"/>' +
+        '</bpmndi:BPMNShape>' +
+      '</bpmndi:BPMNPlane>' +
+    '</bpmndi:BPMNDiagram>' +
+  '</bpmn:definitions>';
 
 interface BpmnEditorProps {
   xml?: string;
@@ -123,12 +123,28 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
       instanceRef.current = bpmnInstance;
 
       try {
-        await bpmnInstance.importXML(diagramXml);
+        if (diagramXml === EMPTY_BPMN && !readOnly && bpmnInstance.createDiagram) {
+          // Use built-in createDiagram for guaranteed-compatible empty diagram
+          await bpmnInstance.createDiagram();
+        } else {
+          await bpmnInstance.importXML(diagramXml);
+        }
         const canvas = bpmnInstance.get("canvas");
         canvas.zoom("fit-viewport");
         setLoaded(true);
       } catch (err) {
         console.error("Failed to import BPMN XML", err);
+        // Last resort: try createDiagram if importXML failed
+        if (!readOnly && bpmnInstance.createDiagram) {
+          try {
+            await bpmnInstance.createDiagram();
+            const canvas = bpmnInstance.get("canvas");
+            canvas.zoom("fit-viewport");
+            setLoaded(true);
+          } catch (e2) {
+            console.error("createDiagram also failed", e2);
+          }
+        }
       }
 
       if (!readOnly && onChange) {
