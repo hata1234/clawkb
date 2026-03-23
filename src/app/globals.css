@@ -262,6 +262,31 @@ html, body {
 }
 
 /* ═══ BPMN Dark Mode Overrides ═══ */
+/* Override diagram-js CSS custom properties for dark theme */
+:root:not([data-theme="light"]) .djs-container {
+  --color-white: var(--surface, #141416);
+  --color-black: var(--text-primary, #fafafa);
+  --color-grey-225-10-97: var(--surface-hover, #1C1C1F);
+  --color-red-360-100-97: hsl(360, 60%, 20%);
+  --color-red-360-100-92: hsl(360, 60%, 25%);
+  --canvas-fill-color: var(--background, #0C0C0E);
+  --shape-drop-allowed-fill-color: rgba(201, 169, 110, 0.15);
+  --shape-drop-not-allowed-fill-color: rgba(255, 80, 80, 0.15);
+  --palette-background-color: var(--surface, #141416);
+  --palette-entry-color: var(--text-secondary, #a1a1aa);
+  --palette-entry-hover-color: var(--text-primary, #fafafa);
+  --palette-separator-color: var(--border, #27272A);
+  --context-pad-entry-background-color: var(--surface, #141416);
+  --context-pad-entry-hover-background-color: var(--surface-hover, #1C1C1F);
+  --popup-background-color: var(--surface, #141416);
+  --popup-header-entry-selected-color: var(--accent, #C9A96E);
+  --element-dragger-color: var(--accent, #C9A96E);
+  --bendpoint-fill-color: var(--accent, #C9A96E);
+  --bendpoint-stroke-color: var(--background, #0C0C0E);
+  --resizer-fill-color: var(--accent, #C9A96E);
+  --resizer-stroke-color: var(--background, #0C0C0E);
+  --space-tool-crosshair-stroke-color: var(--text-secondary, #a1a1aa);
+}
 /* bpmn-js renders SVG with white fills and black strokes — invisible on dark backgrounds */
 :root:not([data-theme="light"]) .djs-container .djs-visual circle,
 :root:not([data-theme="light"]) .djs-container .djs-visual rect,
