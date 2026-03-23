@@ -630,7 +630,7 @@ function StorageTab({ settings, onToast }: {
 
       <div style={{ display: "grid", gap: 12, marginBottom: 20 }}>
         <div style={{ display: "flex", gap: 12 }}>
-          <div style={{ flex: 1 }}>{field(t('endpoint'), "endpoint", { placeholder: "192.168.1.62" })}</div>
+          <div style={{ flex: 1 }}>{field(t('endpoint'), "endpoint", { placeholder: "localhost" })}</div>
           <div style={{ width: 100 }}>{field(t('port'), "port", { placeholder: "9000" })}</div>
         </div>
 

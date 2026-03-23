@@ -176,7 +176,7 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
             <div>
               <label style={labelStyle}>{t('baseUrl')}</label>
               <input value={cfg.baseUrl} onChange={e => setCfg(c => ({ ...c, baseUrl: e.target.value }))}
-                style={inputStyle} placeholder="http://192.168.1.113:8888/v1" />
+                style={inputStyle} placeholder="http://localhost:8888/v1" />
             </div>
             <div>
               <label style={labelStyle}>{t('model')}</label>

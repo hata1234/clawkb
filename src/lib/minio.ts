@@ -20,7 +20,7 @@ export async function getMinioClient(): Promise<{ client: Minio.Client; bucket: 
 
 // ─── Legacy static client (fallback for non-async contexts) ───────────────
 export const minioClient = new Minio.Client({
-  endPoint:  process.env.S3_ENDPOINT  ?? process.env.MINIO_ENDPOINT  ?? "192.168.1.62",
+  endPoint:  process.env.S3_ENDPOINT  ?? process.env.MINIO_ENDPOINT  ?? "localhost",
   port:      parseInt(process.env.S3_PORT      ?? process.env.MINIO_PORT      ?? "9000"),
   useSSL:    (process.env.S3_USE_SSL ?? "false") === "true",
   accessKey: process.env.S3_ACCESS_KEY ?? process.env.MINIO_ACCESS_KEY ?? "minioadmin",

@@ -8,7 +8,7 @@
 
 ClawKB lets humans and AI agents co-create, search, and manage knowledge entries through a clean web UI and a headless API. Designed for the [OpenClaw](https://github.com/openclaw/openclaw) ecosystem but works standalone.
 
-English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
+English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | [日本語](./README.ja.md)
 
 ## Features
 
@@ -57,6 +57,15 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 - 🔌 **File-based plugins** — `plugins/` directory with `manifest.json` + `server.mjs`
 - Hooks: `entry.serialize`, `entryCard.render`, `entry.afterQuery`
 - Built-in: backlinks, related-entries, auto-tag, entry-templates, export
+- Content Tags hook (`content.tags`) — plugins can register `{{tag:value}}` syntax for inline rendering
+
+### BPMN Flow Designer
+- 🔀 **BPMN Flow Designer** — bpmn-js based flow designer with full-screen editor
+- 📎 **EntryFlow Attachments** — Multiple flows per entry
+- 🔗 **Inline Rendering** — Embed flows via `{{flow:ID}}` syntax
+
+### Document Numbers
+- 🔢 **Auto-generated Document Numbers** — Collection prefix + sequential counter (e.g. `QP-001`)
 
 ### Internationalization
 - 🌐 **i18n** — 4 languages: English, 繁體中文, 简体中文, 日本語 (via next-intl)
@@ -322,8 +331,9 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 - [x] SMTP email system (Gmail / custom SMTP, password reset, notification emails)
 - [x] Notification system (in-app bell + SSE real-time push + email delivery)
 - [x] ACL unification refactor (Role + Group + User, fine-grained action×scope permissions)
-- [ ] Global floating AI chatbox (Ask AI accessible from any page)
-- [ ] Document number templates (auto-generate entry ID pattern e.g. QP-{collection}-{seq:4})
+- [x] Global floating AI chatbox (Ask AI accessible from any page)
+- [x] Document number templates (auto-generate entry ID pattern e.g. QP-{collection}-{seq:4})
+- [x] BPMN flow designer + Content Tag System (plugin `{{tag:value}}` architecture)
 - [ ] Collaborative editing (Yjs / Liveblocks)
 - [ ] Public sharing mode (public slug, no login required)
 - [ ] Mobile PWA

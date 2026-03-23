@@ -33,7 +33,7 @@ export const DEFAULT_EMBEDDING = {
 };
 
 export const DEFAULT_STORAGE = {
-  endpoint:  process.env.S3_ENDPOINT  ?? process.env.MINIO_ENDPOINT  ?? "192.168.1.62",
+  endpoint:  process.env.S3_ENDPOINT  ?? process.env.MINIO_ENDPOINT  ?? "localhost",
   port:      parseInt(process.env.S3_PORT      ?? process.env.MINIO_PORT      ?? "9000"),
   useSSL:    (process.env.S3_USE_SSL ?? "false") === "true",
   accessKey: process.env.S3_ACCESS_KEY ?? process.env.MINIO_ACCESS_KEY ?? "minioadmin",
@@ -66,7 +66,7 @@ export const DEFAULT_SMTP = {
 
 export const DEFAULT_RAG = {
   provider: "spark-vllm" as "openai" | "ollama" | "spark-vllm" | "disabled",
-  baseUrl: "http://192.168.1.113:8888/v1",
+  baseUrl: "http://localhost:8888/v1",
   model: "Qwen/Qwen3.5-35B-A3B-FP8",
   apiKey: "",
   topK: 5,
