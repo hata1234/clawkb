@@ -11,6 +11,8 @@ import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
+import dynamic from "next/dynamic";
+const BpmnEditor = dynamic(() => import("@/components/BpmnEditor"), { ssr: false });
 
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
@@ -490,7 +492,75 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
+      {/* BPMN Process Flow — inline read-only viewer; edit button only in edit mode */}
+      {entry.bpmnXml && !editing && (
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {tb("title")}
+            </h2>
+            <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none", fontSize: "0.75rem", padding: "5px 10px" }}>
+              <Network style={{ width: 13, height: 13 }} /> {tb("viewFlow")}
+            </Link>
+          </div>
+          <div style={{ height: 360, borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--border)" }}>
+            <BpmnEditor xml={entry.bpmnXml} readOnly />
+          </div>
+        </div>
+      )}
+      {editing && (
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
+          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+            {tb("title")}
+          </h2>
+          <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
+            <Network style={{ width: 14, height: 14 }} /> {entry.bpmnXml ? tb("viewFlow") : tb("addFlow")}
+          </Link>
+        </div>
+      )}
+
+      {/* Summary */}
+      {(entry.summary || editing) && (
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
+          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>{t('summary')}</h2>
+          {editing ? (
+            <textarea value={editSummary} onChange={(e) => setEditSummary(e.target.value)} rows={3} placeholder={t('summaryPlaceholder')}
+              style={{ ...inputStyle, resize: "vertical" }} />
+          ) : (
+            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.7 }}>{entry.summary}</p>
+          )}
+        </div>
+      )}
+
+      {/* Content */}
+      {(entry.content || editing) && (
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
+          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>{t('content')}</h2>
+          {editing ? (
+            <MentionTextarea name="editContent" value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={20} placeholder={t('contentPlaceholder')}
+              style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 300 }} />
+          ) : (
+            <div className="prose-kb">
+              <MarkdownRenderer content={entry.content || ""} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Revision History */}
+      {!editing && <RevisionHistory entryId={entry.id} currentTitle={entry.title} currentEntry={{
+        title: entry.title,
+        summary: entry.summary,
+        content: entry.content,
+        status: entry.status,
+        type: entry.type,
+        source: entry.source,
+        tags: entry.tags,
+        author: entry.author,
+      }} />}
+
+      {/* Comments — after revision history */}
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginTop: 16, marginBottom: 16 }}>
         <h2 style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
           {t('comments')}
         </h2>
@@ -523,66 +593,6 @@ export default function EntryDetailPage() {
           ))}
         </div>
       </div>
-
-      {/* Summary */}
-      {(entry.summary || editing) && (
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
-          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>{t('summary')}</h2>
-          {editing ? (
-            <textarea value={editSummary} onChange={(e) => setEditSummary(e.target.value)} rows={3} placeholder={t('summaryPlaceholder')}
-              style={{ ...inputStyle, resize: "vertical" }} />
-          ) : (
-            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.7 }}>{entry.summary}</p>
-          )}
-        </div>
-      )}
-
-      {/* Content */}
-      {(entry.content || editing) && (
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px" }}>
-          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>{t('content')}</h2>
-          {editing ? (
-            <MentionTextarea name="editContent" value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={20} placeholder={t('contentPlaceholder')}
-              style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 300 }} />
-          ) : (
-            <div className="prose-kb">
-              <MarkdownRenderer content={entry.content || ""} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* BPMN Process Flow */}
-      {!editing && (entry.bpmnXml || canEdit) && (
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginTop: 16, marginBottom: 16 }}>
-          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
-            {tb("title")}
-          </h2>
-          {entry.bpmnXml ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", flex: 1 }}>{tb("hasFlow")}</p>
-              <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
-                <Network style={{ width: 14, height: 14 }} /> {tb("viewFlow")}
-              </Link>
-            </div>
-          ) : (
-            <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
-              {tb("addFlow")}
-            </Link>
-          )}
-        </div>
-      )}
-
-      {!editing && <RevisionHistory entryId={entry.id} currentTitle={entry.title} currentEntry={{
-        title: entry.title,
-        summary: entry.summary,
-        content: entry.content,
-        status: entry.status,
-        type: entry.type,
-        source: entry.source,
-        tags: entry.tags,
-        author: entry.author,
-      }} />}
 
       {!editing && entry.pluginRender?.map((block) => {
         if (block.type === "related-entries") {
