@@ -1,18 +1,25 @@
 import { NextResponse } from "next/server";
-import { authenticateApi } from "@/lib/auth";
+import { getRequestPrincipal } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 
 export async function GET(request: Request) {
-  const authed = await authenticateApi(request);
-  if (!authed) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const principal = await getRequestPrincipal(request);
+  if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const collectionIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
+  const aclWhere = collectionIds
+    ? { deletedAt: null, collections: { some: { id: { in: collectionIds } } } }
+    : { deletedAt: null };
 
   const [total, byTypeRaw, byStatusRaw, bySourceRaw, recentRaw] = await Promise.all([
-    prisma.entry.count(),
-    prisma.entry.groupBy({ by: ["type"], _count: true, orderBy: { _count: { type: "desc" } } }),
-    prisma.entry.groupBy({ by: ["status"], _count: true, orderBy: { _count: { status: "desc" } } }),
-    prisma.entry.groupBy({ by: ["source"], _count: true, orderBy: { _count: { source: "desc" } } }),
+    prisma.entry.count({ where: aclWhere }),
+    prisma.entry.groupBy({ by: ["type"], where: aclWhere, _count: true, orderBy: { _count: { type: "desc" } } }),
+    prisma.entry.groupBy({ by: ["status"], where: aclWhere, _count: true, orderBy: { _count: { status: "desc" } } }),
+    prisma.entry.groupBy({ by: ["source"], where: aclWhere, _count: true, orderBy: { _count: { source: "desc" } } }),
     prisma.entry.groupBy({
       by: ["createdAt"],
+      where: aclWhere,
       _count: true,
       orderBy: { createdAt: "desc" },
       take: 200,
@@ -38,7 +45,7 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const thisWeek = await prisma.entry.count({ where: { createdAt: { gte: weekAgo } } });
+  const thisWeek = await prisma.entry.count({ where: { ...aclWhere, createdAt: { gte: weekAgo } } });
 
   return NextResponse.json({ total, byType, byStatus, bySource, thisWeek, trend: last14 });
 }

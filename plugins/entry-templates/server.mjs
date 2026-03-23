@@ -39,7 +39,7 @@ export const api = {
       path: "/templates",
       description: "Create a new entry template",
       async handler({ body, context }) {
-        if (!context.principal || context.principal.effectiveRole !== "admin") {
+        if (!context.principal || !context.principal.isAdmin) {
           return { status: 403, body: { error: "Admin only" } };
         }
         const { name, type, source, status, tags, summary, content } = body;
@@ -58,7 +58,7 @@ export const api = {
       path: "/templates/:id",
       description: "Update an entry template",
       async handler({ params, body, context }) {
-        if (!context.principal || context.principal.effectiveRole !== "admin") {
+        if (!context.principal || !context.principal.isAdmin) {
           return { status: 403, body: { error: "Admin only" } };
         }
         const templateId = params[0];
@@ -84,7 +84,7 @@ export const api = {
       path: "/templates/:id",
       description: "Delete an entry template",
       async handler({ params, context }) {
-        if (!context.principal || context.principal.effectiveRole !== "admin") {
+        if (!context.principal || !context.principal.isAdmin) {
           return { status: 403, body: { error: "Admin only" } };
         }
         const templateId = params[0];

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { authenticateApi } from "@/lib/auth";
+import { getRequestPrincipal } from "@/lib/auth";
 import { pool } from "@/lib/prisma";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const authed = await authenticateApi(request);
-  if (!authed) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const principal = await getRequestPrincipal(request);
+  if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
   const entryId = parseInt(id);
@@ -12,6 +13,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const { searchParams } = new URL(request.url);
   const limit = Math.min(parseInt(searchParams.get("limit") || "5"), 20);
+
+  const collectionIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
 
   try {
     // Get the current entry's embedding
@@ -24,14 +27,22 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ related: [] });
     }
 
+    // Build ACL filter
+    const aclClause = collectionIds
+      ? `AND e.id IN (SELECT "A" FROM "_CollectionToEntry" WHERE "B" = ANY($4))`
+      : "";
+    const queryParams: (string | number | number[])[] = [current.embedding, entryId, limit];
+    if (collectionIds) queryParams.push(collectionIds);
+
     const { rows } = await pool.query(
-      `SELECT id, title, type, source, summary, "createdAt",
-              1 - (embedding <=> $1) as similarity
-       FROM "Entry"
-       WHERE id != $2 AND embedding IS NOT NULL
-       ORDER BY embedding <=> $1
+      `SELECT e.id, e.title, e.type, e.source, e.summary, e."createdAt",
+              1 - (e.embedding <=> $1) as similarity
+       FROM "Entry" e
+       WHERE e.id != $2 AND e.embedding IS NOT NULL AND e."deletedAt" IS NULL
+       ${aclClause}
+       ORDER BY e.embedding <=> $1
        LIMIT $3`,
-      [current.embedding, entryId, limit]
+      queryParams
     );
 
     return NextResponse.json({ related: rows });

@@ -1,27 +1,47 @@
 import { NextResponse } from "next/server";
-import { authenticateApi } from "@/lib/auth";
+import { getRequestPrincipal } from "@/lib/auth";
 import { pool } from "@/lib/prisma";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 
 export async function GET(request: Request) {
-  const authed = await authenticateApi(request);
-  if (!authed) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const principal = await getRequestPrincipal(request);
+  if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const collectionIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
 
   const { searchParams } = new URL(request.url);
   const threshold = Math.max(0.5, Math.min(1, parseFloat(searchParams.get("threshold") || "0.75")));
   const typesParam = searchParams.get("types");
   const typeFilter = typesParam ? typesParam.split(",").filter(Boolean) : null;
 
-  // Fetch entries with embeddings (limit 200 most recent)
-  const typeClause = typeFilter ? `AND type = ANY($1)` : "";
-  const nodeParams: (string[] | number)[] = typeFilter ? [typeFilter, 200] : [200];
+  // Build ACL + type filter clauses
+  const params: (string[] | number[] | number)[] = [];
+  let paramIdx = 1;
+  const clauses: string[] = ['embedding IS NOT NULL', '"deletedAt" IS NULL'];
+
+  if (collectionIds) {
+    clauses.push(`id IN (SELECT "A" FROM "_CollectionToEntry" WHERE "B" = ANY($${paramIdx}))`);
+    params.push(collectionIds);
+    paramIdx++;
+  }
+
+  if (typeFilter) {
+    clauses.push(`type = ANY($${paramIdx})`);
+    params.push(typeFilter);
+    paramIdx++;
+  }
+
+  clauses.push(`1=1`); // ensure WHERE is valid
+  params.push(200 as never);
+
   const nodeQuery = `
     SELECT id, title, type, source, summary
     FROM "Entry"
-    WHERE embedding IS NOT NULL ${typeClause}
+    WHERE ${clauses.join(" AND ")}
     ORDER BY "createdAt" DESC
-    LIMIT $${nodeParams.length}
+    LIMIT $${paramIdx}
   `;
-  const nodesResult = await pool.query(nodeQuery, nodeParams);
+  const nodesResult = await pool.query(nodeQuery, params);
   const nodes = nodesResult.rows;
 
   if (nodes.length < 2) {
