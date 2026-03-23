@@ -147,7 +147,9 @@
     "markdown": "Markdown",
     "pdf": "PDF",
     "json": "JSON",
-    "csv": "CSV"
+    "csv": "CSV",
+    "addCollection": "+ 添加...",
+    "bpmnNoteCreate": "BPMN 流程图可在创建条目后添加。"
   },
   "EntryForm": {
     "template": "模板：",
@@ -173,7 +175,8 @@
     "saveChanges": "保存更改",
     "failedToSave": "保存条目失败",
     "somethingWrong": "出现了问题",
-    "saving": "保存中..."
+    "saving": "保存中...",
+    "bpmnNoteCreate": "BPMN 流程图可在创建条目后添加。"
   },
   "Search": {
     "label": "知识库",

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import SettingsLayout from "@/components/SettingsLayout";
 
 type PrefValue = "all" | "inapp" | "off";
 
@@ -53,7 +52,7 @@ export default function NotificationPrefsClient() {
   });
 
   return (
-    <SettingsLayout>
+    <>
       <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: 8 }}>{t("title")}</h2>
       <p style={{ color: "var(--text-dim)", fontSize: "0.875rem", marginBottom: 24 }}>{t("description")}</p>
 
@@ -94,6 +93,6 @@ export default function NotificationPrefsClient() {
           ))}
         </div>
       )}
-    </SettingsLayout>
+    </>
   );
 }

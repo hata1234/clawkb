@@ -18,7 +18,7 @@ export default async function SettingsAuthPage({ params }: { params: Promise<{ l
   const authSettings = await getSetting("auth", DEFAULT_AUTH);
 
   return (
-    <SettingsLayout>
+    <SettingsLayout isAdmin>
       <AuthSettingsClient initialSettings={authSettings} />
     </SettingsLayout>
   );

@@ -332,6 +332,13 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
         <input type="text" name="tags" value={form.tags} onChange={handleChange} placeholder={t('tagsPlaceholder')} style={inputStyle} />
       </div>
 
+      {mode === "create" && (
+        <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", padding: "8px 12px", background: "var(--surface-hover)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: 8 }}>
+          <span>📋</span>
+          <span>{t('bpmnNoteCreate')}</span>
+        </div>
+      )}
+
       <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 8 }}>
         <button type="submit" disabled={saving} style={{
           display: "flex", alignItems: "center", gap: 8,

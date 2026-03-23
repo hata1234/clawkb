@@ -147,7 +147,9 @@
     "markdown": "Markdown",
     "pdf": "PDF",
     "json": "JSON",
-    "csv": "CSV"
+    "csv": "CSV",
+    "addCollection": "+ 新增...",
+    "bpmnNoteCreate": "BPMN 流程圖可在建立條目後新增。"
   },
   "EntryForm": {
     "template": "範本：",
@@ -173,7 +175,8 @@
     "saveChanges": "儲存變更",
     "failedToSave": "儲存條目失敗",
     "somethingWrong": "發生了一些問題",
-    "saving": "儲存中..."
+    "saving": "儲存中...",
+    "bpmnNoteCreate": "BPMN 流程圖可在建立條目後新增。"
   },
   "Search": {
     "label": "知識庫",

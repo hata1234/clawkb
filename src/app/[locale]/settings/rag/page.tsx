@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
+import { getSessionPrincipal } from "@/lib/auth";
 import { getAllSettings } from "@/lib/settings";
 import SettingsLayout from "@/components/SettingsLayout";
 import RagSettingsClient from "./RagSettingsClient";
@@ -11,13 +11,14 @@ export default async function RagSettingsPage({ params }: { params: Promise<{ lo
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const session = await auth();
-  if (!session) redirect("/login");
+  const principal = await getSessionPrincipal();
+  if (!principal) redirect("/login");
+  if (!principal.isAdmin) redirect("/");
 
   const settings = await getAllSettings();
 
   return (
-    <SettingsLayout>
+    <SettingsLayout isAdmin>
       <RagSettingsClient initialSettings={settings.rag} />
     </SettingsLayout>
   );

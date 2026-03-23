@@ -106,6 +106,8 @@ export default function EntryDetailPage() {
   const [pdfExporting, setPdfExporting] = useState(false);
   const [flows, setFlows] = useState<EntryFlow[]>([]);
   const [newFlowName, setNewFlowName] = useState("");
+  const [editCollectionIds, setEditCollectionIds] = useState<number[]>([]);
+  const [allCollections, setAllCollections] = useState<{ id: number; name: string; icon?: string | null }[]>([]);
 
 
   const exportEntry = (format: "json" | "csv" | "markdown" | "pdf") => {
@@ -204,6 +206,9 @@ export default function EntryDetailPage() {
     setEditStatus(entry.status);
     setEditUrl(entry.url || "");
     setEditTags(entry.tags.map((tg) => tg.name).join(", "));
+    setEditCollectionIds(entry.collections?.map(c => c.id) || []);
+    // Fetch all collections for the selector
+    fetch("/api/collections").then(r => r.json()).then(d => setAllCollections(d.flat || [])).catch(() => {});
     setEditing(true);
   };
 
@@ -217,6 +222,7 @@ export default function EntryDetailPage() {
         title: editTitle, summary: editSummary || null, content: editContent || null,
         status: editStatus, url: editUrl || null,
         tags: editTags.split(",").map((tg) => tg.trim()).filter(Boolean),
+        collectionIds: editCollectionIds,
       }),
     });
     if (res.ok) { const updated = await res.json(); setEntry(updated); setEditing(false); }
@@ -482,7 +488,35 @@ export default function EntryDetailPage() {
         </div>
 
         {/* Collections */}
-        {!editing && entry.collections && entry.collections.length > 0 && (
+        {editing ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+            <FolderOpen style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flex: 1, minHeight: 32, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "4px 8px", alignItems: "center" }}>
+              {editCollectionIds.map((cid) => {
+                const col = allCollections.find((c) => c.id === cid);
+                return col ? (
+                  <span key={cid} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem", background: "var(--surface-hover)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: 999 }}>
+                    {col.icon || "📁"} {col.name}
+                    <button type="button" onClick={() => setEditCollectionIds(prev => prev.filter(id => id !== cid))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: "var(--text-dim)" }}>&times;</button>
+                  </span>
+                ) : null;
+              })}
+              <select
+                value=""
+                onChange={(e) => {
+                  const id = parseInt(e.target.value);
+                  if (id && !editCollectionIds.includes(id)) setEditCollectionIds(prev => [...prev, id]);
+                }}
+                style={{ border: "none", background: "transparent", fontSize: "0.75rem", color: "var(--text-dim)", cursor: "pointer", outline: "none", padding: "2px 4px" }}
+              >
+                <option value="">{t('addCollection')}</option>
+                {allCollections.filter(c => !editCollectionIds.includes(c.id)).map(c => (
+                  <option key={c.id} value={c.id}>{c.icon || "📁"} {c.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : entry.collections && entry.collections.length > 0 ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
             <FolderOpen style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -499,7 +533,7 @@ export default function EntryDetailPage() {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Images */}

@@ -147,7 +147,9 @@
     "markdown": "Markdown",
     "pdf": "PDF",
     "json": "JSON",
-    "csv": "CSV"
+    "csv": "CSV",
+    "addCollection": "+ Add...",
+    "bpmnNoteCreate": "BPMN process flows can be added after creating the entry."
   },
   "EntryForm": {
     "template": "Template:",
@@ -173,7 +175,8 @@
     "saveChanges": "Save Changes",
     "failedToSave": "Failed to save entry",
     "somethingWrong": "Something went wrong",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "bpmnNoteCreate": "BPMN process flows can be added after creating the entry."
   },
   "Search": {
     "label": "Knowledge Base",

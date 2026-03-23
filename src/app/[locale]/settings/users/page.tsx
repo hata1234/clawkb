@@ -15,7 +15,7 @@ export default async function SettingsUsersPage({ params }: { params: Promise<{ 
   if (!principal.isAdmin) redirect("/");
 
   return (
-    <SettingsLayout>
+    <SettingsLayout isAdmin>
       <UsersAdminClient />
     </SettingsLayout>
   );

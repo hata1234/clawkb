@@ -147,7 +147,9 @@
     "markdown": "Markdown",
     "pdf": "PDF",
     "json": "JSON",
-    "csv": "CSV"
+    "csv": "CSV",
+    "addCollection": "+ 追加...",
+    "bpmnNoteCreate": "BPMNプロセスフローはエントリー作成後に追加できます。"
   },
   "EntryForm": {
     "template": "テンプレート:",
@@ -173,7 +175,8 @@
     "saveChanges": "変更を保存",
     "failedToSave": "エントリーの保存に失敗しました",
     "somethingWrong": "問題が発生しました",
-    "saving": "保存中..."
+    "saving": "保存中...",
+    "bpmnNoteCreate": "BPMNプロセスフローはエントリー作成後に追加できます。"
   },
   "Search": {
     "label": "ナレッジベース",

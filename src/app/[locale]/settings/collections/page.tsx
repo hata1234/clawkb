@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
+import { getSessionPrincipal } from "@/lib/auth";
 import SettingsLayout from "@/components/SettingsLayout";
 import CollectionsClient from "./CollectionsClient";
 
@@ -10,11 +10,12 @@ export default async function SettingsCollectionsPage({ params }: { params: Prom
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const session = await auth();
-  if (!session) redirect("/login");
+  const principal = await getSessionPrincipal();
+  if (!principal) redirect("/login");
+  if (!principal.isAdmin) redirect("/");
 
   return (
-    <SettingsLayout>
+    <SettingsLayout isAdmin>
       <CollectionsClient />
     </SettingsLayout>
   );

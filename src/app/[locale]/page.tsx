@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 import StatsCard from "@/components/StatsCard";
 import EntryCard from "@/components/EntryCard";
 import { Link } from "@/i18n/navigation";
@@ -18,23 +19,55 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const session = await auth();
   if (!session) redirect("/login");
 
+  // ACL: get accessible collection IDs for current user
+  const userId = parseInt(session.user.id);
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { isAdmin: true } });
+  const isAdmin = user?.isAdmin ?? false;
+  const accessibleIds = await getAccessibleCollectionIds(userId, isAdmin);
+
+  // Build ACL where clause for entries
+  const aclWhere = accessibleIds !== null
+    ? { collections: { some: { id: { in: accessibleIds } } } }
+    : {};
+
+  // Build collection query with ACL
+  async function queryCollections() {
+    if (accessibleIds === null) {
+      // Admin: show all
+      return prisma.$queryRaw<{ id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]>`
+        SELECT c.id, c.name, c.color, c.icon, count(ec."B") as entry_count
+        FROM collections c
+        LEFT JOIN "_EntryCollections" ec ON ec."A" = c.id
+        LEFT JOIN "Entry" e ON e.id = ec."B" AND e."deletedAt" IS NULL
+        GROUP BY c.id, c.name, c.color, c.icon
+        ORDER BY count(ec."B") DESC, c.id
+      `;
+    } else {
+      // Non-admin: only accessible collections
+      return prisma.$queryRaw<{ id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]>`
+        SELECT c.id, c.name, c.color, c.icon, count(ec."B") as entry_count
+        FROM collections c
+        LEFT JOIN "_EntryCollections" ec ON ec."A" = c.id
+        LEFT JOIN "Entry" e ON e.id = ec."B" AND e."deletedAt" IS NULL
+        WHERE c.id = ANY(${accessibleIds}::int[])
+        GROUP BY c.id, c.name, c.color, c.icon
+        ORDER BY count(ec."B") DESC, c.id
+      `;
+    }
+  }
+
   const [total, byStatus, bySource, byCollection, thisWeek, recent] = await Promise.all([
-    prisma.entry.count(),
-    prisma.entry.groupBy({ by: ["status"], _count: { id: true } }),
-    prisma.entry.groupBy({ by: ["source"], _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
-    prisma.$queryRaw<{ id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]>`
-      SELECT c.id, c.name, c.color, c.icon, count(ec."B") as entry_count
-      FROM collections c
-      LEFT JOIN "_EntryCollections" ec ON ec."A" = c.id
-      GROUP BY c.id, c.name, c.color, c.icon
-      ORDER BY count(ec."B") DESC, c.id
-    `,
+    prisma.entry.count({ where: aclWhere }),
+    prisma.entry.groupBy({ by: ["status"], _count: { id: true }, where: aclWhere }),
+    prisma.entry.groupBy({ by: ["source"], _count: { id: true }, orderBy: { _count: { id: "desc" } }, where: aclWhere }),
+    queryCollections(),
     prisma.entry.count({
-      where: { createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
+      where: { ...aclWhere, createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
     }),
     prisma.entry.findMany({
       take: 10,
       orderBy: { createdAt: "desc" },
+      where: aclWhere,
       include: { tags: true },
     }),
   ]);
@@ -42,12 +75,14 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const newCount = byStatus.find((s) => s.status === "new")?._count.id || 0;
   const interestedCount = byStatus.find((s) => s.status === "interested")?._count.id || 0;
   
-  const collections = byCollection.map(c => ({
+  const allCollections = byCollection.map(c => ({
     ...c,
     entry_count: Number(c.entry_count),
   }));
+  const collections = allCollections.slice(0, 10);
+  const topSources = bySource.slice(0, 10);
   const maxCollectionCount = Math.max(...collections.map(c => c.entry_count), 1);
-  const maxSourceCount = Math.max(...bySource.map(s => s._count.id), 1);
+  const maxSourceCount = Math.max(...topSources.map(s => s._count.id), 1);
 
   // Default palette for collections without a custom color
   const defaultPalette = [
@@ -120,7 +155,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
         <div className="dash-chart-card animate-fade-in-up stagger-3">
           <h3 className="dash-chart-title">{t('bySource')}</h3>
           <div className="dash-bar-chart">
-            {bySource.map((s) => (
+            {topSources.map((s) => (
               <Link key={s.source} href={`/entries?source=${s.source}`} className="dash-bar-row">
                 <span className="dash-bar-label">{s.source}</span>
                 <div className="dash-bar-track">
