@@ -30,7 +30,9 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md)
 
 ### Collaboration
 - 👥 **Multi-user Auth** — NextAuth.js sessions, registration + login
-- 🛡️ **ACL Permission System** — Custom groups (Administrators / Editors / Viewers) with fine-grained permissions (read/edit/delete/create × global/collection/entry/own scope)
+- 🛡️ **ACL Permission System** — Role-based access control with fine-grained permissions (read/edit/delete/create × global/collection/entry/own scope); Roles define permissions, Groups assign default roles, Users can override
+- 📧 **SMTP Email** — Gmail / custom SMTP, password reset flow, notification email delivery
+- 🔔 **Notifications** — In-app notification bell with SSE real-time push, unread badge, mark-as-read
 - 💬 **Comments** — Per-entry discussion threads
 - 📜 **Revision History** — Auto-versioning with inline diff viewer; compare any two revisions or diff against current live content
 - 📊 **Activity Log** — Automatic CRUD + comment action logging at `/activity`
@@ -317,11 +319,13 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 - [x] Gateway auto-recall plugin with sender ACL
 
 ### 🔜 Planned
+- [x] SMTP email system (Gmail / custom SMTP, password reset, notification emails)
+- [x] Notification system (in-app bell + SSE real-time push + email delivery)
+- [x] ACL unification refactor (Role + Group + User, fine-grained action×scope permissions)
 - [ ] Global floating AI chatbox (Ask AI accessible from any page)
+- [ ] Document number templates (auto-generate entry ID pattern e.g. QP-{collection}-{seq:4})
 - [ ] Collaborative editing (Yjs / Liveblocks)
-- [ ] Email verification flow (SMTP integration)
 - [ ] Public sharing mode (public slug, no login required)
-- [ ] Notification system (in-app + SSE/WebSocket)
 - [ ] Mobile PWA
 - [ ] Batch operations (multi-select + bulk actions)
 
