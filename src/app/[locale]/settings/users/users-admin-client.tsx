@@ -38,6 +38,7 @@ const card: React.CSSProperties = {
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
+  height: "42px",
   background: "var(--background)",
   border: "1px solid var(--border)",
   borderRadius: "var(--radius-md)",
@@ -45,6 +46,7 @@ const inputStyle: React.CSSProperties = {
   fontSize: "0.875rem",
   color: "var(--text)",
   outline: "none",
+  boxSizing: "border-box",
 };
 
 export default function UsersAdminClient() {
@@ -156,16 +158,19 @@ export default function UsersAdminClient() {
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-                <input
-                  defaultValue={user.email || ""}
-                  placeholder={t("email")}
-                  style={inputStyle}
-                  onBlur={(e) => {
-                    const val = e.target.value.trim();
-                    if (val !== (user.email || "")) updateUser(user.id, { email: val || null });
-                  }}
-                  onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-                />
+                <div>
+                  <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>{t("email")}</div>
+                  <input
+                    defaultValue={user.email || ""}
+                    placeholder={t("email")}
+                    style={inputStyle}
+                    onBlur={(e) => {
+                      const val = e.target.value.trim();
+                      if (val !== (user.email || "")) updateUser(user.id, { email: val || null });
+                    }}
+                    onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                  />
+                </div>
                 <div>
                   <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>{t("roleOverride")}</div>
                   <select
@@ -188,12 +193,15 @@ export default function UsersAdminClient() {
                     {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
                 </div>
-                <select value={user.approvalStatus} onChange={(e) => updateUser(user.id, { approvalStatus: e.target.value })} style={inputStyle}>
-                  <option value="approved">{t("approved")}</option>
-                  <option value="pending_approval">{t("pendingApproval")}</option>
-                  <option value="pending_verification">{t("pendingVerification")}</option>
-                  <option value="rejected">{t("rejected")}</option>
-                </select>
+                <div>
+                  <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>{t("approvalStatus")}</div>
+                  <select value={user.approvalStatus} onChange={(e) => updateUser(user.id, { approvalStatus: e.target.value })} style={inputStyle}>
+                    <option value="approved">{t("approved")}</option>
+                    <option value="pending_approval">{t("pendingApproval")}</option>
+                    <option value="pending_verification">{t("pendingVerification")}</option>
+                    <option value="rejected">{t("rejected")}</option>
+                  </select>
+                </div>
               </div>
             </div>
           ))}
