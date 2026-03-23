@@ -47,6 +47,7 @@ ClawKB 让人类和 AI Agent 共同创建、搜索和管理知识条目，提供
 - 🧠 **RAG 查询（Ask AI）** — `/api/rag` 端点：向量检索 → LLM 合成，支持 SSE 流式传输；`/rag` 聊天界面附来源引用
 - 🔔 **Webhooks** — HMAC-SHA256 签名事件推送，3 次指数退避重试；事件：entry.created/updated/deleted/restored、comment.created
 - 🔌 **Gateway 自动召回** — OpenClaw Gateway 插件，自动将 RAG 注入 Agent 对话，依发送者 ACL 控制（拥有者完整召回 / 公开发送者限公开集合 / 未授权零召回）
+- 🐾 **[OpenClaw Skill + 插件](https://github.com/hata1234/clawkb-openclaw)** — 安装配套 Skill，让你的 OpenClaw Agent 在聊天中直接读取、搜索和写入 ClawKB 条目
 
 ### 导入与导出
 - 📥 **导入** — 批量导入 Markdown (.md)、JSON 或 CSV 文件，拖放界面、预览表格、重复检测（跳过/覆写/新建）

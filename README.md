@@ -47,6 +47,7 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) 
 - 🧠 **RAG Query (Ask AI)** — `/api/rag` endpoint: vector retrieve → LLM synthesize with SSE streaming; chat UI at `/rag` with source citations
 - 🔔 **Webhooks** — HMAC-SHA256 signed event delivery with 3× exponential backoff retry; events: entry.created/updated/deleted/restored, comment.created
 - 🔌 **Gateway Auto-Recall** — OpenClaw Gateway plugin for automatic RAG injection into agent conversations, with sender-based ACL (owner full recall / public sender limited to public collections / unauthorized zero recall)
+- 🐾 **[OpenClaw Skill + Plugin](https://github.com/hata1234/clawkb-openclaw)** — Install the companion skill to let your OpenClaw agent read, search, and write ClawKB entries directly from chat
 
 ### Import & Export
 - 📥 **Import** — Batch import from Markdown (.md), JSON, or CSV files with drag-and-drop UI, preview table, duplicate detection (skip/overwrite/create new)

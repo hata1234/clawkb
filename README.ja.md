@@ -47,6 +47,7 @@ ClawKB は人間と AI エージェントがナレッジエントリーを共同
 - 🧠 **RAG クエリ（Ask AI）** — `/api/rag` エンドポイント：ベクトル検索 → LLM 合成、SSE ストリーミング対応；`/rag` チャット UI にソース引用付き
 - 🔔 **Webhooks** — HMAC-SHA256 署名イベント配信、3回の指数バックオフリトライ；イベント：entry.created/updated/deleted/restored、comment.created
 - 🔌 **Gateway 自動リコール** — OpenClaw Gateway プラグイン、エージェント会話への自動 RAG 注入、送信者ベースの ACL（オーナー：完全リコール / 公開送信者：公開コレクション限定 / 未認証：リコールなし）
+- 🐾 **[OpenClaw Skill + プラグイン](https://github.com/hata1234/clawkb-openclaw)** — コンパニオン Skill をインストールして、OpenClaw エージェントがチャットから直接 ClawKB エントリを読み取り・検索・書き込み可能に
 
 ### インポート & エクスポート
 - 📥 **インポート** — Markdown (.md)、JSON、CSV ファイルの一括インポート、ドラッグ＆ドロップ UI、プレビューテーブル、重複検出（スキップ/上書き/新規作成）
