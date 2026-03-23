@@ -260,3 +260,46 @@ html, body {
   background: var(--accent-muted, rgba(201,169,110,0.2));
   color: var(--accent-hover);
 }
+
+/* ═══ BPMN Dark Mode Overrides ═══ */
+/* bpmn-js renders SVG with white fills and black strokes — invisible on dark backgrounds */
+:root:not([data-theme="light"]) .djs-container .djs-visual circle,
+:root:not([data-theme="light"]) .djs-container .djs-visual rect,
+:root:not([data-theme="light"]) .djs-container .djs-visual polygon,
+:root:not([data-theme="light"]) .djs-container .djs-visual path {
+  fill: var(--surface, #141416) !important;
+  stroke: var(--text-secondary, #a1a1aa) !important;
+}
+/* Connections / sequence flows — no fill, just stroke */
+:root:not([data-theme="light"]) .djs-container .djs-connection .djs-visual path {
+  fill: none !important;
+  stroke: var(--text-secondary, #a1a1aa) !important;
+}
+/* Connection markers (arrowheads) */
+:root:not([data-theme="light"]) .djs-container marker path {
+  fill: var(--text-secondary, #a1a1aa) !important;
+  stroke: var(--text-secondary, #a1a1aa) !important;
+}
+/* BPMN labels */
+:root:not([data-theme="light"]) .djs-container .djs-label {
+  fill: var(--text-primary, #fafafa) !important;
+  color: var(--text-primary, #fafafa) !important;
+}
+:root:not([data-theme="light"]) .djs-container text {
+  fill: var(--text-primary, #fafafa) !important;
+}
+/* Context pad & palette backgrounds */
+:root:not([data-theme="light"]) .djs-palette {
+  background: var(--surface, #141416) !important;
+  border-color: var(--border, #27272A) !important;
+}
+:root:not([data-theme="light"]) .djs-palette .entry:hover {
+  background: var(--surface-hover, #1C1C1F) !important;
+}
+:root:not([data-theme="light"]) .djs-context-pad .entry {
+  background: var(--surface, #141416) !important;
+}
+/* Selected element highlight */
+:root:not([data-theme="light"]) .djs-container .djs-element.selected .djs-outline {
+  stroke: var(--accent, #C9A96E) !important;
+}
