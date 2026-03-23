@@ -141,11 +141,15 @@ export default function CollectionsClient() {
   useEffect(() => { fetchCollections(); }, [fetchCollections]);
 
   useEffect(() => {
-    fetch("/api/roles").then(r => r.json()).then(data => {
+    fetch("/api/roles", { credentials: "include" }).then(r => {
+      console.log("[CollectionsClient] /api/roles status:", r.status);
+      return r.json();
+    }).then(data => {
+      console.log("[CollectionsClient] roles data:", data);
       // Filter out admin role (id 1) — admins always have access
       const roles = (data.roles || data || []).filter((r: RoleRef) => r.id !== 1);
       setAllRoles(roles);
-    }).catch(() => {});
+    }).catch((err) => { console.error("[CollectionsClient] roles fetch error:", err); });
   }, []);
 
   const resetForm = () => {
