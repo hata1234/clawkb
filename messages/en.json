@@ -942,6 +942,11 @@
     "zoomOut": "Zoom Out",
     "fitView": "Fit View",
     "newDiagram": "New Diagram",
-    "saveToEntry": "Save as Entry"
+    "saveToEntry": "Save as Entry",
+    "viewFlow": "View Flow",
+    "backToEntry": "Back to Entry",
+    "unsaved": "Unsaved changes",
+    "saved": "Saved",
+    "hasFlow": "This entry has a process flow diagram."
   }
 }

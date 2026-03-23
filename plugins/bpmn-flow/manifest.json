@@ -1,0 +1,9 @@
+{
+  "id": "bpmn-flow",
+  "name": "BPMN Flow Designer",
+  "version": "1.0.0",
+  "description": "Attach BPMN process flow diagrams to entries. Visual editor powered by bpmn.io.",
+  "builtIn": false,
+  "hooks": ["entry.render"],
+  "permissions": ["entries.read"]
+}

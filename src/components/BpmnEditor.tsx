@@ -33,7 +33,7 @@ interface BpmnEditorProps {
   height?: string;
 }
 
-export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, height = "500px" }: BpmnEditorProps) {
+export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, height = "100%" }: BpmnEditorProps) {
   const t = useTranslations("Bpmn");
   const containerRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<any>(null);
@@ -107,9 +107,9 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
     let destroyed = false;
     let bpmnInstance: any = null;
 
-    (async () => {
-      const diagramXml = xml || EMPTY_BPMN;
+    const diagramXml = (xml && xml.trim().startsWith('<?xml')) ? xml : EMPTY_BPMN;
 
+    (async () => {
       if (readOnly) {
         const { default: Viewer } = await import("bpmn-js/lib/NavigatedViewer");
         if (destroyed) return;
@@ -151,20 +151,7 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
       instanceRef.current = null;
       setLoaded(false);
     };
-  }, [readOnly]); // only re-init when mode changes
-
-  // Re-import XML when xml prop changes (but not on initial mount which is handled above)
-  const xmlRef = useRef(xml);
-  useEffect(() => {
-    if (xmlRef.current === xml) return; // skip initial
-    xmlRef.current = xml;
-    if (instanceRef.current && xml) {
-      instanceRef.current.importXML(xml).then(() => {
-        const canvas = instanceRef.current?.get("canvas");
-        canvas?.zoom("fit-viewport");
-      }).catch(() => {});
-    }
-  }, [xml]);
+  }, [readOnly, xml]); // re-init when mode or xml changes
 
   const btnStyle: React.CSSProperties = {
     display: "inline-flex",
@@ -182,7 +169,7 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", position: "relative" }}>
       {/* Toolbar */}
       <div style={{
         display: "flex",

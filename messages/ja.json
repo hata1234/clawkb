@@ -942,6 +942,11 @@
     "zoomOut": "縮小",
     "fitView": "ビューに合わせる",
     "newDiagram": "新規ダイアグラム",
-    "saveToEntry": "エントリとして保存"
+    "saveToEntry": "エントリとして保存",
+    "viewFlow": "フローを表示",
+    "backToEntry": "エントリに戻る",
+    "unsaved": "未保存の変更",
+    "saved": "保存済み",
+    "hasFlow": "このエントリにはプロセスフロー図があります。"
   }
 }

@@ -942,6 +942,11 @@
     "zoomOut": "縮小",
     "fitView": "適合視窗",
     "newDiagram": "新建流程圖",
-    "saveToEntry": "儲存為條目"
+    "saveToEntry": "儲存為條目",
+    "viewFlow": "查看流程",
+    "backToEntry": "返回條目",
+    "unsaved": "未儲存的變更",
+    "saved": "已儲存",
+    "hasFlow": "此條目包含流程圖。"
   }
 }

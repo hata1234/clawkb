@@ -6,14 +6,12 @@ import { useRouter } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { useSession } from "next-auth/react";
-import dynamic from "next/dynamic";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
 
-const BpmnEditor = dynamic(() => import("@/components/BpmnEditor"), { ssr: false });
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import ShareDialog from "@/components/ShareDialog";
@@ -95,8 +93,7 @@ export default function EntryDetailPage() {
   const [showPdfPasswordDialog, setShowPdfPasswordDialog] = useState(false);
   const [pdfPassword, setPdfPassword] = useState("");
   const [pdfExporting, setPdfExporting] = useState(false);
-  const [bpmnEditing, setBpmnEditing] = useState(false);
-  const [bpmnSaving, setBpmnSaving] = useState(false);
+
 
   const exportEntry = (format: "json" | "csv" | "markdown" | "pdf") => {
     if (!entry) return;
@@ -556,55 +553,22 @@ export default function EntryDetailPage() {
       )}
 
       {/* BPMN Process Flow */}
-      {!editing && (
+      {!editing && (entry.bpmnXml || canEdit) && (
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginTop: 16, marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {tb("title")}
-            </h2>
-            {canEdit && entry.bpmnXml && !bpmnEditing && (
-              <button onClick={() => setBpmnEditing(true)} style={{ ...btnBase, fontSize: "0.75rem", padding: "5px 10px" }}>
-                <Edit2 style={{ width: 12, height: 12 }} /> {tb("editFlow")}
-              </button>
-            )}
-            {bpmnEditing && (
-              <button onClick={() => setBpmnEditing(false)} style={{ ...btnBase, fontSize: "0.75rem", padding: "5px 10px" }}>
-                <X style={{ width: 12, height: 12 }} /> {tc("cancel")}
-              </button>
-            )}
-          </div>
-          {(entry.bpmnXml || bpmnEditing) ? (
-            <BpmnEditor
-              xml={entry.bpmnXml || undefined}
-              readOnly={!bpmnEditing}
-              onSave={async (xml) => {
-                setBpmnSaving(true);
-                const res = await fetch(`/api/entries/${entry.id}`, {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ bpmnXml: xml }),
-                });
-                if (res.ok) {
-                  const updated = await res.json();
-                  setEntry(updated);
-                  setBpmnEditing(false);
-                }
-                setBpmnSaving(false);
-              }}
-              height="400px"
-            />
-          ) : canEdit ? (
-            <button
-              onClick={() => {
-                setBpmnEditing(true);
-              }}
-              disabled={bpmnSaving}
-              style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)" }}
-            >
-              {tb("addFlow")}
-            </button>
+          <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+            {tb("title")}
+          </h2>
+          {entry.bpmnXml ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", flex: 1 }}>{tb("hasFlow")}</p>
+              <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
+                <Network style={{ width: 14, height: 14 }} /> {tb("viewFlow")}
+              </Link>
+            </div>
           ) : (
-            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>No process flow attached.</p>
+            <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
+              {tb("addFlow")}
+            </Link>
           )}
         </div>
       )}
