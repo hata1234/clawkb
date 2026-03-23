@@ -21,6 +21,7 @@ import {
 
 interface Entry {
   id: number;
+  docNumber?: string | null;
   type: string;
   source: string;
   title: string;
@@ -361,7 +362,17 @@ export default function EntryDetailPage() {
           )}
         </div>
 
-        {/* Title */}
+        {/* Doc Number + Title */}
+        {!editing && entry.docNumber && (
+          <span style={{
+            display: "inline-block", fontSize: "0.7rem", fontWeight: 600,
+            color: "var(--accent)", background: "var(--accent-muted)",
+            padding: "2px 10px", borderRadius: 999, marginBottom: 8,
+            letterSpacing: "0.04em", fontFamily: "var(--font-mono)",
+          }}>
+            {entry.docNumber}
+          </span>
+        )}
         {editing ? (
           <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} style={{ ...inputStyle, fontSize: "1.25rem", fontFamily: "var(--font-heading)", fontWeight: 400, marginBottom: 16 }} />
         ) : (

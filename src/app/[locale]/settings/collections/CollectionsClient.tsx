@@ -14,6 +14,7 @@ interface Collection {
   description: string | null;
   icon: string | null;
   color: string | null;
+  docPrefix: string | null;
   parentId: number | null;
   sortOrder: number;
   _count: { entries: number; children: number };
@@ -117,6 +118,7 @@ export default function CollectionsClient() {
   const [formDescription, setFormDescription] = useState("");
   const [formIcon, setFormIcon] = useState("");
   const [formColor, setFormColor] = useState("");
+  const [formDocPrefix, setFormDocPrefix] = useState("");
   const [formParentId, setFormParentId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -131,7 +133,7 @@ export default function CollectionsClient() {
   useEffect(() => { fetchCollections(); }, [fetchCollections]);
 
   const resetForm = () => {
-    setFormName(""); setFormDescription(""); setFormIcon(""); setFormColor(""); setFormParentId(null);
+    setFormName(""); setFormDescription(""); setFormIcon(""); setFormColor(""); setFormDocPrefix(""); setFormParentId(null);
     setEditingCollection(null); setShowForm(false);
   };
 
@@ -141,6 +143,7 @@ export default function CollectionsClient() {
     setFormDescription(c.description || "");
     setFormIcon(c.icon || "");
     setFormColor(c.color || "");
+    setFormDocPrefix(c.docPrefix || "");
     setFormParentId(c.parentId);
     setShowForm(true);
   };
@@ -165,6 +168,7 @@ export default function CollectionsClient() {
       description: formDescription || null,
       icon: formIcon || null,
       color: formColor || null,
+      docPrefix: formDocPrefix.trim() || null,
       parentId: formParentId,
     };
 
@@ -212,6 +216,10 @@ export default function CollectionsClient() {
             </div>
             <input value={formIcon} onChange={(e) => setFormIcon(e.target.value)} placeholder={t('iconPlaceholder')} style={inputStyle} />
             <input value={formColor} onChange={(e) => setFormColor(e.target.value)} placeholder={t('colorPlaceholder')} style={inputStyle} />
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>{t('docPrefix')}</label>
+              <input value={formDocPrefix} onChange={(e) => setFormDocPrefix(e.target.value)} placeholder={t('docPrefixHint')} style={inputStyle} />
+            </div>
             <select value={formParentId ?? ""} onChange={(e) => setFormParentId(e.target.value ? parseInt(e.target.value) : null)}
               style={{ ...inputStyle, colorScheme: "dark" }}>
               <option value="">{t('noParentRoot')}</option>

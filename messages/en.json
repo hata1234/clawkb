@@ -543,7 +543,9 @@
     "noCollectionsYet": "No collections yet.",
     "noParentRoot": "No parent (root)",
     "collectionsCount": "{count} collections",
-    "entriesCount": "{count} entries"
+    "entriesCount": "{count} entries",
+    "docPrefix": "Document Prefix",
+    "docPrefixHint": "e.g. QP-RAW, WI-PROD"
   },
   "Permissions": {
     "title": "Permission Groups",
@@ -912,5 +914,19 @@
       "inapp": "In-app only",
       "off": "Off"
     }
+  },
+  "FloatingChat": {
+    "title": "Ask AI",
+    "placeholder": "Ask about your knowledge base...",
+    "send": "Send",
+    "thinking": "Thinking...",
+    "noResults": "No relevant entries found.",
+    "sources": "Sources",
+    "error": "Something went wrong. Please try again."
+  },
+  "DocNumber": {
+    "label": "Document Number",
+    "prefix": "Document Prefix",
+    "prefixHint": "e.g. QP-RAW, WI-PROD"
   }
 }

@@ -34,6 +34,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.color !== undefined) data.color = body.color || null;
   if (body.parentId !== undefined) data.parentId = body.parentId || null;
   if (body.sortOrder !== undefined) data.sortOrder = body.sortOrder;
+  if (body.docPrefix !== undefined) data.docPrefix = body.docPrefix || null;
 
   const collection = await prisma.collection.update({
     where: { id: parseInt(id) },

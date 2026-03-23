@@ -543,7 +543,9 @@
     "noCollectionsYet": "コレクションはまだありません。",
     "noParentRoot": "親なし（ルート）",
     "collectionsCount": "{count} 個のコレクション",
-    "entriesCount": "{count} 件のエントリ"
+    "entriesCount": "{count} 件のエントリ",
+    "docPrefix": "文書番号プレフィックス",
+    "docPrefixHint": "e.g. QP-RAW, WI-PROD"
   },
   "Permissions": {
     "title": "権限グループ",
@@ -912,5 +914,19 @@
       "inapp": "アプリ内のみ",
       "off": "オフ"
     }
+  },
+  "FloatingChat": {
+    "title": "AIに質問",
+    "placeholder": "ナレッジベースについて質問...",
+    "send": "送信",
+    "thinking": "考え中...",
+    "noResults": "関連するエントリが見つかりません。",
+    "sources": "参照元",
+    "error": "エラーが発生しました。もう一度お試しください。"
+  },
+  "DocNumber": {
+    "label": "文書番号",
+    "prefix": "文書番号プレフィックス",
+    "prefixHint": "e.g. QP-RAW, WI-PROD"
   }
 }

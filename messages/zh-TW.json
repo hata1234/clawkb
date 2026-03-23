@@ -543,7 +543,9 @@
     "noCollectionsYet": "尚無集合。",
     "noParentRoot": "無上層（根層級）",
     "collectionsCount": "{count} 個集合",
-    "entriesCount": "{count} 個條目"
+    "entriesCount": "{count} 個條目",
+    "docPrefix": "文件編號前綴",
+    "docPrefixHint": "e.g. QP-RAW, WI-PROD"
   },
   "Permissions": {
     "title": "權限群組",
@@ -912,5 +914,19 @@
       "inapp": "僅站內通知",
       "off": "關閉"
     }
+  },
+  "FloatingChat": {
+    "title": "問 AI",
+    "placeholder": "詢問你的知識庫...",
+    "send": "送出",
+    "thinking": "思考中...",
+    "noResults": "找不到相關條目。",
+    "sources": "參考來源",
+    "error": "發生錯誤，請再試一次。"
+  },
+  "DocNumber": {
+    "label": "文件編號",
+    "prefix": "文件編號前綴",
+    "prefixHint": "e.g. QP-RAW, WI-PROD"
   }
 }

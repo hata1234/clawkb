@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { useEffect } from "react";
 import Sidebar from "./Sidebar";
 import CommandSearch from "./CommandSearch";
+import FloatingChat from "./FloatingChat";
 import { Loader2 } from "lucide-react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         effectiveRole={session?.user?.effectiveRole || undefined}
       />
       <CommandSearch />
+      <FloatingChat />
       <main id="main-content" className="min-h-screen">
         <div id="main-inner">
           {children}

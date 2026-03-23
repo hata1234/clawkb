@@ -7,6 +7,7 @@ import { generateAndStoreChunks } from "@/lib/embedding";
 import { getEntryCardElements, runEntryAfterCreateHooks, runEntryAfterQueryHooks, runEntryBeforeCreateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
+import { generateDocNumber } from "@/lib/doc-number";
 
 interface EntryImageInput {
   url: string;
@@ -183,14 +184,27 @@ export async function POST(request: Request) {
     include: entryWithAuthorInclude,
   });
 
+  // Generate document number if entry belongs to a collection with a prefix
+  let finalEntry: typeof entry = entry;
+  if (collectionIds && collectionIds.length > 0) {
+    const docNumber = await generateDocNumber(collectionIds);
+    if (docNumber) {
+      finalEntry = await prisma.entry.update({
+        where: { id: entry.id },
+        data: { docNumber },
+        include: entryWithAuthorInclude,
+      }) as typeof entry;
+    }
+  }
+
   // Fire-and-forget chunked embedding generation (don't block response)
-  generateAndStoreChunks(entry).catch(() => {});
+  generateAndStoreChunks(finalEntry).catch(() => {});
 
   // Auto-tag if no manual tags provided (fire-and-forget)
-  runEntryAfterCreateHooks(entry as unknown as Record<string, unknown>, hookedBody as unknown as Record<string, unknown>, principal).catch(() => {});
+  runEntryAfterCreateHooks(finalEntry as unknown as Record<string, unknown>, hookedBody as unknown as Record<string, unknown>, principal).catch(() => {});
 
-  logActivity("entry.created", principal.id, entry.id, { title: entry.title }).catch(() => {});
-  dispatchWebhookEvent("entry.created", { id: entry.id, title: entry.title, type: entry.type, source: entry.source });
+  logActivity("entry.created", principal.id, finalEntry.id, { title: finalEntry.title }).catch(() => {});
+  dispatchWebhookEvent("entry.created", { id: finalEntry.id, title: finalEntry.title, type: finalEntry.type, source: finalEntry.source });
 
-  return NextResponse.json(serializeEntry(entry), { status: 201 });
+  return NextResponse.json(serializeEntry(finalEntry), { status: 201 });
 }

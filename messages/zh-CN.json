@@ -543,7 +543,9 @@
     "noCollectionsYet": "暂无集合。",
     "noParentRoot": "无上级（根级别）",
     "collectionsCount": "{count} 个集合",
-    "entriesCount": "{count} 个条目"
+    "entriesCount": "{count} 个条目",
+    "docPrefix": "文件编号前缀",
+    "docPrefixHint": "e.g. QP-RAW, WI-PROD"
   },
   "Permissions": {
     "title": "权限组",
@@ -912,5 +914,19 @@
       "inapp": "仅站内通知",
       "off": "关闭"
     }
+  },
+  "FloatingChat": {
+    "title": "问 AI",
+    "placeholder": "询问你的知识库...",
+    "send": "发送",
+    "thinking": "思考中...",
+    "noResults": "找不到相关条目。",
+    "sources": "参考来源",
+    "error": "发生错误，请再试一次。"
+  },
+  "DocNumber": {
+    "label": "文件编号",
+    "prefix": "文件编号前缀",
+    "prefixHint": "e.g. QP-RAW, WI-PROD"
   }
 }

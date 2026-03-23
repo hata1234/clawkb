@@ -35,6 +35,7 @@ type EntryAuthor = {
 
 export function serializeEntry<T extends {
   id: number;
+  docNumber?: string | null;
   type: string;
   source: string;
   title: string;
