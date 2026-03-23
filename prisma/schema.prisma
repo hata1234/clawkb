@@ -105,6 +105,7 @@ model Entry {
   revisions EntryRevision[]
   favorites UserFavorite[]
   shareLinks ShareLink[]
+  bpmnXml   String?  @map("bpmn_xml") @db.Text
   // Vector search columns (managed via raw SQL for indexing, declared here to prevent db push from dropping them)
   embedding Unsupported("vector(1024)")?
   chunks    EntryChunk[]

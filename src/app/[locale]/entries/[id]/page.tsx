@@ -6,11 +6,14 @@ import { useRouter } from '@/i18n/navigation';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
 import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
+
+const BpmnEditor = dynamic(() => import("@/components/BpmnEditor"), { ssr: false });
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
 import ShareDialog from "@/components/ShareDialog";
@@ -36,6 +39,7 @@ interface Entry {
   images: { id: number; url: string; key: string; filename: string; mimeType: string; size: number; caption: string | null; sortOrder: number }[];
   authorId: number | null;
   author: { id: number; displayName: string; avatarUrl: string | null } | null;
+  bpmnXml?: string | null;
   isFavorited?: boolean;
   pluginRender?: { id: string; type: string; title?: string; data?: Record<string, unknown> }[];
 }
@@ -63,6 +67,7 @@ const btnBase: React.CSSProperties = {
 export default function EntryDetailPage() {
   const t = useTranslations('EntryDetail');
   const tc = useTranslations('Common');
+  const tb = useTranslations('Bpmn');
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
@@ -90,6 +95,8 @@ export default function EntryDetailPage() {
   const [showPdfPasswordDialog, setShowPdfPasswordDialog] = useState(false);
   const [pdfPassword, setPdfPassword] = useState("");
   const [pdfExporting, setPdfExporting] = useState(false);
+  const [bpmnEditing, setBpmnEditing] = useState(false);
+  const [bpmnSaving, setBpmnSaving] = useState(false);
 
   const exportEntry = (format: "json" | "csv" | "markdown" | "pdf") => {
     if (!entry) return;
@@ -544,6 +551,71 @@ export default function EntryDetailPage() {
             <div className="prose-kb">
               <MarkdownRenderer content={entry.content || ""} />
             </div>
+          )}
+        </div>
+      )}
+
+      {/* BPMN Process Flow */}
+      {!editing && (
+        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginTop: 16, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              {tb("title")}
+            </h2>
+            {canEdit && entry.bpmnXml && !bpmnEditing && (
+              <button onClick={() => setBpmnEditing(true)} style={{ ...btnBase, fontSize: "0.75rem", padding: "5px 10px" }}>
+                <Edit2 style={{ width: 12, height: 12 }} /> {tb("editFlow")}
+              </button>
+            )}
+            {bpmnEditing && (
+              <button onClick={() => setBpmnEditing(false)} style={{ ...btnBase, fontSize: "0.75rem", padding: "5px 10px" }}>
+                <X style={{ width: 12, height: 12 }} /> {tc("cancel")}
+              </button>
+            )}
+          </div>
+          {entry.bpmnXml ? (
+            <BpmnEditor
+              xml={entry.bpmnXml}
+              readOnly={!bpmnEditing}
+              onSave={async (xml) => {
+                setBpmnSaving(true);
+                const res = await fetch(`/api/entries/${entry.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ bpmnXml: xml }),
+                });
+                if (res.ok) {
+                  const updated = await res.json();
+                  setEntry(updated);
+                  setBpmnEditing(false);
+                }
+                setBpmnSaving(false);
+              }}
+              height="400px"
+            />
+          ) : canEdit ? (
+            <button
+              onClick={async () => {
+                setBpmnSaving(true);
+                const res = await fetch(`/api/entries/${entry.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ bpmnXml: "" }),
+                });
+                if (res.ok) {
+                  const updated = await res.json();
+                  setEntry({ ...updated, bpmnXml: "" });
+                  setBpmnEditing(true);
+                }
+                setBpmnSaving(false);
+              }}
+              disabled={bpmnSaving}
+              style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)" }}
+            >
+              {tb("addFlow")}
+            </button>
+          ) : (
+            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>No process flow attached.</p>
           )}
         </div>
       )}

@@ -59,7 +59,8 @@
     "expand": "展開",
     "collapse": "收合",
     "signOut": "登出",
-    "language": "語言"
+    "language": "語言",
+    "bpmn": "流程圖"
   },
   "Dashboard": {
     "label": "儀表板",
@@ -928,5 +929,19 @@
     "label": "文件編號",
     "prefix": "文件編號前綴",
     "prefixHint": "e.g. QP-RAW, WI-PROD"
+  },
+  "Bpmn": {
+    "title": "流程圖",
+    "editor": "流程編輯器",
+    "addFlow": "新增流程圖",
+    "editFlow": "編輯流程",
+    "saveFlow": "儲存流程",
+    "downloadSvg": "下載 SVG",
+    "downloadXml": "下載 BPMN",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "fitView": "適合視窗",
+    "newDiagram": "新建流程圖",
+    "saveToEntry": "儲存為條目"
   }
 }

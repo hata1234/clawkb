@@ -45,6 +45,7 @@ export function serializeEntry<T extends {
   url: string | null;
   metadata: unknown;
   authorId: number | null;
+  bpmnXml?: string | null;
   createdAt: Date;
   updatedAt: Date;
   tags?: { id: number; name: string }[];
@@ -65,6 +66,7 @@ export function serializeEntry<T extends {
     ...entry,
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
+    ...(entry.bpmnXml !== undefined && { bpmnXml: entry.bpmnXml }),
     tags: entry.tags ?? [],
     collections: entry.collections ?? [],
     images: entry.images ?? [],

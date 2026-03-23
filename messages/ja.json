@@ -59,7 +59,8 @@
     "expand": "展開",
     "collapse": "折りたたむ",
     "signOut": "ログアウト",
-    "language": "言語"
+    "language": "言語",
+    "bpmn": "プロセスフロー"
   },
   "Dashboard": {
     "label": "ダッシュボード",
@@ -928,5 +929,19 @@
     "label": "文書番号",
     "prefix": "文書番号プレフィックス",
     "prefixHint": "e.g. QP-RAW, WI-PROD"
+  },
+  "Bpmn": {
+    "title": "プロセスフロー",
+    "editor": "フローエディタ",
+    "addFlow": "プロセスフローを追加",
+    "editFlow": "フローを編集",
+    "saveFlow": "フローを保存",
+    "downloadSvg": "SVGダウンロード",
+    "downloadXml": "BPMNダウンロード",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "fitView": "ビューに合わせる",
+    "newDiagram": "新規ダイアグラム",
+    "saveToEntry": "エントリとして保存"
   }
 }

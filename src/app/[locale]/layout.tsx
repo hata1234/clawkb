@@ -41,6 +41,11 @@ export default async function LocaleLayout({ children, params }: Props) {
           rel="stylesheet"
         />
         <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="/bpmn-css/diagram-js.css" />
+        <link rel="stylesheet" href="/bpmn-css/bpmn-js.css" />
+        <link rel="stylesheet" href="/bpmn-css/bpmn-font/css/bpmn.css" />
+        <link rel="stylesheet" href="/bpmn-css/bpmn-font/css/bpmn-codes.css" />
+        <link rel="stylesheet" href="/bpmn-css/bpmn-font/css/bpmn-embedded.css" />
       </head>
       <body className="antialiased">
         <NextIntlClientProvider>

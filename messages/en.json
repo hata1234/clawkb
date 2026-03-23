@@ -59,7 +59,8 @@
     "expand": "Expand",
     "collapse": "Collapse",
     "signOut": "Sign out",
-    "language": "Language"
+    "language": "Language",
+    "bpmn": "Process Flows"
   },
   "Dashboard": {
     "label": "DASHBOARD",
@@ -928,5 +929,19 @@
     "label": "Document Number",
     "prefix": "Document Prefix",
     "prefixHint": "e.g. QP-RAW, WI-PROD"
+  },
+  "Bpmn": {
+    "title": "Process Flow",
+    "editor": "Flow Editor",
+    "addFlow": "Add Process Flow",
+    "editFlow": "Edit Flow",
+    "saveFlow": "Save Flow",
+    "downloadSvg": "Download SVG",
+    "downloadXml": "Download BPMN",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "fitView": "Fit View",
+    "newDiagram": "New Diagram",
+    "saveToEntry": "Save as Entry"
   }
 }

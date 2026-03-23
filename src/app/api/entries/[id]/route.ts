@@ -32,6 +32,7 @@ interface EntryUpdateInput {
   removeImageIds?: number[];
   editNote?: string;
   collectionIds?: number[];
+  bpmnXml?: string | null;
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -95,7 +96,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   });
 
   const hookedBody = await runEntryBeforeUpdateHooks(body as Record<string, unknown>, existing as unknown as Record<string, unknown>, principal) as EntryUpdateInput;
-  const { type, source, title, summary, content, status, url, tags, metadata, addImages, removeImageIds, collectionIds } = hookedBody;
+  const { type, source, title, summary, content, status, url, tags, metadata, addImages, removeImageIds, collectionIds, bpmnXml } = hookedBody;
 
   // Remove images if requested
   if (removeImageIds && removeImageIds.length > 0) {
@@ -128,6 +129,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ...(url !== undefined && { url }),
       ...(metadata !== undefined && { metadata: metadata as Prisma.InputJsonValue }),
       ...(tagConnect && { tags: tagConnect }),
+      ...(bpmnXml !== undefined && { bpmnXml }),
       ...(collectionIds !== undefined && {
         collections: { set: collectionIds.map((id) => ({ id })) },
       }),

@@ -59,7 +59,8 @@
     "expand": "展开",
     "collapse": "收起",
     "signOut": "退出登录",
-    "language": "语言"
+    "language": "语言",
+    "bpmn": "流程图"
   },
   "Dashboard": {
     "label": "仪表盘",
@@ -928,5 +929,19 @@
     "label": "文件编号",
     "prefix": "文件编号前缀",
     "prefixHint": "e.g. QP-RAW, WI-PROD"
+  },
+  "Bpmn": {
+    "title": "流程图",
+    "editor": "流程编辑器",
+    "addFlow": "新增流程图",
+    "editFlow": "编辑流程",
+    "saveFlow": "保存流程",
+    "downloadSvg": "下载 SVG",
+    "downloadXml": "下载 BPMN",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "fitView": "适合窗口",
+    "newDiagram": "新建流程图",
+    "saveToEntry": "保存为条目"
   }
 }

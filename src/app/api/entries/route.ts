@@ -30,6 +30,7 @@ interface EntryMutationInput {
   metadata?: Record<string, unknown>;
   images?: EntryImageInput[];
   collectionIds?: number[];
+  bpmnXml?: string | null;
 }
 
 
@@ -134,7 +135,7 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const hookedBody = await runEntryBeforeCreateHooks(body as Record<string, unknown>, principal) as EntryMutationInput;
-  const { type, source, title, summary, content, status, url, tags, metadata, images, collectionIds } = hookedBody;
+  const { type, source, title, summary, content, status, url, tags, metadata, images, collectionIds, bpmnXml } = hookedBody;
 
   // Default type to "entry" if not specified
   const entryType = type || "entry";
@@ -163,6 +164,7 @@ export async function POST(request: Request) {
       url: url || null,
       metadata: (metadata || {}) as Prisma.InputJsonValue,
       authorId: principal.id,
+      ...(bpmnXml !== undefined && { bpmnXml }),
       tags: { connect: tagRecords.map((t) => ({ id: t.id })) },
       ...(collectionIds && collectionIds.length > 0 && {
         collections: { connect: collectionIds.map((id) => ({ id })) },
