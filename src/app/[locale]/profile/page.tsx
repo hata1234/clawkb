@@ -11,8 +11,7 @@ interface ProfileUser {
   displayName: string;
   avatarUrl: string | null;
   bio: string | null;
-  role: string;
-  effectiveRole: string;
+  isAdmin: boolean;
   approvalStatus: string;
 }
 
@@ -117,7 +116,7 @@ export default function ProfilePage() {
           </div>
           <div>
             <div style={{ fontSize: "1rem", color: "var(--text)", fontWeight: 600 }}>{user.displayName}</div>
-            <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: 4 }}>@{user.username} · {user.effectiveRole}</div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: 4 }}>@{user.username}{user.isAdmin ? " · admin" : ""}</div>
             <label style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 8, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "8px 12px", cursor: "pointer" }}>
               <Upload style={{ width: 14, height: 14 }} />
               {uploading ? t('uploading') : t('uploadAvatar')}

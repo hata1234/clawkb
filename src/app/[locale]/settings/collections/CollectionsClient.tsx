@@ -8,9 +8,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-interface RoleRef {
+interface GroupRef {
   id: number;
   name: string;
+}
+
+interface CollectionGroupRole {
+  collectionId: number;
+  collectionName?: string;
+  groupId?: number;
+  group?: GroupRef;
+  role: string;
 }
 
 interface Collection {
@@ -24,7 +32,7 @@ interface Collection {
   sortOrder: number;
   _count: { entries: number; children: number };
   children: Collection[];
-  accessRoles?: { role: RoleRef }[];
+  groupRoles?: CollectionGroupRole[];
 }
 
 const inputStyle: React.CSSProperties = {
@@ -38,6 +46,8 @@ const btnBase: React.CSSProperties = {
   padding: "8px 14px", borderRadius: 8, fontSize: "0.8rem",
   fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s ease",
 };
+
+const ROLES = ["admin", "editor", "viewer"] as const;
 
 function CollectionRow({
   node,
@@ -127,8 +137,8 @@ export default function CollectionsClient() {
   const [formDocPrefix, setFormDocPrefix] = useState("");
   const [formParentId, setFormParentId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const [allRoles, setAllRoles] = useState<RoleRef[]>([]);
-  const [formAccessRoleIds, setFormAccessRoleIds] = useState<number[]>([]);
+  const [allGroups, setAllGroups] = useState<GroupRef[]>([]);
+  const [formGroupRoles, setFormGroupRoles] = useState<{ groupId: number; role: string }[]>([]);
 
   const fetchCollections = useCallback(async () => {
     const res = await fetch("/api/collections");
@@ -141,20 +151,14 @@ export default function CollectionsClient() {
   useEffect(() => { fetchCollections(); }, [fetchCollections]);
 
   useEffect(() => {
-    fetch("/api/roles", { credentials: "include" }).then(r => {
-      console.log("[CollectionsClient] /api/roles status:", r.status);
-      return r.json();
-    }).then(data => {
-      console.log("[CollectionsClient] roles data:", data);
-      // Filter out admin role (id 1) — admins always have access
-      const roles = (data.roles || data || []).filter((r: RoleRef) => r.id !== 1);
-      setAllRoles(roles);
-    }).catch((err) => { console.error("[CollectionsClient] roles fetch error:", err); });
+    fetch("/api/groups").then(r => r.json()).then(data => {
+      setAllGroups((data.groups || []).map((g: GroupRef) => ({ id: g.id, name: g.name })));
+    }).catch(() => {});
   }, []);
 
   const resetForm = () => {
     setFormName(""); setFormDescription(""); setFormIcon(""); setFormColor(""); setFormDocPrefix(""); setFormParentId(null);
-    setFormAccessRoleIds([]);
+    setFormGroupRoles([]);
     setEditingCollection(null); setShowForm(false);
   };
 
@@ -166,7 +170,10 @@ export default function CollectionsClient() {
     setFormColor(c.color || "");
     setFormDocPrefix(c.docPrefix || "");
     setFormParentId(c.parentId);
-    setFormAccessRoleIds(c.accessRoles?.map(a => a.role.id) || []);
+    setFormGroupRoles((c.groupRoles || []).map(gr => ({
+      groupId: gr.group?.id ?? gr.groupId ?? 0,
+      role: gr.role,
+    })).filter(gr => gr.groupId !== 0));
     setShowForm(true);
   };
 
@@ -182,6 +189,18 @@ export default function CollectionsClient() {
     fetchCollections();
   };
 
+  function setGroupRole(groupId: number, role: string) {
+    if (role === "none") {
+      setFormGroupRoles(prev => prev.filter(gr => gr.groupId !== groupId));
+    } else {
+      setFormGroupRoles(prev => {
+        const existing = prev.find(gr => gr.groupId === groupId);
+        if (existing) return prev.map(gr => gr.groupId === groupId ? { ...gr, role } : gr);
+        return [...prev, { groupId, role }];
+      });
+    }
+  }
+
   const handleSubmit = async () => {
     if (!formName.trim()) return;
     setSaving(true);
@@ -192,7 +211,7 @@ export default function CollectionsClient() {
       color: formColor || null,
       docPrefix: formDocPrefix.trim() || null,
       parentId: formParentId,
-      accessRoleIds: formAccessRoleIds,
+      groupRoles: formGroupRoles,
     };
 
     if (editingCollection) {
@@ -250,37 +269,28 @@ export default function CollectionsClient() {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
-            {/* Access Restrictions */}
+            {/* Group Access */}
             <div style={{ gridColumn: "1 / -1" }}>
               <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>{t('accessRestrictions')}</label>
               <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 8 }}>{t('accessRestrictionsHint')}</p>
-              {allRoles.length === 0 ? (
-                <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic" }}>{t('noRolesAvailable')}</p>
+              {allGroups.length === 0 ? (
+                <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic" }}>No groups available.</p>
               ) : (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {allRoles.map((role) => {
-                    const isSelected = formAccessRoleIds.includes(role.id);
+                <div style={{ display: "grid", gap: 6 }}>
+                  {allGroups.map((group) => {
+                    const existing = formGroupRoles.find(gr => gr.groupId === group.id);
                     return (
-                      <button
-                        key={role.id}
-                        type="button"
-                        onClick={() => {
-                          setFormAccessRoleIds(prev =>
-                            isSelected ? prev.filter(id => id !== role.id) : [...prev, role.id]
-                          );
-                        }}
-                        style={{
-                          ...btnBase,
-                          padding: "4px 10px",
-                          fontSize: "0.75rem",
-                          background: isSelected ? "var(--accent)" : "var(--surface-hover)",
-                          color: isSelected ? "var(--accent-contrast)" : "var(--text-secondary)",
-                          border: isSelected ? "1px solid var(--accent)" : "1px solid var(--border)",
-                          borderRadius: 999,
-                        }}
-                      >
-                        {isSelected ? "✓ " : ""}{role.name}
-                      </button>
+                      <div key={group.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <span style={{ flex: 1, fontSize: "0.85rem", color: "var(--text-secondary)" }}>{group.name}</span>
+                        <select
+                          value={existing?.role || "none"}
+                          onChange={e => setGroupRole(group.id, e.target.value)}
+                          style={{ ...inputStyle, width: 130, padding: "6px 8px", fontSize: "0.8rem" }}
+                        >
+                          <option value="none">No access</option>
+                          {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                      </div>
                     );
                   })}
                 </div>

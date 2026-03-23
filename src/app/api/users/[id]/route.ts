@@ -14,42 +14,33 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const userId = Number(id);
   const body = await request.json();
 
-  const data: {
-    email?: string | null;
-    displayName?: string | null;
-    role?: string;
-    roleId?: number | null;
-    groupId?: number | null;
-    approvalStatus?: string;
-    avatarUrl?: string | null;
-    bio?: string | null;
-    passwordHash?: string;
-  } = {};
+  const data: Record<string, unknown> = {};
 
   if (body.email !== undefined) data.email = String(body.email || "").trim().toLowerCase() || null;
   if (body.displayName !== undefined) data.displayName = String(body.displayName || "").trim() || null;
-  if (body.role !== undefined) data.role = String(body.role || "viewer");
-  if (body.roleId !== undefined) data.roleId = body.roleId ? Number(body.roleId) : null;
-  if (body.groupId !== undefined) data.groupId = body.groupId ? Number(body.groupId) : null;
+  if (body.isAdmin !== undefined) data.isAdmin = Boolean(body.isAdmin);
   if (body.approvalStatus !== undefined) data.approvalStatus = String(body.approvalStatus || "pending_approval");
   if (body.avatarUrl !== undefined) data.avatarUrl = String(body.avatarUrl || "").trim() || null;
   if (body.bio !== undefined) data.bio = String(body.bio || "").trim() || null;
   if (body.password) data.passwordHash = await bcrypt.hash(String(body.password), 12);
 
-  // If roleId is set, also sync the legacy role string
-  if (data.roleId !== undefined && data.roleId !== null) {
-    const role = await prisma.role.findUnique({ where: { id: data.roleId } });
-    if (role) {
-      const n = role.name.toLowerCase();
-      data.role = n === "admin" || n === "editor" || n === "viewer" ? n : "viewer";
+  await prisma.user.update({ where: { id: userId }, data });
+
+  // Update group memberships if provided
+  if (body.groupIds !== undefined) {
+    await prisma.userGroup.deleteMany({ where: { userId } });
+    if (Array.isArray(body.groupIds) && body.groupIds.length > 0) {
+      await prisma.userGroup.createMany({
+        data: (body.groupIds as number[]).map(groupId => ({ userId, groupId })),
+        skipDuplicates: true,
+      });
     }
   }
 
-  const user = await prisma.user.update({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
-    data,
     include: userWithGroupInclude,
   });
 
-  return NextResponse.json({ user: serializeUser(user) });
+  return NextResponse.json({ user: serializeUser(user!) });
 }

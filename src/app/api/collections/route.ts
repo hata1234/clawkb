@@ -9,8 +9,8 @@ export async function GET(request: Request) {
   const collections = await prisma.collection.findMany({
     include: {
       _count: { select: { entries: true, children: true } },
-      accessRoles: {
-        include: { role: { select: { id: true, name: true } } },
+      groupRoles: {
+        include: { group: { select: { id: true, name: true } } },
       },
     },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!canCreateEntries(principal)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, description, icon, color, parentId, sortOrder, accessRoleIds } = await request.json();
+  const { name, description, icon, color, parentId, sortOrder, groupRoles } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: "name is required" }, { status: 400 });
 
   const collection = await prisma.collection.create({
@@ -63,15 +63,18 @@ export async function POST(request: Request) {
       color: color || null,
       parentId: parentId || null,
       sortOrder: sortOrder ?? 0,
-      ...(accessRoleIds && accessRoleIds.length > 0 && {
-        accessRoles: {
-          create: (accessRoleIds as number[]).map((roleId) => ({ roleId })),
+      ...(groupRoles && groupRoles.length > 0 && {
+        groupRoles: {
+          create: (groupRoles as { groupId: number; role: string }[]).map((gr) => ({
+            groupId: gr.groupId,
+            role: gr.role || "viewer",
+          })),
         },
       }),
     },
     include: {
       _count: { select: { entries: true, children: true } },
-      accessRoles: { include: { role: { select: { id: true, name: true } } } },
+      groupRoles: { include: { group: { select: { id: true, name: true } } } },
     },
   });
 

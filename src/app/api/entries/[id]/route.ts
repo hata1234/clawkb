@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
-import { canDeleteEntry, canEditEntry, getRequestPrincipal } from "@/lib/auth";
+import { getRequestPrincipal } from "@/lib/auth";
+import { canEditEntry, canDeleteEntry } from "@/lib/permissions";
 import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
 import { getEntryRenderBlocks, resolveContentTags, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { prisma } from "@/lib/prisma";
@@ -71,10 +72,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const existing = await prisma.entry.findUnique({
     where: { id: parseInt(id) },
-    include: { tags: true },
+    include: { tags: true, collections: { select: { id: true } } },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (!canEditEntry(principal, existing.authorId)) {
+
+  const allowed = await canEditEntry(principal.id, { authorId: existing.authorId, collections: existing.collections }, principal.isAdmin);
+  if (!allowed) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -176,9 +179,14 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await params;
-  const entry = await prisma.entry.findUnique({ where: { id: parseInt(id) } });
+  const entry = await prisma.entry.findUnique({
+    where: { id: parseInt(id) },
+    include: { collections: { select: { id: true } } },
+  });
   if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  if (!canDeleteEntry(principal, entry.authorId)) {
+
+  const allowed = await canDeleteEntry(principal.id, { authorId: entry.authorId, collections: entry.collections }, principal.isAdmin);
+  if (!allowed) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   await runEntryBeforeDeleteHooks(entry as unknown as Record<string, unknown>, principal);
@@ -199,7 +207,7 @@ async function notifyFavoriters(entryId: number, entryTitle: string, editorId: n
     select: { userId: true },
   });
   for (const fav of favorites) {
-    if (fav.userId === editorId) continue; // Don't notify the editor
+    if (fav.userId === editorId) continue;
     dispatchNotification(fav.userId, {
       type: "entry_update",
       title: `"${entryTitle}" was updated`,

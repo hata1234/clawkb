@@ -132,9 +132,7 @@ export async function POST(request: Request) {
   if (!query) return NextResponse.json({ error: "query required" }, { status: 400 });
 
   // Get accessible collection IDs for non-admin users
-  const accessibleCollectionIds = principal.id
-    ? await getAccessibleCollectionIds(principal.id, principal.effectiveRole)
-    : [];
+  const accessibleCollectionIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
 
   const filters = { type, status, tags, dateFrom, dateTo, collectionId };
   const filterInfo = buildFilterSQL(filters, accessibleCollectionIds);

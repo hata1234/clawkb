@@ -864,40 +864,19 @@
     "title": "ClawKB",
     "description": "面向人机协作的知识库"
   },
-  "Roles": {
-    "title": "角色管理",
-    "description": "管理角色及其权限",
-    "createRole": "创建角色",
-    "editRole": "编辑角色",
-    "deleteRole": "删除角色",
-    "roleName": "角色名称",
-    "roleDescription": "描述",
-    "builtIn": "内置",
-    "permissions": "权限",
-    "read": "读取",
-    "create": "创建",
-    "edit": "编辑",
-    "delete": "删除",
-    "manageSettings": "管理设置",
-    "manageUsers": "管理用户",
-    "confirmDelete": "确定要删除此角色吗？",
-    "cannotDeleteBuiltIn": "无法删除内置角色",
-    "noRoles": "没有角色",
-    "usersWithRole": "位用户"
-  },
   "Groups": {
     "title": "分组管理",
-    "description": "将用户组织到分组中，设定默认角色",
+    "description": "将用户组织到分组，并分配集合访问权限",
     "createGroup": "创建分组",
     "editGroup": "编辑分组",
     "deleteGroup": "删除分组",
     "groupName": "分组名称",
     "groupDescription": "描述",
-    "defaultRole": "默认角色",
     "memberCount": "成员",
     "confirmDelete": "确定要删除此分组吗？",
     "noGroups": "没有分组",
-    "noRole": "未指定角色"
+    "builtIn": "内置",
+    "collectionAccess": "集合访问"
   },
   "NotificationPrefs": {
     "title": "通知偏好设置",

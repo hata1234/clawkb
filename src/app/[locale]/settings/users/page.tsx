@@ -12,7 +12,7 @@ export default async function SettingsUsersPage({ params }: { params: Promise<{ 
 
   const principal = await getSessionPrincipal();
   if (!principal) redirect("/login");
-  if (principal.effectiveRole !== "admin") redirect("/");
+  if (!principal.isAdmin) redirect("/");
 
   return (
     <SettingsLayout>

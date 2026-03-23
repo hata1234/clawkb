@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRequestPrincipal, canEditEntry } from "@/lib/auth";
+import { getRequestPrincipal } from "@/lib/auth";
+import { canEditEntry } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -25,9 +26,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
   const entryId = parseInt(id);
 
-  const entry = await prisma.entry.findUnique({ where: { id: entryId } });
+  const entry = await prisma.entry.findUnique({
+    where: { id: entryId },
+    include: { collections: { select: { id: true } } },
+  });
   if (!entry) return NextResponse.json({ error: "Entry not found" }, { status: 404 });
-  if (!canEditEntry(principal, entry.authorId)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  const allowed = await canEditEntry(principal.id, { authorId: entry.authorId, collections: entry.collections }, principal.isAdmin);
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
   const { name, bpmnXml } = body as { name?: string; bpmnXml?: string };

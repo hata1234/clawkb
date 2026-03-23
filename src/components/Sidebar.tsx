@@ -56,11 +56,11 @@ type NavItem = {
 export default function Sidebar({
   userName,
   avatarUrl,
-  effectiveRole,
+  isAdmin,
 }: {
   userName?: string;
   avatarUrl?: string;
-  effectiveRole?: string;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -103,13 +103,13 @@ export default function Sidebar({
   }, []);
 
   useEffect(() => {
-    if (effectiveRole === "admin") {
+    if (isAdmin) {
       fetch("/api/trash")
         .then((res) => res.ok ? res.json() : { total: 0 })
         .then((data) => setTrashCount(data.total || 0))
         .catch(() => setTrashCount(0));
     }
-  }, [effectiveRole]);
+  }, [isAdmin]);
 
   // Auto-expand browse when navigating to a browse page
   useEffect(() => {
@@ -253,7 +253,7 @@ export default function Sidebar({
         </Link>
 
         {/* Trash (admin only) */}
-        {effectiveRole === "admin" && (
+        {isAdmin && (
           <Link
             href="/trash"
             onClick={() => setMobileOpen(false)}
@@ -350,7 +350,7 @@ export default function Sidebar({
           </div>
           <div className="sidebar-user-copy">
             <span className="sidebar-username">{userName || "User"}</span>
-            {effectiveRole ? <span className="sidebar-user-role">{effectiveRole}</span> : null}
+            {isAdmin ? <span className="sidebar-user-role">admin</span> : null}
           </div>
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); signOut({ callbackUrl: "/login" }); }}

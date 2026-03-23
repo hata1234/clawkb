@@ -7,7 +7,7 @@ import { runEntrySerializeHooks } from "@/lib/plugins/manager";
 export async function GET(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (principal.effectiveRole !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!principal.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const entries = await prisma.entry.findMany({
     where: { deletedAt: { not: null } },

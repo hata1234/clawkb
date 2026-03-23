@@ -13,7 +13,7 @@ export default async function SettingsAuthPage({ params }: { params: Promise<{ l
 
   const principal = await getSessionPrincipal();
   if (!principal) redirect("/login");
-  if (principal.effectiveRole !== "admin") redirect("/");
+  if (!principal.isAdmin) redirect("/");
 
   const authSettings = await getSetting("auth", DEFAULT_AUTH);
 

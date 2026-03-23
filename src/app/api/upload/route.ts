@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (principal.authMethod === "token" && principal.agent && principal.effectiveRole === "viewer") {
+    if (principal.authMethod === "token" && principal.agent && !principal.isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

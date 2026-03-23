@@ -3,15 +3,9 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
-interface RoleOption {
-  id: number;
-  name: string;
-}
-
 interface GroupOption {
   id: number;
   name: string;
-  role: RoleOption | null;
 }
 
 interface UserRecord {
@@ -19,13 +13,10 @@ interface UserRecord {
   username: string;
   email: string | null;
   displayName: string;
-  role: string;
-  roleId: number | null;
-  directRole: RoleOption | null;
-  effectiveRole: string;
+  isAdmin: boolean;
+  groups: GroupOption[];
   approvalStatus: string;
   avatarUrl: string | null;
-  group: { id: number; name: string; role: RoleOption | null } | null;
   agent: boolean;
 }
 
@@ -51,25 +42,20 @@ const inputStyle: React.CSSProperties = {
 
 export default function UsersAdminClient() {
   const t = useTranslations("Users");
-  const tc = useTranslations("Common");
   const [users, setUsers] = useState<UserRecord[]>([]);
-  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [message, setMessage] = useState("");
-  const [newUser, setNewUser] = useState({ username: "", email: "", displayName: "", password: "", roleId: "", groupId: "" });
+  const [newUser, setNewUser] = useState({ username: "", email: "", displayName: "", password: "", isAdmin: false });
 
   async function load() {
-    const [usersRes, rolesRes, groupsRes] = await Promise.all([
+    const [usersRes, groupsRes] = await Promise.all([
       fetch("/api/users"),
-      fetch("/api/roles"),
       fetch("/api/groups"),
     ]);
     const usersData = await usersRes.json();
-    const rolesData = await rolesRes.json();
     const groupsData = await groupsRes.json();
     setUsers(usersData.users || []);
-    setRoles((rolesData.roles || []).map((r: RoleOption) => ({ id: r.id, name: r.name })));
-    setGroups((groupsData.groups || []).map((g: GroupOption) => ({ id: g.id, name: g.name, role: g.role })));
+    setGroups((groupsData.groups || []).map((g: GroupOption) => ({ id: g.id, name: g.name })));
   }
 
   useEffect(() => { load(); }, []);
@@ -95,23 +81,17 @@ export default function UsersAdminClient() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...newUser,
-        roleId: newUser.roleId ? Number(newUser.roleId) : undefined,
-        groupId: newUser.groupId ? Number(newUser.groupId) : null,
         approvalStatus: "approved",
       }),
     });
     const data = await res.json();
     if (res.ok) {
       setUsers((current) => [data.user, ...current]);
-      setNewUser({ username: "", email: "", displayName: "", password: "", roleId: "", groupId: "" });
+      setNewUser({ username: "", email: "", displayName: "", password: "", isAdmin: false });
       setMessage(t("userCreated"));
     } else {
       setMessage(data.error || t("userCreateFailed"));
     }
-  }
-
-  function getEffectiveRole(user: UserRecord): string {
-    return user.directRole?.name?.toLowerCase() ?? user.group?.role?.name?.toLowerCase() ?? "viewer";
   }
 
   return (
@@ -123,14 +103,10 @@ export default function UsersAdminClient() {
           <input value={newUser.displayName} onChange={(e) => setNewUser((c) => ({ ...c, displayName: e.target.value }))} placeholder={t("displayName")} style={inputStyle} />
           <input value={newUser.email} onChange={(e) => setNewUser((c) => ({ ...c, email: e.target.value }))} placeholder={t("email")} style={inputStyle} />
           <input type="password" value={newUser.password} onChange={(e) => setNewUser((c) => ({ ...c, password: e.target.value }))} placeholder={t("password")} style={inputStyle} />
-          <select value={newUser.roleId} onChange={(e) => setNewUser((c) => ({ ...c, roleId: e.target.value }))} style={inputStyle}>
-            <option value="">{t("inheritFromGroup")}</option>
-            {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-          <select value={newUser.groupId} onChange={(e) => setNewUser((c) => ({ ...c, groupId: e.target.value }))} style={inputStyle}>
-            <option value="">{t("noGroup")}</option>
-            {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-          </select>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, height: 42, fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+            <input type="checkbox" checked={newUser.isAdmin} onChange={(e) => setNewUser((c) => ({ ...c, isAdmin: e.target.checked }))} />
+            Admin
+          </label>
         </div>
         <button onClick={createUser} style={{ marginTop: 12, border: "none", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "var(--accent-contrast)", padding: "10px 16px", cursor: "pointer", fontWeight: 600 }}>
           {t("createUser")}
@@ -151,9 +127,7 @@ export default function UsersAdminClient() {
                 </div>
                 <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", textAlign: "right" }}>
                   <div>{user.approvalStatus}</div>
-                  <div style={{ marginTop: 2 }}>
-                    {t("effectiveRole")}: <strong style={{ color: "var(--accent)" }}>{getEffectiveRole(user)}</strong>
-                  </div>
+                  {user.isAdmin && <div style={{ marginTop: 2, color: "var(--accent)", fontWeight: 600 }}>Admin</div>}
                 </div>
               </div>
 
@@ -172,26 +146,44 @@ export default function UsersAdminClient() {
                   />
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>{t("roleOverride")}</div>
-                  <select
-                    value={user.roleId || ""}
-                    onChange={(e) => updateUser(user.id, { roleId: e.target.value ? Number(e.target.value) : null })}
-                    style={inputStyle}
-                  >
-                    <option value="">{t("inheritFromGroup")}</option>
-                    {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                  </select>
+                  <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>Admin</div>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, height: 42, fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                    <input
+                      type="checkbox"
+                      checked={user.isAdmin}
+                      onChange={(e) => updateUser(user.id, { isAdmin: e.target.checked })}
+                    />
+                    System Admin
+                  </label>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>{tc("all") === "All" ? "Group" : "群組"}</div>
-                  <select
-                    value={user.group?.id || ""}
-                    onChange={(e) => updateUser(user.id, { groupId: e.target.value ? Number(e.target.value) : null })}
-                    style={inputStyle}
-                  >
-                    <option value="">{t("noGroup")}</option>
-                    {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-                  </select>
+                  <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>Groups</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, minHeight: 42, alignItems: "center" }}>
+                    {groups.map(g => {
+                      const inGroup = user.groups.some(ug => ug.id === g.id);
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => {
+                            const newGroupIds = inGroup
+                              ? user.groups.filter(ug => ug.id !== g.id).map(ug => ug.id)
+                              : [...user.groups.map(ug => ug.id), g.id];
+                            updateUser(user.id, { groupIds: newGroupIds });
+                          }}
+                          style={{
+                            padding: "2px 8px", fontSize: "0.72rem", borderRadius: 999,
+                            background: inGroup ? "var(--accent)" : "var(--surface-hover)",
+                            color: inGroup ? "var(--accent-contrast)" : "var(--text-secondary)",
+                            border: `1px solid ${inGroup ? "var(--accent)" : "var(--border)"}`,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {inGroup ? "✓ " : ""}{g.name}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div>
                   <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 2 }}>{t("approvalStatus")}</div>

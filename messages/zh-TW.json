@@ -864,40 +864,19 @@
     "title": "ClawKB",
     "description": "為人類與 AI Agent 協作打造的知識庫"
   },
-  "Roles": {
-    "title": "角色管理",
-    "description": "管理角色及其權限",
-    "createRole": "建立角色",
-    "editRole": "編輯角色",
-    "deleteRole": "刪除角色",
-    "roleName": "角色名稱",
-    "roleDescription": "描述",
-    "builtIn": "內建",
-    "permissions": "權限",
-    "read": "讀取",
-    "create": "建立",
-    "edit": "編輯",
-    "delete": "刪除",
-    "manageSettings": "管理設定",
-    "manageUsers": "管理使用者",
-    "confirmDelete": "確定要刪除此角色嗎？",
-    "cannotDeleteBuiltIn": "無法刪除內建角色",
-    "noRoles": "沒有角色",
-    "usersWithRole": "位使用者"
-  },
   "Groups": {
     "title": "群組管理",
-    "description": "將使用者組織到群組中，設定預設角色",
+    "description": "將使用者組織到群組，並設定集合存取權限",
     "createGroup": "建立群組",
     "editGroup": "編輯群組",
     "deleteGroup": "刪除群組",
     "groupName": "群組名稱",
     "groupDescription": "描述",
-    "defaultRole": "預設角色",
     "memberCount": "成員",
     "confirmDelete": "確定要刪除此群組嗎？",
     "noGroups": "沒有群組",
-    "noRole": "未指定角色"
+    "builtIn": "內建",
+    "collectionAccess": "集合存取"
   },
   "NotificationPrefs": {
     "title": "通知偏好設定",

@@ -48,7 +48,6 @@ export async function POST(request: Request) {
       email,
       displayName,
       passwordHash,
-      role: "viewer",
       approvalStatus,
       emailVerificationToken: verificationToken,
       emailVerificationExpires: verificationToken

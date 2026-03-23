@@ -47,19 +47,30 @@ export async function POST(request: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
+
+  // Find the Users built-in group
+  const usersGroup = await prisma.group.findUnique({ where: { name: "Users" } });
+
   const user = await prisma.user.create({
     data: {
       username,
       email,
       displayName,
       passwordHash,
-      role: body.role || "viewer",
-      groupId: body.groupId ?? null,
+      isAdmin: Boolean(body.isAdmin),
       approvalStatus: body.approvalStatus || "approved",
       emailVerifiedAt: new Date(),
       agent: Boolean(body.agent),
       avatarUrl: body.avatarUrl ? String(body.avatarUrl) : null,
       createdById: principal.id,
+      groups: {
+        create: [
+          // Auto-join Users group
+          ...(usersGroup ? [{ groupId: usersGroup.id }] : []),
+          // Additional groups
+          ...(body.groupIds || []).filter((gid: number) => gid !== usersGroup?.id).map((gid: number) => ({ groupId: gid })),
+        ],
+      },
     },
     include: userWithGroupInclude,
   });

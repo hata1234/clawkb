@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     include: {
       children: { include: { _count: { select: { entries: true } } }, orderBy: { sortOrder: "asc" } },
       _count: { select: { entries: true, children: true } },
-      accessRoles: { include: { role: { select: { id: true, name: true } } } },
+      groupRoles: { include: { group: { select: { id: true, name: true } } } },
     },
   });
 
@@ -38,12 +38,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.sortOrder !== undefined) data.sortOrder = body.sortOrder;
   if (body.docPrefix !== undefined) data.docPrefix = body.docPrefix || null;
 
-  // Handle accessRoleIds update: delete all then recreate
-  if (body.accessRoleIds !== undefined) {
-    await prisma.collectionAccess.deleteMany({ where: { collectionId } });
-    if (Array.isArray(body.accessRoleIds) && body.accessRoleIds.length > 0) {
-      await prisma.collectionAccess.createMany({
-        data: (body.accessRoleIds as number[]).map((roleId) => ({ collectionId, roleId })),
+  // Handle groupRoles update: delete all then recreate
+  if (body.groupRoles !== undefined) {
+    await prisma.groupCollectionRole.deleteMany({ where: { collectionId } });
+    if (Array.isArray(body.groupRoles) && body.groupRoles.length > 0) {
+      await prisma.groupCollectionRole.createMany({
+        data: (body.groupRoles as { groupId: number; role: string }[]).map((gr) => ({
+          collectionId,
+          groupId: gr.groupId,
+          role: gr.role || "viewer",
+        })),
         skipDuplicates: true,
       });
     }
@@ -54,7 +58,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     data,
     include: {
       _count: { select: { entries: true, children: true } },
-      accessRoles: { include: { role: { select: { id: true, name: true } } } },
+      groupRoles: { include: { group: { select: { id: true, name: true } } } },
     },
   });
 

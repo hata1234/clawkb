@@ -67,12 +67,10 @@ export async function GET(request: Request) {
   const limit = Math.min(100, parseInt(searchParams.get("limit") || "20"));
   const sort = searchParams.get("sort") === "oldest" ? "asc" : "desc";
 
-  const includeDeleted = searchParams.get("includeDeleted") === "true" && principal.effectiveRole === "admin";
+  const includeDeleted = searchParams.get("includeDeleted") === "true" && principal.isAdmin;
 
   // Collection access control
-  const accessibleIds = principal.id
-    ? await getAccessibleCollectionIds(principal.id, principal.effectiveRole)
-    : [];
+  const accessibleIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
 
   const andConditions: Prisma.EntryWhereInput[] = [];
 

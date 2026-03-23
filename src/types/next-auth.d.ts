@@ -1,4 +1,3 @@
-import type { AppRole } from "@/lib/roles";
 import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
@@ -7,8 +6,7 @@ declare module "next-auth" {
       id: string;
       username: string;
       email?: string | null;
-      role: AppRole;
-      effectiveRole: AppRole;
+      isAdmin: boolean;
       avatarUrl: string | null;
       agent: boolean;
       approvalStatus: string;
@@ -18,8 +16,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     username: string;
-    role: AppRole;
-    effectiveRole: AppRole;
+    isAdmin: boolean;
     avatarUrl: string | null;
     agent: boolean;
   }

@@ -95,7 +95,7 @@ export function dispatchWebhookEvent(event: WebhookEvent, data: Record<string, u
 async function notifyAdminsWebhookFailure(webhookId: number, url: string, event: string) {
   try {
     const admins = await prisma.user.findMany({
-      where: { role: "admin", approvalStatus: "approved" },
+      where: { isAdmin: true, approvalStatus: "approved" },
       select: { id: true },
     });
     for (const admin of admins) {

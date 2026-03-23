@@ -12,21 +12,26 @@ async function main() {
   const existingUser = await prisma.user.findUnique({ where: { username: SEED_USERNAME } });
   if (!existingUser) {
     const hash = await bcrypt.hash(SEED_PASSWORD, 12);
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         username: SEED_USERNAME,
         displayName: SEED_USERNAME,
         passwordHash: hash,
-        role: "admin",
+        isAdmin: true,
         approvalStatus: "approved",
       },
     });
+    // Auto-join Users built-in group
+    const usersGroup = await prisma.group.findUnique({ where: { name: "Users" } });
+    if (usersGroup) {
+      await prisma.userGroup.create({ data: { userId: user.id, groupId: usersGroup.id } });
+    }
     console.log(`✅ Created user: ${SEED_USERNAME}`);
   } else {
     await prisma.user.update({
       where: { id: existingUser.id },
       data: {
-        role: "admin",
+        isAdmin: true,
         approvalStatus: "approved",
         displayName: existingUser.displayName || existingUser.username,
       },

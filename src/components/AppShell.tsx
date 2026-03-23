@@ -51,7 +51,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <Sidebar
         userName={session?.user?.name || undefined}
         avatarUrl={session?.user?.avatarUrl || undefined}
-        effectiveRole={session?.user?.effectiveRole || undefined}
+        isAdmin={session?.user?.isAdmin || false}
       />
       <CommandSearch />
       <FloatingChat />

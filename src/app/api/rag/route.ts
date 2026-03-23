@@ -158,9 +158,7 @@ export async function POST(request: Request) {
   const effectiveTopK = topK ?? ragConfig.topK ?? 5;
 
   // Get accessible collection IDs for non-admin users
-  const accessibleCollectionIds = principal.id
-    ? await getAccessibleCollectionIds(principal.id, principal.effectiveRole)
-    : [];
+  const accessibleCollectionIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
 
   // 1. Generate query embedding
   const queryEmbedding = await generateEmbedding(query);

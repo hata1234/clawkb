@@ -4,14 +4,6 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 import { prisma } from "./prisma";
 import { createApiToken, verifyRawApiToken, type ApiTokenType } from "./auth-token";
-import { getEffectiveRoleName, normalizeRole, type AppRole } from "./roles";
-import { getUserPermissions, hasPermission, type PermissionAction } from "./permissions";
-
-interface UserPermission {
-  action: string;
-  scope: string;
-  scopeId: number | null;
-}
 
 export interface AppPrincipal {
   id: number | null;
@@ -19,57 +11,50 @@ export interface AppPrincipal {
   email: string | null;
   displayName: string;
   avatarUrl: string | null;
-  role: string;           // direct role name (or legacy role string)
-  groupRole: string | null; // group's role name
-  effectiveRole: AppRole;  // resolved effective role
+  isAdmin: boolean;
+  groupIds: number[];
   approvalStatus: string;
   agent: boolean;
   authMethod: "session" | "token";
   tokenType?: ApiTokenType;
   tokenId?: number;
-  permissions: UserPermission[];
 }
 
-/** Prisma include for loading user with role chain */
-const userWithRoleChainInclude = {
-  directRole: { include: { permissions: true } },
-  group: { include: { role: { include: { permissions: true } } } },
+/** Prisma include for loading user with groups */
+const userWithGroupsInclude = {
+  groups: { select: { groupId: true } },
 };
 
 type DbUser = Awaited<ReturnType<typeof findUserById>>;
 
 async function principalFromUser(user: NonNullable<DbUser>, authMethod: "session" | "token", token?: { id: number; tokenType: ApiTokenType }): Promise<AppPrincipal> {
-  const permissions = await getUserPermissions(user.id);
-  const effectiveRoleName = getEffectiveRoleName(user);
   return {
     id: user.id,
     username: user.username,
     email: user.email,
     displayName: user.displayName || user.username,
     avatarUrl: user.avatarUrl,
-    role: user.directRole?.name?.toLowerCase() ?? normalizeRole(user.role),
-    groupRole: user.group?.role?.name?.toLowerCase() ?? null,
-    effectiveRole: normalizeRole(effectiveRoleName),
+    isAdmin: user.isAdmin,
+    groupIds: user.groups.map(g => g.groupId),
     approvalStatus: user.approvalStatus,
     agent: user.agent,
     authMethod,
     tokenType: token?.tokenType,
     tokenId: token?.id,
-    permissions,
   };
 }
 
 async function findUserByUsername(username: string) {
   return prisma.user.findUnique({
     where: { username },
-    include: userWithRoleChainInclude,
+    include: userWithGroupsInclude,
   });
 }
 
 async function findUserById(id: number) {
   return prisma.user.findUnique({
     where: { id },
-    include: userWithRoleChainInclude,
+    include: userWithGroupsInclude,
   });
 }
 
@@ -93,15 +78,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         );
         if (!isValid) return null;
 
-        const effectiveRole = normalizeRole(getEffectiveRoleName(user));
-
         return {
           id: String(user.id),
           name: user.displayName || user.username,
           username: user.username,
           email: user.email,
-          role: effectiveRole,
-          effectiveRole,
+          isAdmin: user.isAdmin,
           avatarUrl: user.avatarUrl,
           agent: user.agent,
         };
@@ -127,14 +109,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const user = await findUserById(Number(token.id));
       if (!user) return session;
 
-      const effectiveRole = normalizeRole(getEffectiveRoleName(user));
-
       session.user.id = String(user.id);
       session.user.username = user.username;
       session.user.name = user.displayName || user.username;
       session.user.email = user.email ?? "";
-      session.user.role = effectiveRole;
-      session.user.effectiveRole = effectiveRole;
+      session.user.isAdmin = user.isAdmin;
       session.user.avatarUrl = user.avatarUrl;
       session.user.agent = user.agent;
       session.user.approvalStatus = user.approvalStatus;
@@ -170,30 +149,19 @@ export async function getRequestPrincipal(request: Request): Promise<AppPrincipa
   }
 
   // Legacy tokens get full admin permissions
-  const adminPermissions: UserPermission[] = [
-    { action: "read", scope: "global", scopeId: null },
-    { action: "create", scope: "global", scopeId: null },
-    { action: "edit", scope: "global", scopeId: null },
-    { action: "delete", scope: "global", scopeId: null },
-    { action: "manage_settings", scope: "global", scopeId: null },
-    { action: "manage_users", scope: "global", scopeId: null },
-  ];
-
   return {
     id: null,
     username: token.name || "legacy-token",
     email: null,
     displayName: token.name || "Legacy Token",
     avatarUrl: null,
-    role: "admin",
-    groupRole: null,
-    effectiveRole: "admin",
+    isAdmin: true,
+    groupIds: [],
     approvalStatus: "approved",
     agent: false,
     authMethod: "token",
     tokenType: "legacy",
     tokenId: token.id,
-    permissions: adminPermissions,
   };
 }
 
@@ -206,37 +174,25 @@ export function jsonError(message: string, status: number) {
 }
 
 export function canManageSettings(principal: AppPrincipal) {
-  return hasPermission(principal.permissions, "manage_settings");
+  return principal.isAdmin;
 }
 
 export function canManageUsers(principal: AppPrincipal) {
-  return hasPermission(principal.permissions, "manage_users");
+  return principal.isAdmin;
 }
 
 export function canCreateEntries(principal: AppPrincipal) {
-  return hasPermission(principal.permissions, "create");
-}
-
-export function canEditEntry(principal: AppPrincipal, entryAuthorId: number | null) {
-  return hasPermission(principal.permissions, "edit", {
-    entryAuthorId,
-    userId: principal.id,
-  });
-}
-
-export function canDeleteEntry(principal: AppPrincipal, entryAuthorId: number | null) {
-  return hasPermission(principal.permissions, "delete", {
-    entryAuthorId,
-    userId: principal.id,
-  });
+  // Any authenticated user can create entries (admins and editors via group role)
+  // For now, all authenticated users can create
+  return principal.id !== null;
 }
 
 export function canCreateComment(principal: AppPrincipal, _entryAuthorId: number | null) {
-  return hasPermission(principal.permissions, "create");
+  return principal.id !== null;
 }
 
-export function canReadEntries(principal: AppPrincipal) {
-  return hasPermission(principal.permissions, "read");
+export function canReadEntries(_principal: AppPrincipal) {
+  return true;
 }
 
 export async function issueUserToken(userId: number, name: string, tokenType: ApiTokenType = "user") {

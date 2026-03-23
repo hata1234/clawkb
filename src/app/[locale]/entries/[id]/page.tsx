@@ -191,9 +191,10 @@ export default function EntryDetailPage() {
       .then((data) => setFlows(data));
   }, [params.id]);
 
-  const canEdit = session?.user?.effectiveRole === "admin" || (session?.user?.effectiveRole === "editor" && session.user.id === String(entry?.authorId ?? ""));
-  const canDelete = session?.user?.effectiveRole === "admin";
-  const canComment = Boolean(entry && (session?.user?.effectiveRole === "admin" || (session?.user?.effectiveRole === "editor" && session.user.id !== String(entry.authorId ?? ""))));
+  // Client-side hinting only — server enforces actual ACL via canEditEntry()
+  const canEdit = Boolean(session?.user?.isAdmin || (session?.user?.id && String(entry?.authorId) === session.user.id));
+  const canDelete = session?.user?.isAdmin || false;
+  const canComment = Boolean(entry && session?.user?.id);
 
   const startEdit = () => {
     if (!entry) return;

@@ -35,7 +35,6 @@ export async function POST(request: Request) {
       displayName: agentName,
       passwordHash,
       avatarUrl,
-      role: "editor",
       approvalStatus: "approved",
       emailVerifiedAt: new Date(),
       agent: true,
