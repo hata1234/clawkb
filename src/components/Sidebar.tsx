@@ -241,17 +241,6 @@ export default function Sidebar({
           <span className="sidebar-link-label">{t('import')}</span>
         </Link>
 
-        {/* BPMN / Process Flows */}
-        <Link
-          href="/bpmn"
-          onClick={() => setMobileOpen(false)}
-          title={collapsed ? t('bpmn') : undefined}
-          className={`sidebar-link ${isActive("/bpmn") ? "active" : ""} ${collapsed ? "collapsed" : ""}`}
-        >
-          <GitBranch className="sidebar-link-icon" />
-          <span className="sidebar-link-label">{t('bpmn')}</span>
-        </Link>
-
         {/* Settings */}
         <Link
           href="/settings"
