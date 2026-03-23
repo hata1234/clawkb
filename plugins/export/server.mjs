@@ -1,5 +1,36 @@
 // Export plugin — export entries in JSON, CSV, Markdown, or PDF formats
 
+// ── ACL helper ──────────────────────────────────────────────────────
+async function getAccessibleCollectionIds(prisma, principal) {
+  if (!principal) return [];
+  if (principal.isAdmin) return null; // null = all
+
+  const groupIds = (
+    await prisma.userGroup.findMany({ where: { userId: principal.id }, select: { groupId: true } })
+  ).map((g) => g.groupId);
+
+  const everyoneGroup = await prisma.group.findUnique({ where: { name: "Everyone" }, select: { id: true } });
+  if (everyoneGroup && !groupIds.includes(everyoneGroup.id)) groupIds.push(everyoneGroup.id);
+
+  if (groupIds.length === 0) return [];
+
+  const gcrs = await prisma.groupCollectionRole.findMany({
+    where: { groupId: { in: groupIds } },
+    select: { collectionId: true },
+    distinct: ["collectionId"],
+  });
+
+  return gcrs.map((g) => g.collectionId);
+}
+
+function applyAclFilter(where, accessibleIds) {
+  if (accessibleIds === null) return where; // admin sees all
+  return {
+    ...where,
+    collections: { some: { id: { in: accessibleIds } } },
+  };
+}
+
 function buildWhere(searchParams) {
   const type = searchParams.get("type") || undefined;
   const status = searchParams.get("status") || undefined;
@@ -580,11 +611,13 @@ export const api = {
       path: "/export",
       description: "Export entries in JSON, CSV, or Markdown",
       async handler({ request, context }) {
+        if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const { searchParams } = new URL(request.url);
         const format = searchParams.get("format") || "json";
         const options = parseOptions(searchParams);
         const fields = parseFields(searchParams);
-        const where = buildWhere(searchParams);
+        const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
+        const where = applyAclFilter(buildWhere(searchParams), accessibleIds);
 
         const entries = await context.prisma.entry.findMany({
           where,
@@ -613,6 +646,7 @@ export const api = {
       path: "/export/:id",
       description: "Export a single entry by ID",
       async handler({ params, request, context }) {
+        if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const entryId = parseInt(params[0], 10);
         if (isNaN(entryId)) {
           return { status: 400, body: { error: "Invalid entry ID" } };
@@ -623,8 +657,13 @@ export const api = {
         const options = parseOptions(searchParams);
         const fields = parseFields(searchParams);
 
+        const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
+        const aclWhere = accessibleIds !== null
+          ? { id: entryId, deletedAt: null, collections: { some: { id: { in: accessibleIds } } } }
+          : { id: entryId, deletedAt: null };
+
         const entry = await context.prisma.entry.findFirst({
-          where: { id: entryId, deletedAt: null },
+          where: aclWhere,
           include: getIncludes(options),
         });
 
@@ -655,8 +694,10 @@ export const api = {
       path: "/stats",
       description: "Preview stats for export filters",
       async handler({ request, context }) {
+        if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const { searchParams } = new URL(request.url);
-        const where = buildWhere(searchParams);
+        const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
+        const where = applyAclFilter(buildWhere(searchParams), accessibleIds);
 
         const [count, byType, bySource, byStatus] = await Promise.all([
           context.prisma.entry.count({ where }),
@@ -679,8 +720,10 @@ export const api = {
       method: "GET",
       path: "/options",
       description: "Get distinct filter values for combobox dropdowns",
-      async handler({ context }) {
-        const where = { deletedAt: null };
+      async handler({ request, context }) {
+        if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
+        const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
+        const where = applyAclFilter({ deletedAt: null }, accessibleIds);
 
         const [byType, bySource, byStatus, tags] = await Promise.all([
           context.prisma.entry.groupBy({ by: ["type"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
