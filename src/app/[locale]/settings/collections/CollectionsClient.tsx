@@ -141,7 +141,7 @@ export default function CollectionsClient() {
   useEffect(() => { fetchCollections(); }, [fetchCollections]);
 
   useEffect(() => {
-    fetch("/api/settings/roles").then(r => r.json()).then(data => {
+    fetch("/api/roles").then(r => r.json()).then(data => {
       // Filter out admin role (id 1) — admins always have access
       const roles = (data.roles || data || []).filter((r: RoleRef) => r.id !== 1);
       setAllRoles(roles);
