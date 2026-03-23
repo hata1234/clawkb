@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 import { getRequestPrincipal, canCreateEntries } from "@/lib/auth";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const accessibleIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
+
   const collections = await prisma.collection.findMany({
+    where: accessibleIds !== null ? { id: { in: accessibleIds } } : undefined,
     include: {
       _count: { select: { entries: true, children: true } },
       groupRoles: {
