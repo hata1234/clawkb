@@ -12,6 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     include: {
       children: { include: { _count: { select: { entries: true } } }, orderBy: { sortOrder: "asc" } },
       _count: { select: { entries: true, children: true } },
+      accessRoles: { include: { role: { select: { id: true, name: true } } } },
     },
   });
 
@@ -25,6 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!canCreateEntries(principal)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { id } = await params;
+  const collectionId = parseInt(id);
   const body = await request.json();
   const data: Record<string, unknown> = {};
 
@@ -36,10 +38,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.sortOrder !== undefined) data.sortOrder = body.sortOrder;
   if (body.docPrefix !== undefined) data.docPrefix = body.docPrefix || null;
 
+  // Handle accessRoleIds update: delete all then recreate
+  if (body.accessRoleIds !== undefined) {
+    await prisma.collectionAccess.deleteMany({ where: { collectionId } });
+    if (Array.isArray(body.accessRoleIds) && body.accessRoleIds.length > 0) {
+      await prisma.collectionAccess.createMany({
+        data: (body.accessRoleIds as number[]).map((roleId) => ({ collectionId, roleId })),
+        skipDuplicates: true,
+      });
+    }
+  }
+
   const collection = await prisma.collection.update({
-    where: { id: parseInt(id) },
+    where: { id: collectionId },
     data,
-    include: { _count: { select: { entries: true, children: true } } },
+    include: {
+      _count: { select: { entries: true, children: true } },
+      accessRoles: { include: { role: { select: { id: true, name: true } } } },
+    },
   });
 
   return NextResponse.json(collection);

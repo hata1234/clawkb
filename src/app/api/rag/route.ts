@@ -3,6 +3,7 @@ import { getRequestPrincipal } from "@/lib/auth";
 import { pool } from "@/lib/prisma";
 import { generateEmbedding } from "@/lib/embedding";
 import { getSetting, DEFAULT_RAG, type RagConfig } from "@/lib/settings";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 
 interface RagSource {
   entryId: number;
@@ -11,12 +12,15 @@ interface RagSource {
   chunkText: string;
 }
 
-function buildFilterSQL(filters: {
-  type?: string;
-  status?: string;
-  tags?: string[];
-  collectionId?: number;
-}): { clause: string; params: unknown[]; paramOffset: number } {
+function buildFilterSQL(
+  filters: {
+    type?: string;
+    status?: string;
+    tags?: string[];
+    collectionId?: number;
+  },
+  accessibleCollectionIds?: number[] | null
+): { clause: string; params: unknown[]; paramOffset: number } {
   const conditions: string[] = ['e."deletedAt" IS NULL'];
   const params: unknown[] = [];
   let idx = 0;
@@ -48,6 +52,17 @@ function buildFilterSQL(filters: {
     )`);
     params.push(filters.collectionId);
   }
+  if (accessibleCollectionIds !== null && accessibleCollectionIds !== undefined) {
+    idx++;
+    conditions.push(`(
+      NOT EXISTS (SELECT 1 FROM "_EntryCollections" ec WHERE ec."B" = e.id)
+      OR EXISTS (
+        SELECT 1 FROM "_EntryCollections" ec
+        WHERE ec."B" = e.id AND ec."A" = ANY($__${idx}::int[])
+      )
+    )`);
+    params.push(accessibleCollectionIds);
+  }
 
   return { clause: conditions.join(" AND "), params, paramOffset: idx };
 }
@@ -69,10 +84,11 @@ function resolveFilterParams(
 async function retrieveChunks(
   queryEmbedding: number[],
   topK: number,
-  filters: { type?: string; status?: string; tags?: string[]; collectionId?: number }
+  filters: { type?: string; status?: string; tags?: string[]; collectionId?: number },
+  accessibleCollectionIds?: number[] | null
 ): Promise<RagSource[]> {
   const vectorStr = `[${queryEmbedding.join(",")}]`;
-  const filterInfo = buildFilterSQL(filters);
+  const filterInfo = buildFilterSQL(filters, accessibleCollectionIds);
   const baseParams = [vectorStr];
   const { sql: filterClause, allParams } = resolveFilterParams(baseParams, filterInfo, 2);
 
@@ -141,6 +157,11 @@ export async function POST(request: Request) {
 
   const effectiveTopK = topK ?? ragConfig.topK ?? 5;
 
+  // Get accessible collection IDs for non-admin users
+  const accessibleCollectionIds = principal.id
+    ? await getAccessibleCollectionIds(principal.id, principal.effectiveRole)
+    : [];
+
   // 1. Generate query embedding
   const queryEmbedding = await generateEmbedding(query);
   if (!queryEmbedding) {
@@ -148,7 +169,7 @@ export async function POST(request: Request) {
   }
 
   // 2. Retrieve similar chunks
-  const sources = await retrieveChunks(queryEmbedding, effectiveTopK, filters || {});
+  const sources = await retrieveChunks(queryEmbedding, effectiveTopK, filters || {}, accessibleCollectionIds);
   if (sources.length === 0) {
     return NextResponse.json({ error: "No relevant entries found" }, { status: 404 });
   }

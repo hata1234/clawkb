@@ -9,6 +9,9 @@ export async function GET(request: Request) {
   const collections = await prisma.collection.findMany({
     include: {
       _count: { select: { entries: true, children: true } },
+      accessRoles: {
+        include: { role: { select: { id: true, name: true } } },
+      },
     },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
@@ -49,7 +52,7 @@ export async function POST(request: Request) {
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!canCreateEntries(principal)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, description, icon, color, parentId, sortOrder } = await request.json();
+  const { name, description, icon, color, parentId, sortOrder, accessRoleIds } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: "name is required" }, { status: 400 });
 
   const collection = await prisma.collection.create({
@@ -60,8 +63,16 @@ export async function POST(request: Request) {
       color: color || null,
       parentId: parentId || null,
       sortOrder: sortOrder ?? 0,
+      ...(accessRoleIds && accessRoleIds.length > 0 && {
+        accessRoles: {
+          create: (accessRoleIds as number[]).map((roleId) => ({ roleId })),
+        },
+      }),
     },
-    include: { _count: { select: { entries: true, children: true } } },
+    include: {
+      _count: { select: { entries: true, children: true } },
+      accessRoles: { include: { role: { select: { id: true, name: true } } } },
+    },
   });
 
   return NextResponse.json(collection, { status: 201 });

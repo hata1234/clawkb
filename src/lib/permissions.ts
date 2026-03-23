@@ -100,6 +100,56 @@ export function hasPermission(
 }
 
 /**
+ * Get collection IDs that a user can access.
+ * Rules:
+ * - Admin role: returns null (means all collections)
+ * - If a collection has NO CollectionAccess rows: everyone with read permission can see it (open)
+ * - If a collection HAS CollectionAccess rows: only listed roles can see it (restricted)
+ */
+export async function getAccessibleCollectionIds(userId: number, effectiveRole: string): Promise<number[] | null> {
+  // Admin sees everything
+  if (effectiveRole === 'admin') return null;
+
+  // Get user's role IDs (direct + group)
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      roleId: true,
+      group: { select: { roleId: true } },
+    },
+  });
+
+  const roleIds: number[] = [];
+  if (user?.roleId) roleIds.push(user.roleId);
+  if (user?.group?.roleId) roleIds.push(user.group.roleId);
+
+  // Find all collections that have access restrictions
+  const restrictedAccess = await prisma.collectionAccess.findMany({
+    select: { collectionId: true, roleId: true },
+  });
+
+  // Collections with restrictions
+  const restrictedCollectionIds = new Set(restrictedAccess.map(a => a.collectionId));
+
+  // All collections
+  const allCollections = await prisma.collection.findMany({ select: { id: true } });
+
+  // Open collections (no restrictions) + restricted collections where user's role is listed
+  const accessible: number[] = [];
+  for (const col of allCollections) {
+    if (!restrictedCollectionIds.has(col.id)) {
+      // Open collection — everyone can see
+      accessible.push(col.id);
+    } else if (roleIds.some(rid => restrictedAccess.some(a => a.collectionId === col.id && a.roleId === rid))) {
+      // User's role is in the access list
+      accessible.push(col.id);
+    }
+  }
+
+  return accessible;
+}
+
+/**
  * Check if a user can read an entry, considering collection-scoped permissions.
  */
 export async function canReadEntry(

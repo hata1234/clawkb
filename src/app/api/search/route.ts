@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getRequestPrincipal } from "@/lib/auth";
 import { prisma, pool } from "@/lib/prisma";
 import { generateEmbedding } from "@/lib/embedding";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 
 function extractSnippet(content: string | null, query: string, maxLen = 200): string | null {
   if (!content) return null;
@@ -31,16 +32,19 @@ function highlightText(text: string | null, query: string): string | null {
   return result;
 }
 
-function buildFilterSQL(filters: {
-  type?: string;
-  status?: string;
-  tags?: string[];
-  dateFrom?: string;
-  dateTo?: string;
-  collectionId?: string;
-}): { clause: string; params: string[]; paramOffset: number } {
+function buildFilterSQL(
+  filters: {
+    type?: string;
+    status?: string;
+    tags?: string[];
+    dateFrom?: string;
+    dateTo?: string;
+    collectionId?: string;
+  },
+  accessibleCollectionIds?: number[] | null
+): { clause: string; params: unknown[]; paramOffset: number } {
   const conditions: string[] = ['e."deletedAt" IS NULL'];
-  const params: string[] = [];
+  const params: unknown[] = [];
   let idx = 0;
 
   if (filters.type) {
@@ -70,7 +74,7 @@ function buildFilterSQL(filters: {
       JOIN "Tag" t ON t.id = et."B"
       WHERE et."A" = e.id AND t.name = ANY($__${idx}::text[])
     )`);
-    params.push(filters.tags as unknown as string);
+    params.push(filters.tags);
   }
   if (filters.collectionId) {
     idx++;
@@ -80,13 +84,24 @@ function buildFilterSQL(filters: {
     )`);
     params.push(filters.collectionId);
   }
+  if (accessibleCollectionIds !== null && accessibleCollectionIds !== undefined) {
+    idx++;
+    conditions.push(`(
+      NOT EXISTS (SELECT 1 FROM "_EntryCollections" ec WHERE ec."B" = e.id)
+      OR EXISTS (
+        SELECT 1 FROM "_EntryCollections" ec
+        WHERE ec."B" = e.id AND ec."A" = ANY($__${idx}::int[])
+      )
+    )`);
+    params.push(accessibleCollectionIds);
+  }
 
   return { clause: conditions.join(" AND "), params, paramOffset: idx };
 }
 
 function resolveFilterParams(
   baseParams: unknown[],
-  filterSQL: { clause: string; params: string[]; paramOffset: number },
+  filterSQL: { clause: string; params: unknown[]; paramOffset: number },
   startIdx: number
 ): { sql: string; allParams: unknown[] } {
   let sql = filterSQL.clause;
@@ -116,8 +131,13 @@ export async function POST(request: Request) {
   } = body;
   if (!query) return NextResponse.json({ error: "query required" }, { status: 400 });
 
+  // Get accessible collection IDs for non-admin users
+  const accessibleCollectionIds = principal.id
+    ? await getAccessibleCollectionIds(principal.id, principal.effectiveRole)
+    : [];
+
   const filters = { type, status, tags, dateFrom, dateTo, collectionId };
-  const filterInfo = buildFilterSQL(filters);
+  const filterInfo = buildFilterSQL(filters, accessibleCollectionIds);
   const modes = requestedMode && requestedMode !== "auto"
     ? [requestedMode]
     : ["vector", "ilike"];
@@ -179,13 +199,26 @@ export async function POST(request: Request) {
     }
 
     if (searchMode === "ilike") {
+      const andConditions: Record<string, unknown>[] = [
+        {
+          OR: [
+            { title: { contains: query, mode: "insensitive" } },
+            { summary: { contains: query, mode: "insensitive" } },
+            { content: { contains: query, mode: "insensitive" } },
+          ],
+        },
+      ];
+      if (accessibleCollectionIds !== null) {
+        andConditions.push({
+          OR: [
+            { collections: { some: { id: { in: accessibleCollectionIds } } } },
+            { collections: { none: {} } },
+          ],
+        });
+      }
       const where: Record<string, unknown> = {
         deletedAt: null,
-        OR: [
-          { title: { contains: query, mode: "insensitive" } },
-          { summary: { contains: query, mode: "insensitive" } },
-          { content: { contains: query, mode: "insensitive" } },
-        ],
+        AND: andConditions,
         ...(type && { type }),
         ...(status && { status }),
         ...(tags?.length && { tags: { some: { name: { in: tags } } } }),

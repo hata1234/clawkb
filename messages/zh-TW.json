@@ -546,7 +546,11 @@
     "collectionsCount": "{count} 個集合",
     "entriesCount": "{count} 個條目",
     "docPrefix": "文件編號前綴",
-    "docPrefixHint": "e.g. QP-RAW, WI-PROD"
+    "docPrefixHint": "e.g. QP-RAW, WI-PROD",
+    "accessRestrictions": "存取限制",
+    "accessRestrictionsHint": "未設定限制時，所有使用者皆可存取。設定後，僅所選角色可存取（管理員永遠可存取）。",
+    "loadingRoles": "載入角色中...",
+    "noRolesAvailable": "目前沒有可用角色"
   },
   "Permissions": {
     "title": "權限群組",

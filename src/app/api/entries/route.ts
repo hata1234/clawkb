@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { canCreateEntries, getRequestPrincipal } from "@/lib/auth";
+import { getAccessibleCollectionIds } from "@/lib/permissions";
 import { serializeEntry, entryWithAuthorInclude } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
@@ -68,6 +69,35 @@ export async function GET(request: Request) {
 
   const includeDeleted = searchParams.get("includeDeleted") === "true" && principal.effectiveRole === "admin";
 
+  // Collection access control
+  const accessibleIds = principal.id
+    ? await getAccessibleCollectionIds(principal.id, principal.effectiveRole)
+    : [];
+
+  const andConditions: Prisma.EntryWhereInput[] = [];
+
+  // Search filter (uses OR internally)
+  if (search) {
+    andConditions.push({
+      OR: [
+        ...(/^\d+$/.test(search) ? [{ id: parseInt(search) }] : []),
+        { title: { contains: search, mode: "insensitive" as const } },
+        { summary: { contains: search, mode: "insensitive" as const } },
+        { content: { contains: search, mode: "insensitive" as const } },
+      ],
+    });
+  }
+
+  // Collection access control filter (uses OR internally)
+  if (accessibleIds !== null) {
+    andConditions.push({
+      OR: [
+        { collections: { some: { id: { in: accessibleIds } } } },
+        { collections: { none: {} } },
+      ],
+    });
+  }
+
   const where: Prisma.EntryWhereInput = {
     ...(!includeDeleted && { deletedAt: null }),
     ...(type && { type }),
@@ -75,14 +105,7 @@ export async function GET(request: Request) {
     ...(source && { source }),
     ...(tag && { tags: { some: { name: tag } } }),
     ...(collectionId && { collections: { some: { id: { in: await getCollectionIdsRecursive(parseInt(collectionId)) } } } }),
-    ...(search && {
-      OR: [
-        ...(/^\d+$/.test(search) ? [{ id: parseInt(search) }] : []),
-        { title: { contains: search, mode: "insensitive" as const } },
-        { summary: { contains: search, mode: "insensitive" as const } },
-        { content: { contains: search, mode: "insensitive" as const } },
-      ],
-    }),
+    ...(andConditions.length > 0 && { AND: andConditions }),
   };
 
   const [entries, total] = await Promise.all([

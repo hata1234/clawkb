@@ -8,6 +8,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+interface RoleRef {
+  id: number;
+  name: string;
+}
+
 interface Collection {
   id: number;
   name: string;
@@ -19,6 +24,7 @@ interface Collection {
   sortOrder: number;
   _count: { entries: number; children: number };
   children: Collection[];
+  accessRoles?: { role: RoleRef }[];
 }
 
 const inputStyle: React.CSSProperties = {
@@ -121,6 +127,8 @@ export default function CollectionsClient() {
   const [formDocPrefix, setFormDocPrefix] = useState("");
   const [formParentId, setFormParentId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [allRoles, setAllRoles] = useState<RoleRef[]>([]);
+  const [formAccessRoleIds, setFormAccessRoleIds] = useState<number[]>([]);
 
   const fetchCollections = useCallback(async () => {
     const res = await fetch("/api/collections");
@@ -132,8 +140,17 @@ export default function CollectionsClient() {
 
   useEffect(() => { fetchCollections(); }, [fetchCollections]);
 
+  useEffect(() => {
+    fetch("/api/settings/roles").then(r => r.json()).then(data => {
+      // Filter out admin role (id 1) — admins always have access
+      const roles = (data.roles || data || []).filter((r: RoleRef) => r.id !== 1);
+      setAllRoles(roles);
+    }).catch(() => {});
+  }, []);
+
   const resetForm = () => {
     setFormName(""); setFormDescription(""); setFormIcon(""); setFormColor(""); setFormDocPrefix(""); setFormParentId(null);
+    setFormAccessRoleIds([]);
     setEditingCollection(null); setShowForm(false);
   };
 
@@ -145,6 +162,7 @@ export default function CollectionsClient() {
     setFormColor(c.color || "");
     setFormDocPrefix(c.docPrefix || "");
     setFormParentId(c.parentId);
+    setFormAccessRoleIds(c.accessRoles?.map(a => a.role.id) || []);
     setShowForm(true);
   };
 
@@ -170,6 +188,7 @@ export default function CollectionsClient() {
       color: formColor || null,
       docPrefix: formDocPrefix.trim() || null,
       parentId: formParentId,
+      accessRoleIds: formAccessRoleIds,
     };
 
     if (editingCollection) {
@@ -227,6 +246,42 @@ export default function CollectionsClient() {
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
+            {/* Access Restrictions */}
+            <div style={{ gridColumn: "1 / -1" }}>
+              <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>{t('accessRestrictions')}</label>
+              <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 8 }}>{t('accessRestrictionsHint')}</p>
+              {allRoles.length === 0 ? (
+                <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic" }}>{t('noRolesAvailable')}</p>
+              ) : (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {allRoles.map((role) => {
+                    const isSelected = formAccessRoleIds.includes(role.id);
+                    return (
+                      <button
+                        key={role.id}
+                        type="button"
+                        onClick={() => {
+                          setFormAccessRoleIds(prev =>
+                            isSelected ? prev.filter(id => id !== role.id) : [...prev, role.id]
+                          );
+                        }}
+                        style={{
+                          ...btnBase,
+                          padding: "4px 10px",
+                          fontSize: "0.75rem",
+                          background: isSelected ? "var(--accent)" : "var(--surface-hover)",
+                          color: isSelected ? "var(--accent-contrast)" : "var(--text-secondary)",
+                          border: isSelected ? "1px solid var(--accent)" : "1px solid var(--border)",
+                          borderRadius: 999,
+                        }}
+                      >
+                        {isSelected ? "✓ " : ""}{role.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
             <button onClick={handleSubmit} disabled={saving} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", opacity: saving ? 0.6 : 1 }}>

@@ -546,7 +546,11 @@
     "collectionsCount": "{count} collections",
     "entriesCount": "{count} entries",
     "docPrefix": "Document Prefix",
-    "docPrefixHint": "e.g. QP-RAW, WI-PROD"
+    "docPrefixHint": "e.g. QP-RAW, WI-PROD",
+    "accessRestrictions": "Access Restrictions",
+    "accessRestrictionsHint": "When no roles are selected, all users can access. When roles are selected, only those roles can access (admins always have access).",
+    "loadingRoles": "Loading roles...",
+    "noRolesAvailable": "No roles available"
   },
   "Permissions": {
     "title": "Permission Groups",
