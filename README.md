@@ -341,7 +341,7 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 
 ## License
 
-MIT
+This project is licensed under the [GNU Affero General Public License v3.0](./LICENSE) — see the [LICENSE](./LICENSE) file for details.
 
 ---
 

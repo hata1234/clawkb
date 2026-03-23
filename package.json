@@ -1,6 +1,13 @@
 {
   "name": "clawkb",
   "version": "0.1.0",
+  "description": "A knowledge base built for Human–AI Agent collaboration. Rich editor, hybrid search, RAG, ACL, BPMN, plugins, i18n, and agent-friendly REST API.",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hata1234/clawkb.git"
+  },
+  "keywords": ["knowledge-base", "ai-agent", "rag", "bpmn", "nextjs", "pgvector", "openclaw"],
   "private": true,
   "scripts": {
     "dev": "next dev -p 3500",
