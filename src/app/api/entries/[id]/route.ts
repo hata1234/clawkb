@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { getRequestPrincipal } from "@/lib/auth";
-import { canEditEntry, canDeleteEntry } from "@/lib/permissions";
+import { canEditEntry, canDeleteEntry, getAccessibleCollectionIds } from "@/lib/permissions";
 import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
 import { getEntryRenderBlocks, resolveContentTags, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { prisma } from "@/lib/prisma";
@@ -47,6 +47,19 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   });
 
   if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // ACL check: verify user can access this entry's collections
+  const accessibleIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
+  if (accessibleIds !== null) {
+    const entryCollectionIds = entry.collections?.map((c: { id: number }) => c.id) || [];
+    if (entryCollectionIds.length > 0) {
+      const hasAccess = entryCollectionIds.some((cid: number) => accessibleIds.includes(cid));
+      if (!hasAccess) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+    // entries with no collections are visible to all (by design)
+  }
 
   let isFavorited = false;
   if (principal.id) {

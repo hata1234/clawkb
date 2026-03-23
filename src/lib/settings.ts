@@ -66,7 +66,7 @@ export const DEFAULT_SMTP = {
 
 export const DEFAULT_RAG = {
   provider: "spark-vllm" as "openai" | "ollama" | "spark-vllm" | "disabled",
-  baseUrl: "http://localhost:8888/v1",
+  baseUrl: "http://192.168.1.113:8888/v1",
   model: "Qwen/Qwen3.5-35B-A3B-FP8",
   apiKey: "",
   topK: 5,

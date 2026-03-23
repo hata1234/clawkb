@@ -675,7 +675,8 @@
     "users": "ユーザー",
     "roleOverride": "ロール上書き",
     "inheritFromGroup": "グループから継承",
-    "effectiveRole": "有効なロール"
+    "effectiveRole": "有効なロール",
+    "approvalStatus": "承認ステータス"
   },
   "Webhooks": {
     "title": "Webhooks",

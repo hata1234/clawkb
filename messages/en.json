@@ -675,7 +675,8 @@
     "users": "Users",
     "roleOverride": "Role Override",
     "inheritFromGroup": "Inherit from Group",
-    "effectiveRole": "Effective Role"
+    "effectiveRole": "Effective Role",
+    "approvalStatus": "Approval Status"
   },
   "Webhooks": {
     "title": "Webhooks",

@@ -675,7 +675,8 @@
     "users": "用户",
     "roleOverride": "角色覆盖",
     "inheritFromGroup": "继承分组角色",
-    "effectiveRole": "生效角色"
+    "effectiveRole": "生效角色",
+    "approvalStatus": "审核状态"
   },
   "Webhooks": {
     "title": "Webhooks",

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 interface GroupOption {
   id: number;
   name: string;
+  builtIn: boolean;
 }
 
 interface UserRecord {
@@ -55,7 +56,7 @@ export default function UsersAdminClient() {
     const usersData = await usersRes.json();
     const groupsData = await groupsRes.json();
     setUsers(usersData.users || []);
-    setGroups((groupsData.groups || []).map((g: GroupOption) => ({ id: g.id, name: g.name })));
+    setGroups((groupsData.groups || []).map((g: GroupOption) => ({ id: g.id, name: g.name, builtIn: g.builtIn })));
   }
 
   useEffect(() => { load(); }, []);
@@ -161,15 +162,36 @@ export default function UsersAdminClient() {
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4, minHeight: 42, alignItems: "center" }}>
                     {groups.map(g => {
                       const inGroup = user.groups.some(ug => ug.id === g.id);
+                      const isBuiltIn = g.builtIn;
+                      if (isBuiltIn) {
+                        return (
+                          <span
+                            key={g.id}
+                            style={{
+                              padding: "2px 8px", fontSize: "0.72rem", borderRadius: 999,
+                              background: "var(--accent)",
+                              color: "var(--accent-contrast)",
+                              border: "1px solid var(--accent)",
+                              opacity: 0.7,
+                              cursor: "default",
+                            }}
+                          >
+                            ✓ {g.name}
+                          </span>
+                        );
+                      }
                       return (
                         <button
                           key={g.id}
                           type="button"
                           onClick={() => {
+                            const builtInIds = groups.filter(bg => bg.builtIn).map(bg => bg.id);
                             const newGroupIds = inGroup
                               ? user.groups.filter(ug => ug.id !== g.id).map(ug => ug.id)
                               : [...user.groups.map(ug => ug.id), g.id];
-                            updateUser(user.id, { groupIds: newGroupIds });
+                            // Always include built-in group IDs
+                            const finalIds = [...new Set([...builtInIds, ...newGroupIds])];
+                            updateUser(user.id, { groupIds: finalIds });
                           }}
                           style={{
                             padding: "2px 8px", fontSize: "0.72rem", borderRadius: 999,
