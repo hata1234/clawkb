@@ -37,6 +37,9 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
   const t = useTranslations("Bpmn");
   const containerRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<any>(null);
+  const initialXmlRef = useRef(xml); // capture initial xml, don't react to prop changes
+  const onChangeRef = useRef(onChange); // stable ref for callback
+  onChangeRef.current = onChange;
   const [loaded, setLoaded] = useState(false);
 
   const getCurrentXml = useCallback(async (): Promise<string | null> => {
@@ -107,7 +110,9 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
     let destroyed = false;
     let bpmnInstance: any = null;
 
-    const diagramXml = (xml && xml.trim().startsWith('<?xml')) ? xml : EMPTY_BPMN;
+    // Use initial xml only (don't react to parent state changes from onChange)
+    const initXml = initialXmlRef.current;
+    const hasValidXml = initXml && initXml.trim().startsWith('<?xml');
 
     (async () => {
       if (readOnly) {
@@ -123,18 +128,18 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
       instanceRef.current = bpmnInstance;
 
       try {
-        if (diagramXml === EMPTY_BPMN && !readOnly && bpmnInstance.createDiagram) {
-          // Use built-in createDiagram for guaranteed-compatible empty diagram
+        if (hasValidXml) {
+          await bpmnInstance.importXML(initXml);
+        } else if (!readOnly && bpmnInstance.createDiagram) {
           await bpmnInstance.createDiagram();
         } else {
-          await bpmnInstance.importXML(diagramXml);
+          await bpmnInstance.importXML(EMPTY_BPMN);
         }
         const canvas = bpmnInstance.get("canvas");
         canvas.zoom("fit-viewport");
         setLoaded(true);
       } catch (err) {
         console.error("Failed to import BPMN XML", err);
-        // Last resort: try createDiagram if importXML failed
         if (!readOnly && bpmnInstance.createDiagram) {
           try {
             await bpmnInstance.createDiagram();
@@ -147,11 +152,11 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
         }
       }
 
-      if (!readOnly && onChange) {
+      if (!readOnly) {
         bpmnInstance.on("commandStack.changed", async () => {
           try {
             const result = await bpmnInstance.saveXML({ format: true });
-            onChange(result.xml);
+            onChangeRef.current?.(result.xml);
           } catch {
             // ignore
           }
@@ -167,7 +172,7 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
       instanceRef.current = null;
       setLoaded(false);
     };
-  }, [readOnly, xml]); // re-init when mode or xml changes
+  }, [readOnly]); // only re-init when mode changes, NOT when xml changes
 
   const btnStyle: React.CSSProperties = {
     display: "inline-flex",
