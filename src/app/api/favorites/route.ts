@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       .map(async (f) => {
         const base = { ...serializeEntry(f.entry), isFavorited: true } as Record<string, unknown>;
         return runEntrySerializeHooks(base, principal);
-      })
+      }),
   );
 
   return NextResponse.json({ entries });

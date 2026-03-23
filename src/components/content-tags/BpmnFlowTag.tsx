@@ -11,23 +11,27 @@ export default function BpmnFlowTag({ props }: ContentTagComponentProps) {
   if (!bpmnXml) return null;
 
   return (
-    <div style={{
-      margin: "20px 0",
-      borderRadius: "var(--radius-md)",
-      overflow: "hidden",
-      border: "1px solid var(--border)",
-    }}>
+    <div
+      style={{
+        margin: "20px 0",
+        borderRadius: "var(--radius-md)",
+        overflow: "hidden",
+        border: "1px solid var(--border)",
+      }}
+    >
       {name && (
-        <div style={{
-          padding: "8px 14px",
-          background: "var(--surface-hover)",
-          borderBottom: "1px solid var(--border)",
-          fontSize: "0.78rem",
-          fontWeight: 600,
-          color: "var(--text-dim)",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-        }}>
+        <div
+          style={{
+            padding: "8px 14px",
+            background: "var(--surface-hover)",
+            borderBottom: "1px solid var(--border)",
+            fontSize: "0.78rem",
+            fontWeight: 600,
+            color: "var(--text-dim)",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
           {name}
         </div>
       )}

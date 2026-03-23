@@ -1,12 +1,7 @@
 import { prisma } from "./prisma";
 import type { Prisma } from "@prisma/client";
 
-export type ActivityAction =
-  | "entry.created"
-  | "entry.updated"
-  | "entry.deleted"
-  | "entry.restored"
-  | "comment.created";
+export type ActivityAction = "entry.created" | "entry.updated" | "entry.deleted" | "entry.restored" | "comment.created";
 
 export async function logActivity(
   action: ActivityAction,

@@ -16,7 +16,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const data: Record<string, unknown> = {};
 
-  if (body.email !== undefined) data.email = String(body.email || "").trim().toLowerCase() || null;
+  if (body.email !== undefined)
+    data.email =
+      String(body.email || "")
+        .trim()
+        .toLowerCase() || null;
   if (body.displayName !== undefined) data.displayName = String(body.displayName || "").trim() || null;
   if (body.isAdmin !== undefined) data.isAdmin = Boolean(body.isAdmin);
   if (body.approvalStatus !== undefined) data.approvalStatus = String(body.approvalStatus || "pending_approval");
@@ -31,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     await prisma.userGroup.deleteMany({ where: { userId } });
     if (Array.isArray(body.groupIds) && body.groupIds.length > 0) {
       await prisma.userGroup.createMany({
-        data: (body.groupIds as number[]).map(groupId => ({ userId, groupId })),
+        data: (body.groupIds as number[]).map((groupId) => ({ userId, groupId })),
         skipDuplicates: true,
       });
     }

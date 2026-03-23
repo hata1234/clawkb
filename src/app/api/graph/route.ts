@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   // Build ACL + type filter clauses
   const params: (string[] | number[] | number)[] = [];
   let paramIdx = 1;
-  const clauses: string[] = ['embedding IS NOT NULL', '"deletedAt" IS NULL'];
+  const clauses: string[] = ["embedding IS NOT NULL", '"deletedAt" IS NULL'];
 
   if (collectionIds) {
     clauses.push(`id IN (SELECT "A" FROM "_CollectionToEntry" WHERE "B" = ANY($${paramIdx}))`);

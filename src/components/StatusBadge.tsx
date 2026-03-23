@@ -11,7 +11,7 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> =
 };
 
 export default function StatusBadge({ status }: { status: string }) {
-  const t = useTranslations('StatusBadge');
+  const t = useTranslations("StatusBadge");
   const style = STATUS_STYLES[status] || STATUS_STYLES.archived;
 
   return (

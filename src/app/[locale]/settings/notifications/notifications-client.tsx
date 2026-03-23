@@ -23,7 +23,9 @@ export default function NotificationPrefsClient() {
   const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/settings/notifications").then(r => r.json()).then(d => setPrefs(d.prefs));
+    fetch("/api/settings/notifications")
+      .then((r) => r.json())
+      .then((d) => setPrefs(d.prefs));
   }, []);
 
   async function update(key: keyof Prefs, value: PrefValue) {
@@ -80,11 +82,7 @@ export default function NotificationPrefsClient() {
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 {(["all", "inapp", "off"] as PrefValue[]).map((val) => (
-                  <div
-                    key={val}
-                    onClick={() => update(key, val)}
-                    style={optionStyle(prefs[key] === val)}
-                  >
+                  <div key={val} onClick={() => update(key, val)} style={optionStyle(prefs[key] === val)}>
                     {t(`option.${val}`)}
                   </div>
                 ))}

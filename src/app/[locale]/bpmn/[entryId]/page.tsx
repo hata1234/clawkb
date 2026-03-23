@@ -74,38 +74,41 @@ export default function BpmnEntryEditorPage() {
     setSaveState("unsaved");
   }, []);
 
-  const handleSave = useCallback(async (xml: string) => {
-    setSaveState("saving");
-    try {
-      let res: Response;
-      if (flowId && flow) {
-        // Save to flow
-        res = await fetch(`/api/entries/${entryId}/flows/${flowId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ bpmnXml: xml }),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          setFlow(updated);
+  const handleSave = useCallback(
+    async (xml: string) => {
+      setSaveState("saving");
+      try {
+        let res: Response;
+        if (flowId && flow) {
+          // Save to flow
+          res = await fetch(`/api/entries/${entryId}/flows/${flowId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bpmnXml: xml }),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setFlow(updated);
+          }
+        } else {
+          // Legacy: save to entry.bpmnXml
+          res = await fetch(`/api/entries/${entryId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ bpmnXml: xml }),
+          });
+          if (res.ok) {
+            const updated = await res.json();
+            setEntry((prev) => (prev ? { ...prev, bpmnXml: updated.bpmnXml } : prev));
+          }
         }
-      } else {
-        // Legacy: save to entry.bpmnXml
-        res = await fetch(`/api/entries/${entryId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ bpmnXml: xml }),
-        });
-        if (res.ok) {
-          const updated = await res.json();
-          setEntry((prev) => prev ? { ...prev, bpmnXml: updated.bpmnXml } : prev);
-        }
+        setSaveState(res.ok ? "saved" : "unsaved");
+      } catch {
+        setSaveState("unsaved");
       }
-      setSaveState(res.ok ? "saved" : "unsaved");
-    } catch {
-      setSaveState("unsaved");
-    }
-  }, [entryId, flowId, flow]);
+    },
+    [entryId, flowId, flow],
+  );
 
   if (loading) {
     return (
@@ -118,7 +121,16 @@ export default function BpmnEntryEditorPage() {
 
   if (error || !entry) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "calc(100vh - 80px)", gap: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "calc(100vh - 80px)",
+          gap: 16,
+        }}
+      >
         <AlertCircle style={{ width: 32, height: 32, color: "var(--danger)" }} />
         <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>{error || "Entry not found"}</p>
         <Link href="/entries" style={{ fontSize: "0.85rem", color: "var(--accent)", textDecoration: "none" }}>
@@ -128,30 +140,51 @@ export default function BpmnEntryEditorPage() {
     );
   }
 
-  const initialXml = flow ? flow.bpmnXml : (entry.bpmnXml || undefined);
+  const initialXml = flow ? flow.bpmnXml : entry.bpmnXml || undefined;
   const subtitle = flow ? `${flow.name || "Flow " + flow.id}` : t("title");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 60px)" }}>
       {/* Header */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "10px 16px", borderBottom: "1px solid var(--border)",
-        background: "var(--surface)", flexShrink: 0, gap: 12, flexWrap: "wrap",
-      }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "10px 16px",
+          borderBottom: "1px solid var(--border)",
+          background: "var(--surface)",
+          flexShrink: 0,
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-          <Link href={`/entries/${entry.id}`} style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            fontSize: "0.82rem", color: "var(--text-muted)", textDecoration: "none",
-            whiteSpace: "nowrap",
-          }}>
+          <Link
+            href={`/entries/${entry.id}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: "0.82rem",
+              color: "var(--text-muted)",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
             <ArrowLeft style={{ width: 14, height: 14 }} /> {t("backToEntry")}
           </Link>
           <span style={{ color: "var(--text-dim)", fontSize: "0.8rem" }}>|</span>
-          <span style={{
-            fontSize: "0.9rem", fontWeight: 500, color: "var(--text)",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
+          <span
+            style={{
+              fontSize: "0.9rem",
+              fontWeight: 500,
+              color: "var(--text)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             {entry.title} — {subtitle}
           </span>
         </div>
@@ -160,7 +193,9 @@ export default function BpmnEntryEditorPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem", flexShrink: 0 }}>
           {saveState === "saving" && (
             <>
-              <Loader2 style={{ width: 13, height: 13, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+              <Loader2
+                style={{ width: 13, height: 13, color: "var(--text-muted)", animation: "spin 1s linear infinite" }}
+              />
               <span style={{ color: "var(--text-muted)" }}>{t("saveFlow")}...</span>
             </>
           )}
@@ -181,12 +216,7 @@ export default function BpmnEntryEditorPage() {
 
       {/* Editor */}
       <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
-        <BpmnEditor
-          xml={initialXml}
-          onChange={handleChange}
-          onSave={handleSave}
-          height="100%"
-        />
+        <BpmnEditor xml={initialXml} onChange={handleChange} onSave={handleSave} height="100%" />
       </div>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

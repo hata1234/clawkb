@@ -106,7 +106,9 @@ export default function FloatingChat() {
                   if (last.role === "assistant") last.sources = sources;
                   return updated;
                 });
-              } catch { /* ignore parse errors */ }
+              } catch {
+                /* ignore parse errors */
+              }
             } else if (currentEvent === "delta") {
               try {
                 const token = JSON.parse(data) as string;
@@ -116,7 +118,9 @@ export default function FloatingChat() {
                   if (last.role === "assistant") last.content += token;
                   return updated;
                 });
-              } catch { /* ignore */ }
+              } catch {
+                /* ignore */
+              }
             }
             // done event - no action needed
           }
@@ -169,8 +173,12 @@ export default function FloatingChat() {
           zIndex: 9999,
           transition: "transform 0.2s ease, box-shadow 0.2s ease",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = "scale(1.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
       >
         {open ? <X size={24} /> : <Bot size={24} />}
         {showPulse && !open && (
@@ -222,9 +230,7 @@ export default function FloatingChat() {
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Bot size={18} style={{ color: "var(--accent, #C9A96E)" }} />
-              <span style={{ fontWeight: 600, color: "var(--text, #eee)", fontSize: 15 }}>
-                {t("title")}
-              </span>
+              <span style={{ fontWeight: 600, color: "var(--text, #eee)", fontSize: 15 }}>{t("title")}</span>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -254,28 +260,38 @@ export default function FloatingChat() {
             }}
           >
             {messages.length === 0 && (
-              <div style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                color: "var(--text-muted, #888)",
-                fontSize: 14,
-                gap: 8,
-              }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: "100%",
+                  color: "var(--text-muted, #888)",
+                  fontSize: 14,
+                  gap: 8,
+                }}
+              >
                 <Bot size={32} style={{ opacity: 0.4 }} />
                 <span>{t("placeholder")}</span>
               </div>
             )}
             {messages.map((msg, i) => (
-              <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: msg.role === "user" ? "flex-end" : "flex-start",
+                }}
+              >
                 <div
                   style={{
                     maxWidth: "85%",
                     padding: "8px 12px",
                     borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                    background: msg.role === "user" ? "var(--accent, #C9A96E)" : "var(--surface-raised, var(--border, #333))",
+                    background:
+                      msg.role === "user" ? "var(--accent, #C9A96E)" : "var(--surface-raised, var(--border, #333))",
                     color: msg.role === "user" ? "#fff" : "var(--text, #eee)",
                     fontSize: 14,
                     lineHeight: 1.5,
@@ -284,7 +300,9 @@ export default function FloatingChat() {
                 >
                   {msg.role === "assistant" ? (
                     <div className="fc-md">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content || (loading && i === messages.length - 1 ? t("thinking") : "")}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content || (loading && i === messages.length - 1 ? t("thinking") : "")}
+                      </ReactMarkdown>
                     </div>
                   ) : (
                     <span style={{ whiteSpace: "pre-wrap" }}>{msg.content}</span>
@@ -321,13 +339,16 @@ export default function FloatingChat() {
                 )}
               </div>
             ))}
-            {loading && messages.length > 0 && messages[messages.length - 1].role === "assistant" && !messages[messages.length - 1].content && (
-              <div style={{ display: "flex", gap: 4, padding: "4px 0" }}>
-                <span className="fc-dot" style={{ animationDelay: "0ms" }} />
-                <span className="fc-dot" style={{ animationDelay: "150ms" }} />
-                <span className="fc-dot" style={{ animationDelay: "300ms" }} />
-              </div>
-            )}
+            {loading &&
+              messages.length > 0 &&
+              messages[messages.length - 1].role === "assistant" &&
+              !messages[messages.length - 1].content && (
+                <div style={{ display: "flex", gap: 4, padding: "4px 0" }}>
+                  <span className="fc-dot" style={{ animationDelay: "0ms" }} />
+                  <span className="fc-dot" style={{ animationDelay: "150ms" }} />
+                  <span className="fc-dot" style={{ animationDelay: "300ms" }} />
+                </div>
+              )}
             <div ref={messagesEndRef} />
           </div>
 

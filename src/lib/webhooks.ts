@@ -2,12 +2,7 @@ import { createHmac } from "crypto";
 import { prisma } from "./prisma";
 import { dispatchNotification } from "./notifications";
 
-export type WebhookEvent =
-  | "entry.created"
-  | "entry.updated"
-  | "entry.deleted"
-  | "entry.restored"
-  | "comment.created";
+export type WebhookEvent = "entry.created" | "entry.updated" | "entry.deleted" | "entry.restored" | "comment.created";
 
 const MAX_ATTEMPTS = 3;
 const BACKOFF_BASE = 1000; // 1s, 4s, 16s
@@ -16,13 +11,7 @@ function signPayload(body: string, secret: string): string {
   return "sha256=" + createHmac("sha256", secret).update(body).digest("hex");
 }
 
-async function deliverWebhook(
-  webhookId: number,
-  url: string,
-  secret: string,
-  event: WebhookEvent,
-  body: string,
-) {
+async function deliverWebhook(webhookId: number, url: string, secret: string, event: WebhookEvent, body: string) {
   let lastStatus = 0;
   let lastResponse: string | null = null;
 
@@ -59,9 +48,11 @@ async function deliverWebhook(
   }
 
   // Log final failure
-  await prisma.webhookDelivery.create({
-    data: { webhookId, event, payload: body, status: lastStatus, response: lastResponse, attempts: MAX_ATTEMPTS },
-  }).catch(() => {});
+  await prisma.webhookDelivery
+    .create({
+      data: { webhookId, event, payload: body, status: lastStatus, response: lastResponse, attempts: MAX_ATTEMPTS },
+    })
+    .catch(() => {});
 
   // Notify admins about webhook failure
   notifyAdminsWebhookFailure(webhookId, url, event).catch(() => {});
@@ -83,9 +74,7 @@ export function dispatchWebhookEvent(event: WebhookEvent, data: Record<string, u
         }
       });
 
-      await Promise.allSettled(
-        matching.map((w) => deliverWebhook(w.id, w.url, w.secret, event, body)),
-      );
+      await Promise.allSettled(matching.map((w) => deliverWebhook(w.id, w.url, w.secret, event, body)));
     } catch {
       // Silently fail — webhook errors must never affect main flows
     }
@@ -106,7 +95,9 @@ async function notifyAdminsWebhookFailure(webhookId: number, url: string, event:
         link: "/settings/webhooks",
       }).catch(() => {});
     }
-  } catch { /* silently fail */ }
+  } catch {
+    /* silently fail */
+  }
 }
 
 export function generateWebhookSecret(): string {

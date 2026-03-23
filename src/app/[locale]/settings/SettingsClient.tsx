@@ -1,8 +1,23 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useTranslations } from 'next-intl';
-import { Settings, Database, HardDrive, Plus, Trash2, Edit2, Check, X, Loader2, Wifi, WifiOff, KeyRound, Copy, List } from "lucide-react";
+import { useTranslations } from "next-intl";
+import {
+  Settings,
+  Database,
+  HardDrive,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  Loader2,
+  Wifi,
+  WifiOff,
+  KeyRound,
+  Copy,
+  List,
+} from "lucide-react";
 import type { AllSettings, StatusOption, EmbeddingConfig, StorageConfig } from "@/lib/settings";
 
 // ─── Style constants ──────────────────────────────────────────────────────
@@ -111,23 +126,25 @@ async function saveSetting(key: string, value: unknown): Promise<boolean> {
 // ─── Toast ────────────────────────────────────────────────────────────────
 function Toast({ msg, ok }: { msg: string; ok: boolean }) {
   return (
-    <div style={{
-      position: "fixed",
-      bottom: 24,
-      right: 24,
-      zIndex: 999,
-      padding: "10px 16px",
-      borderRadius: "var(--radius-md)",
-      background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
-      border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
-      color: ok ? "var(--success)" : "var(--danger)",
-      fontSize: "0.875rem",
-      fontWeight: 500,
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      boxShadow: "var(--shadow-lg)",
-    }}>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 999,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-md)",
+        background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
+        border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
+        color: ok ? "var(--success)" : "var(--danger)",
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        boxShadow: "var(--shadow-lg)",
+      }}
+    >
       {ok ? <Check style={{ width: 14, height: 14 }} /> : <X style={{ width: 14, height: 14 }} />}
       {msg}
     </div>
@@ -135,12 +152,9 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 }
 
 // ─── Options Tab (Sources + Statuses) ─────────────────────────────────────
-function OptionsTab({ settings, onToast }: {
-  settings: AllSettings;
-  onToast: (msg: string, ok: boolean) => void;
-}) {
-  const t = useTranslations('Settings');
-  const tc = useTranslations('Common');
+function OptionsTab({ settings, onToast }: { settings: AllSettings; onToast: (msg: string, ok: boolean) => void }) {
+  const t = useTranslations("Settings");
+  const tc = useTranslations("Common");
   const [sources, setSources] = useState<string[]>(settings.source_options);
   const [statuses, setStatuses] = useState<StatusOption[]>(settings.status_options);
   const [saving, setSaving] = useState(false);
@@ -157,14 +171,15 @@ function OptionsTab({ settings, onToast }: {
     setSaving(true);
     const ok = await saveSetting(key, value);
     setSaving(false);
-    onToast(ok ? tc('saved') : tc('saveFailed'), ok);
+    onToast(ok ? tc("saved") : tc("saveFailed"), ok);
   }
 
   // ── Sources ──
   function addSource() {
     if (!newSource.trim()) return;
     const updated = [...sources, newSource.trim()];
-    setSources(updated); setNewSource("");
+    setSources(updated);
+    setNewSource("");
     save("source_options", updated);
   }
   function deleteSource(i: number) {
@@ -177,14 +192,19 @@ function OptionsTab({ settings, onToast }: {
   function addStatus() {
     if (!newStatus.id || !newStatus.label) return;
     const updated = [...statuses, { ...newStatus }];
-    setStatuses(updated); setNewStatus({ id: "", label: "" });
+    setStatuses(updated);
+    setNewStatus({ id: "", label: "" });
     save("status_options", updated);
   }
-  function startEditStatus(i: number) { setEditStatusIdx(i); setEditStatusVal({ ...statuses[i] }); }
+  function startEditStatus(i: number) {
+    setEditStatusIdx(i);
+    setEditStatusVal({ ...statuses[i] });
+  }
   function saveEditStatus() {
     if (editStatusIdx === null) return;
-    const updated = statuses.map((s, i) => i === editStatusIdx ? editStatusVal : s);
-    setStatuses(updated); setEditStatusIdx(null);
+    const updated = statuses.map((s, i) => (i === editStatusIdx ? editStatusVal : s));
+    setStatuses(updated);
+    setEditStatusIdx(null);
     save("status_options", updated);
   }
   function deleteStatus(i: number) {
@@ -199,33 +219,54 @@ function OptionsTab({ settings, onToast }: {
       <div style={card}>
         <div style={sectionTitle}>
           <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          {t('sourceOptions')}
-          {saving && <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />}
+          {t("sourceOptions")}
+          {saving && (
+            <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />
+          )}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
           {sources.map((s, i) => (
-            <div key={i} style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "4px 10px",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: 20,
-              fontSize: "0.8rem",
-              color: "var(--text-secondary)",
-            }}>
+            <div
+              key={i}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "4px 10px",
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: 20,
+                fontSize: "0.8rem",
+                color: "var(--text-secondary)",
+              }}
+            >
               {s}
-              <button onClick={() => deleteSource(i)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: 0, display: "flex" }}>
+              <button
+                onClick={() => deleteSource(i)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--text-dim)",
+                  padding: 0,
+                  display: "flex",
+                }}
+              >
                 <X style={{ width: 12, height: 12 }} />
               </button>
             </div>
           ))}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <input value={newSource} onChange={e => setNewSource(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && addSource()}
-            style={{ ...inputStyle, flex: 1 }} placeholder={t('newSourcePlaceholder')} />
+          <input
+            value={newSource}
+            onChange={(e) => setNewSource(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && addSource()}
+            style={{ ...inputStyle, flex: 1 }}
+            placeholder={t("newSourcePlaceholder")}
+          />
           <button onClick={addSource} style={btnPrimary}>
-            <Plus style={{ width: 14, height: 14 }} /> {tc('add')}
+            <Plus style={{ width: 14, height: 14 }} /> {tc("add")}
           </button>
         </div>
       </div>
@@ -234,32 +275,55 @@ function OptionsTab({ settings, onToast }: {
       <div style={card}>
         <div style={sectionTitle}>
           <Settings style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          {t('statusOptions')}
+          {t("statusOptions")}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
           {statuses.map((s, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "8px 12px",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-            }}>
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 12px",
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+              }}
+            >
               {editStatusIdx === i ? (
                 <>
-                  <input value={editStatusVal.label} onChange={e => setEditStatusVal(v => ({ ...v, label: e.target.value }))}
-                    style={{ ...inputStyle, flex: 1 }} placeholder={tc('label')} />
-                  <input value={editStatusVal.id} onChange={e => setEditStatusVal(v => ({ ...v, id: e.target.value.toLowerCase() }))}
-                    style={{ ...inputStyle, width: 120, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }} placeholder={tc('id')} />
-                  <button onClick={saveEditStatus} style={{ ...btnPrimary, padding: "4px 10px" }}><Check style={{ width: 14, height: 14 }} /></button>
-                  <button onClick={() => setEditStatusIdx(null)} style={{ ...btnGhost, padding: "4px 10px" }}><X style={{ width: 14, height: 14 }} /></button>
+                  <input
+                    value={editStatusVal.label}
+                    onChange={(e) => setEditStatusVal((v) => ({ ...v, label: e.target.value }))}
+                    style={{ ...inputStyle, flex: 1 }}
+                    placeholder={tc("label")}
+                  />
+                  <input
+                    value={editStatusVal.id}
+                    onChange={(e) => setEditStatusVal((v) => ({ ...v, id: e.target.value.toLowerCase() }))}
+                    style={{ ...inputStyle, width: 120, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+                    placeholder={tc("id")}
+                  />
+                  <button onClick={saveEditStatus} style={{ ...btnPrimary, padding: "4px 10px" }}>
+                    <Check style={{ width: 14, height: 14 }} />
+                  </button>
+                  <button onClick={() => setEditStatusIdx(null)} style={{ ...btnGhost, padding: "4px 10px" }}>
+                    <X style={{ width: 14, height: 14 }} />
+                  </button>
                 </>
               ) : (
                 <>
                   <span style={{ flex: 1, fontSize: "0.875rem", color: "var(--text)" }}>{s.label}</span>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>{s.id}</span>
-                  <button onClick={() => startEditStatus(i)} style={{ ...btnGhost, padding: "4px 8px" }}><Edit2 style={{ width: 12, height: 12 }} /></button>
-                  <button onClick={() => deleteStatus(i)} style={btnDanger}><Trash2 style={{ width: 12, height: 12 }} /></button>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)" }}>
+                    {s.id}
+                  </span>
+                  <button onClick={() => startEditStatus(i)} style={{ ...btnGhost, padding: "4px 8px" }}>
+                    <Edit2 style={{ width: 12, height: 12 }} />
+                  </button>
+                  <button onClick={() => deleteStatus(i)} style={btnDanger}>
+                    <Trash2 style={{ width: 12, height: 12 }} />
+                  </button>
                 </>
               )}
             </div>
@@ -267,17 +331,25 @@ function OptionsTab({ settings, onToast }: {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           <div style={{ flex: 1 }}>
-            <label style={labelStyle}>{tc('label')}</label>
-            <input value={newStatus.label} onChange={e => setNewStatus(v => ({ ...v, label: e.target.value }))}
-              style={inputStyle} placeholder={t('statusLabelPlaceholder')} />
+            <label style={labelStyle}>{tc("label")}</label>
+            <input
+              value={newStatus.label}
+              onChange={(e) => setNewStatus((v) => ({ ...v, label: e.target.value }))}
+              style={inputStyle}
+              placeholder={t("statusLabelPlaceholder")}
+            />
           </div>
           <div style={{ width: 140 }}>
-            <label style={labelStyle}>{tc('id')}</label>
-            <input value={newStatus.id} onChange={e => setNewStatus(v => ({ ...v, id: e.target.value.replace(/\s+/g, "_").toLowerCase() }))}
-              style={{ ...inputStyle, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }} placeholder={t('statusIdPlaceholder')} />
+            <label style={labelStyle}>{tc("id")}</label>
+            <input
+              value={newStatus.id}
+              onChange={(e) => setNewStatus((v) => ({ ...v, id: e.target.value.replace(/\s+/g, "_").toLowerCase() }))}
+              style={{ ...inputStyle, fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}
+              placeholder={t("statusIdPlaceholder")}
+            />
           </div>
           <button onClick={addStatus} style={btnPrimary}>
-            <Plus style={{ width: 14, height: 14 }} /> {tc('add')}
+            <Plus style={{ width: 14, height: 14 }} /> {tc("add")}
           </button>
         </div>
       </div>
@@ -286,12 +358,9 @@ function OptionsTab({ settings, onToast }: {
 }
 
 // ─── Embedding Tab ────────────────────────────────────────────────────────
-function EmbeddingTab({ settings, onToast }: {
-  settings: AllSettings;
-  onToast: (msg: string, ok: boolean) => void;
-}) {
-  const t = useTranslations('Settings');
-  const tc = useTranslations('Common');
+function EmbeddingTab({ settings, onToast }: { settings: AllSettings; onToast: (msg: string, ok: boolean) => void }) {
+  const t = useTranslations("Settings");
+  const tc = useTranslations("Common");
   const [cfg, setCfg] = useState<EmbeddingConfig>(settings.embedding);
   const [savedCfg] = useState<EmbeddingConfig>(settings.embedding); // track what's saved
   const [saving, setSaving] = useState(false);
@@ -299,20 +368,25 @@ function EmbeddingTab({ settings, onToast }: {
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [rebuilding, setRebuilding] = useState(false);
   const [rebuildResult, setRebuildResult] = useState<{ total: number; success: number; failed: number } | null>(null);
-  const [embeddingStatus, setEmbeddingStatus] = useState<{ total: number; embedded: number; missing: number } | null>(null);
+  const [embeddingStatus, setEmbeddingStatus] = useState<{ total: number; embedded: number; missing: number } | null>(
+    null,
+  );
 
   // Check if config changed (URL or model different from saved)
-  const configChanged = cfg.provider !== savedCfg.provider
-    || cfg.ollamaUrl !== savedCfg.ollamaUrl
-    || cfg.ollamaModel !== savedCfg.ollamaModel
-    || cfg.openaiApiKey !== savedCfg.openaiApiKey
-    || cfg.openaiModel !== savedCfg.openaiModel;
+  const configChanged =
+    cfg.provider !== savedCfg.provider ||
+    cfg.ollamaUrl !== savedCfg.ollamaUrl ||
+    cfg.ollamaModel !== savedCfg.ollamaModel ||
+    cfg.openaiApiKey !== savedCfg.openaiApiKey ||
+    cfg.openaiModel !== savedCfg.openaiModel;
 
   // Fetch embedding status on mount
   useEffect(() => {
     fetch("/api/settings/rebuild-embeddings")
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setEmbeddingStatus(data); })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setEmbeddingStatus(data);
+      })
       .catch(() => {});
   }, [rebuildResult]); // refresh after rebuild
 
@@ -320,7 +394,7 @@ function EmbeddingTab({ settings, onToast }: {
     setSaving(true);
     const ok = await saveSetting("embedding", cfg);
     setSaving(false);
-    onToast(ok ? t('embeddingSettingsSaved') : tc('saveFailed'), ok);
+    onToast(ok ? t("embeddingSettingsSaved") : tc("saveFailed"), ok);
   }
 
   async function testConnection() {
@@ -335,17 +409,14 @@ function EmbeddingTab({ settings, onToast }: {
       const data = await res.json();
       setTestResult(data);
     } catch {
-      setTestResult({ ok: false, message: t('networkError') });
+      setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);
     }
   }
 
   async function rebuildEmbeddings(force: boolean) {
-    if (!confirm(force
-      ? t('confirmRebuildAll')
-      : t('confirmEmbedMissing')
-    )) return;
+    if (!confirm(force ? t("confirmRebuildAll") : t("confirmEmbedMissing"))) return;
     setRebuilding(true);
     setRebuildResult(null);
     try {
@@ -357,12 +428,12 @@ function EmbeddingTab({ settings, onToast }: {
       if (res.ok) {
         const data = await res.json();
         setRebuildResult(data);
-        onToast(t('rebuiltResult', { success: data.success, total: data.total }), data.failed === 0);
+        onToast(t("rebuiltResult", { success: data.success, total: data.total }), data.failed === 0);
       } else {
-        onToast(t('rebuildFailed'), false);
+        onToast(t("rebuildFailed"), false);
       }
     } catch {
-      onToast(t('rebuildFailedNetwork'), false);
+      onToast(t("rebuildFailedNetwork"), false);
     } finally {
       setRebuilding(false);
     }
@@ -373,14 +444,16 @@ function EmbeddingTab({ settings, onToast }: {
       <div style={card}>
         <div style={sectionTitle}>
           <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          {t('embeddingProvider')}
+          {t("embeddingProvider")}
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>{t('provider')}</label>
+          <label style={labelStyle}>{t("provider")}</label>
           <div style={{ display: "flex", gap: 8 }}>
-            {(["ollama", "openai", "disabled"] as const).map(p => (
-              <button key={p} onClick={() => setCfg(c => ({ ...c, provider: p }))}
+            {(["ollama", "openai", "disabled"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setCfg((c) => ({ ...c, provider: p }))}
                 style={{
                   padding: "8px 16px",
                   borderRadius: "var(--radius-md)",
@@ -391,7 +464,8 @@ function EmbeddingTab({ settings, onToast }: {
                   fontWeight: 500,
                   cursor: "pointer",
                   textTransform: "capitalize",
-                }}>
+                }}
+              >
                 {p}
               </button>
             ))}
@@ -401,14 +475,22 @@ function EmbeddingTab({ settings, onToast }: {
         {cfg.provider === "ollama" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
             <div>
-              <label style={labelStyle}>{t('ollamaUrl')}</label>
-              <input value={cfg.ollamaUrl ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaUrl: e.target.value }))}
-                style={inputStyle} placeholder="http://localhost:11434" />
+              <label style={labelStyle}>{t("ollamaUrl")}</label>
+              <input
+                value={cfg.ollamaUrl ?? ""}
+                onChange={(e) => setCfg((c) => ({ ...c, ollamaUrl: e.target.value }))}
+                style={inputStyle}
+                placeholder="http://localhost:11434"
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('model')}</label>
-              <input value={cfg.ollamaModel ?? ""} onChange={e => setCfg(c => ({ ...c, ollamaModel: e.target.value }))}
-                style={inputStyle} placeholder="bge-m3" />
+              <label style={labelStyle}>{t("model")}</label>
+              <input
+                value={cfg.ollamaModel ?? ""}
+                onChange={(e) => setCfg((c) => ({ ...c, ollamaModel: e.target.value }))}
+                style={inputStyle}
+                placeholder="bge-m3"
+              />
             </div>
           </div>
         )}
@@ -416,53 +498,67 @@ function EmbeddingTab({ settings, onToast }: {
         {cfg.provider === "openai" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
             <div>
-              <label style={labelStyle}>{t('apiKey')}</label>
-              <input type="password" value={cfg.openaiApiKey ?? ""} onChange={e => setCfg(c => ({ ...c, openaiApiKey: e.target.value }))}
-                style={inputStyle} placeholder="sk-..." autoComplete="off" />
+              <label style={labelStyle}>{t("apiKey")}</label>
+              <input
+                type="password"
+                value={cfg.openaiApiKey ?? ""}
+                onChange={(e) => setCfg((c) => ({ ...c, openaiApiKey: e.target.value }))}
+                style={inputStyle}
+                placeholder="sk-..."
+                autoComplete="off"
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('model')}</label>
-              <input value={cfg.openaiModel ?? ""} onChange={e => setCfg(c => ({ ...c, openaiModel: e.target.value }))}
-                style={inputStyle} placeholder="text-embedding-3-small" />
+              <label style={labelStyle}>{t("model")}</label>
+              <input
+                value={cfg.openaiModel ?? ""}
+                onChange={(e) => setCfg((c) => ({ ...c, openaiModel: e.target.value }))}
+                style={inputStyle}
+                placeholder="text-embedding-3-small"
+              />
             </div>
           </div>
         )}
 
         {cfg.provider === "disabled" && (
           <p style={{ fontSize: "0.875rem", color: "var(--text-dim)", marginBottom: 20 }}>
-            {t('embeddingDisabledMessage')}
+            {t("embeddingDisabledMessage")}
           </p>
         )}
 
         {/* Warning: config changed */}
         {configChanged && (
-          <div style={{
-            padding: "12px 16px",
-            borderRadius: "var(--radius-md)",
-            background: "rgba(251,191,36,0.08)",
-            border: "1px solid rgba(251,191,36,0.3)",
-            color: "rgb(251,191,36)",
-            fontSize: "0.82rem",
-            marginBottom: 16,
-            lineHeight: 1.5,
-          }}>
-            {t('embeddingConfigChangedWarning')}
+          <div
+            style={{
+              padding: "12px 16px",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(251,191,36,0.08)",
+              border: "1px solid rgba(251,191,36,0.3)",
+              color: "rgb(251,191,36)",
+              fontSize: "0.82rem",
+              marginBottom: 16,
+              lineHeight: 1.5,
+            }}
+          >
+            {t("embeddingConfigChangedWarning")}
           </div>
         )}
 
         {testResult && (
-          <div style={{
-            padding: "10px 14px",
-            borderRadius: "var(--radius-md)",
-            background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
-            border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
-            color: testResult.ok ? "var(--success)" : "var(--danger)",
-            fontSize: "0.8rem",
-            marginBottom: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}>
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: "var(--radius-md)",
+              background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+              border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+              color: testResult.ok ? "var(--success)" : "var(--danger)",
+              fontSize: "0.8rem",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
             {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
             {testResult.message}
           </div>
@@ -470,13 +566,21 @@ function EmbeddingTab({ settings, onToast }: {
 
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={save} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
-            {saving ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
-            {tc('save')}
+            {saving ? (
+              <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+            ) : (
+              <Check style={{ width: 14, height: 14 }} />
+            )}
+            {tc("save")}
           </button>
           {cfg.provider !== "disabled" && (
             <button onClick={testConnection} disabled={testing} style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}>
-              {testing ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Wifi style={{ width: 14, height: 14 }} />}
-              {tc('testConnection')}
+              {testing ? (
+                <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+              ) : (
+                <Wifi style={{ width: 14, height: 14 }} />
+              )}
+              {tc("testConnection")}
             </button>
           )}
         </div>
@@ -487,23 +591,23 @@ function EmbeddingTab({ settings, onToast }: {
         <div style={card}>
           <div style={sectionTitle}>
             <Database style={{ width: 16, height: 16, color: "var(--accent)" }} />
-            {t('embeddingIndex')}
+            {t("embeddingIndex")}
           </div>
 
           {/* Status */}
           {embeddingStatus && (
             <div style={{ display: "flex", gap: 20, marginBottom: 16, fontSize: "0.85rem" }}>
               <div>
-                <span style={{ color: "var(--text-dim)" }}>{t('totalEntries')}: </span>
+                <span style={{ color: "var(--text-dim)" }}>{t("totalEntries")}: </span>
                 <span style={{ color: "var(--text)", fontWeight: 600 }}>{embeddingStatus.total}</span>
               </div>
               <div>
-                <span style={{ color: "var(--text-dim)" }}>{t('embedded')}: </span>
+                <span style={{ color: "var(--text-dim)" }}>{t("embedded")}: </span>
                 <span style={{ color: "var(--success)", fontWeight: 600 }}>{embeddingStatus.embedded}</span>
               </div>
               {embeddingStatus.missing > 0 && (
                 <div>
-                  <span style={{ color: "var(--text-dim)" }}>{t('missing')}: </span>
+                  <span style={{ color: "var(--text-dim)" }}>{t("missing")}: </span>
                   <span style={{ color: "rgb(251,191,36)", fontWeight: 600 }}>{embeddingStatus.missing}</span>
                 </div>
               )}
@@ -512,57 +616,79 @@ function EmbeddingTab({ settings, onToast }: {
 
           {/* Progress bar if we have status */}
           {embeddingStatus && embeddingStatus.total > 0 && (
-            <div style={{
-              height: 6,
-              background: "var(--border)",
-              borderRadius: 3,
-              marginBottom: 16,
-              overflow: "hidden",
-            }}>
-              <div style={{
-                height: "100%",
-                width: `${(embeddingStatus.embedded / embeddingStatus.total) * 100}%`,
-                background: embeddingStatus.missing === 0 ? "var(--success)" : "rgb(251,191,36)",
+            <div
+              style={{
+                height: 6,
+                background: "var(--border)",
                 borderRadius: 3,
-                transition: "width 0.3s ease",
-              }} />
+                marginBottom: 16,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${(embeddingStatus.embedded / embeddingStatus.total) * 100}%`,
+                  background: embeddingStatus.missing === 0 ? "var(--success)" : "rgb(251,191,36)",
+                  borderRadius: 3,
+                  transition: "width 0.3s ease",
+                }}
+              />
             </div>
           )}
 
           {/* Rebuild result */}
           {rebuildResult && (
-            <div style={{
-              padding: "10px 14px",
-              borderRadius: "var(--radius-md)",
-              background: rebuildResult.failed === 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
-              border: `1px solid ${rebuildResult.failed === 0 ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
-              color: rebuildResult.failed === 0 ? "var(--success)" : "var(--danger)",
-              fontSize: "0.82rem",
-              marginBottom: 16,
-            }}>
-              {t('rebuildComplete', { success: rebuildResult.success, failed: rebuildResult.failed, total: rebuildResult.total })}
+            <div
+              style={{
+                padding: "10px 14px",
+                borderRadius: "var(--radius-md)",
+                background: rebuildResult.failed === 0 ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+                border: `1px solid ${rebuildResult.failed === 0 ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+                color: rebuildResult.failed === 0 ? "var(--success)" : "var(--danger)",
+                fontSize: "0.82rem",
+                marginBottom: 16,
+              }}
+            >
+              {t("rebuildComplete", {
+                success: rebuildResult.success,
+                failed: rebuildResult.failed,
+                total: rebuildResult.total,
+              })}
             </div>
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {embeddingStatus && embeddingStatus.missing > 0 && (
-              <button onClick={() => rebuildEmbeddings(false)} disabled={rebuilding}
-                style={{ ...btnPrimary, opacity: rebuilding ? 0.6 : 1 }}>
-                {rebuilding ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Database style={{ width: 14, height: 14 }} />}
-                {t('embedMissing', { count: embeddingStatus.missing })}
+              <button
+                onClick={() => rebuildEmbeddings(false)}
+                disabled={rebuilding}
+                style={{ ...btnPrimary, opacity: rebuilding ? 0.6 : 1 }}
+              >
+                {rebuilding ? (
+                  <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+                ) : (
+                  <Database style={{ width: 14, height: 14 }} />
+                )}
+                {t("embedMissing", { count: embeddingStatus.missing })}
               </button>
             )}
-            <button onClick={() => rebuildEmbeddings(true)} disabled={rebuilding}
-              style={{ ...btnGhost, opacity: rebuilding ? 0.6 : 1 }}>
-              {rebuilding ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Database style={{ width: 14, height: 14 }} />}
-              {t('rebuildAll')}
+            <button
+              onClick={() => rebuildEmbeddings(true)}
+              disabled={rebuilding}
+              style={{ ...btnGhost, opacity: rebuilding ? 0.6 : 1 }}
+            >
+              {rebuilding ? (
+                <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+              ) : (
+                <Database style={{ width: 14, height: 14 }} />
+              )}
+              {t("rebuildAll")}
             </button>
           </div>
 
           {rebuilding && (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 12 }}>
-              {t('rebuildingMessage')}
-            </p>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 12 }}>{t("rebuildingMessage")}</p>
           )}
         </div>
       )}
@@ -571,12 +697,9 @@ function EmbeddingTab({ settings, onToast }: {
 }
 
 // ─── Storage Tab ──────────────────────────────────────────────────────────
-function StorageTab({ settings, onToast }: {
-  settings: AllSettings;
-  onToast: (msg: string, ok: boolean) => void;
-}) {
-  const t = useTranslations('Settings');
-  const tc = useTranslations('Common');
+function StorageTab({ settings, onToast }: { settings: AllSettings; onToast: (msg: string, ok: boolean) => void }) {
+  const t = useTranslations("Settings");
+  const tc = useTranslations("Common");
   const [cfg, setCfg] = useState<StorageConfig>(settings.storage);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -586,7 +709,7 @@ function StorageTab({ settings, onToast }: {
     setSaving(true);
     const ok = await saveSetting("storage", cfg);
     setSaving(false);
-    onToast(ok ? t('storageSettingsSaved') : tc('saveFailed'), ok);
+    onToast(ok ? t("storageSettingsSaved") : tc("saveFailed"), ok);
   }
 
   async function testConnection() {
@@ -601,7 +724,7 @@ function StorageTab({ settings, onToast }: {
       const data = await res.json();
       setTestResult(data);
     } catch {
-      setTestResult({ ok: false, message: t('networkError') });
+      setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);
     }
@@ -613,7 +736,9 @@ function StorageTab({ settings, onToast }: {
       <input
         type={opts?.type ?? "text"}
         value={String(cfg[key])}
-        onChange={e => setCfg(c => ({ ...c, [key]: key === "port" ? parseInt(e.target.value) || 0 : e.target.value }))}
+        onChange={(e) =>
+          setCfg((c) => ({ ...c, [key]: key === "port" ? parseInt(e.target.value) || 0 : e.target.value }))
+        }
         style={inputStyle}
         placeholder={opts?.placeholder}
         autoComplete="off"
@@ -625,21 +750,23 @@ function StorageTab({ settings, onToast }: {
     <div style={card}>
       <div style={sectionTitle}>
         <HardDrive style={{ width: 16, height: 16, color: "var(--accent)" }} />
-        {t('objectStorage')}
+        {t("objectStorage")}
       </div>
 
       <div style={{ display: "grid", gap: 12, marginBottom: 20 }}>
         <div style={{ display: "flex", gap: 12 }}>
-          <div style={{ flex: 1 }}>{field(t('endpoint'), "endpoint", { placeholder: "localhost" })}</div>
-          <div style={{ width: 100 }}>{field(t('port'), "port", { placeholder: "9000" })}</div>
+          <div style={{ flex: 1 }}>{field(t("endpoint"), "endpoint", { placeholder: "localhost" })}</div>
+          <div style={{ width: 100 }}>{field(t("port"), "port", { placeholder: "9000" })}</div>
         </div>
 
         <div>
-          <label style={labelStyle}>{t('ssl')}</label>
+          <label style={labelStyle}>{t("ssl")}</label>
           <button
-            onClick={() => setCfg(c => ({ ...c, useSSL: !c.useSSL }))}
+            onClick={() => setCfg((c) => ({ ...c, useSSL: !c.useSSL }))}
             style={{
-              display: "flex", alignItems: "center", gap: 8,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
               padding: "8px 14px",
               background: cfg.useSSL ? "rgba(74,222,128,0.1)" : "var(--background)",
               border: `1px solid ${cfg.useSSL ? "rgba(74,222,128,0.3)" : "var(--border)"}`,
@@ -647,41 +774,56 @@ function StorageTab({ settings, onToast }: {
               color: cfg.useSSL ? "var(--success)" : "var(--text-secondary)",
               fontSize: "0.875rem",
               cursor: "pointer",
-            }}>
-            <div style={{
-              width: 36, height: 20, borderRadius: 10,
-              background: cfg.useSSL ? "var(--success)" : "var(--border)",
-              position: "relative", transition: "background 0.15s",
-            }}>
-              <div style={{
-                position: "absolute", top: 2, left: cfg.useSSL ? 18 : 2,
-                width: 16, height: 16, borderRadius: "50%",
-                background: "var(--text)", transition: "left 0.15s",
-              }} />
+            }}
+          >
+            <div
+              style={{
+                width: 36,
+                height: 20,
+                borderRadius: 10,
+                background: cfg.useSSL ? "var(--success)" : "var(--border)",
+                position: "relative",
+                transition: "background 0.15s",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: 2,
+                  left: cfg.useSSL ? 18 : 2,
+                  width: 16,
+                  height: 16,
+                  borderRadius: "50%",
+                  background: "var(--text)",
+                  transition: "left 0.15s",
+                }}
+              />
             </div>
-            {cfg.useSSL ? t('httpsEnabled') : t('httpNoSsl')}
+            {cfg.useSSL ? t("httpsEnabled") : t("httpNoSsl")}
           </button>
         </div>
 
-        {field(t('accessKey'), "accessKey", { placeholder: "minioadmin" })}
-        {field(t('secretKey'), "secretKey", { type: "password", placeholder: "••••••••" })}
-        {field(t('bucket'), "bucket", { placeholder: "knowledge-hub" })}
-        {field(t('publicUrl'), "publicUrl", { placeholder: "https://minio.cellar.men/knowledge-hub" })}
+        {field(t("accessKey"), "accessKey", { placeholder: "minioadmin" })}
+        {field(t("secretKey"), "secretKey", { type: "password", placeholder: "••••••••" })}
+        {field(t("bucket"), "bucket", { placeholder: "knowledge-hub" })}
+        {field(t("publicUrl"), "publicUrl", { placeholder: "https://minio.cellar.men/knowledge-hub" })}
       </div>
 
       {testResult && (
-        <div style={{
-          padding: "10px 14px",
-          borderRadius: "var(--radius-md)",
-          background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
-          border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
-          color: testResult.ok ? "var(--success)" : "var(--danger)",
-          fontSize: "0.8rem",
-          marginBottom: 16,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}>
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: "var(--radius-md)",
+            background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+            border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+            color: testResult.ok ? "var(--success)" : "var(--danger)",
+            fontSize: "0.8rem",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
           {testResult.message}
         </div>
@@ -689,12 +831,20 @@ function StorageTab({ settings, onToast }: {
 
       <div style={{ display: "flex", gap: 8 }}>
         <button onClick={save} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
-          {saving ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
-          {tc('save')}
+          {saving ? (
+            <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+          ) : (
+            <Check style={{ width: 14, height: 14 }} />
+          )}
+          {tc("save")}
         </button>
         <button onClick={testConnection} disabled={testing} style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}>
-          {testing ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Wifi style={{ width: 14, height: 14 }} />}
-          {tc('testConnection')}
+          {testing ? (
+            <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+          ) : (
+            <Wifi style={{ width: 14, height: 14 }} />
+          )}
+          {tc("testConnection")}
         </button>
       </div>
     </div>
@@ -712,8 +862,8 @@ interface ApiToken {
 }
 
 function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void }) {
-  const t = useTranslations('Settings');
-  const tc = useTranslations('Common');
+  const t = useTranslations("Settings");
+  const tc = useTranslations("Common");
   const [tokens, setTokens] = useState<ApiToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
@@ -729,7 +879,9 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
     }
   }, []);
 
-  useEffect(() => { fetchTokens(); }, [fetchTokens]);
+  useEffect(() => {
+    fetchTokens();
+  }, [fetchTokens]);
 
   async function createToken() {
     if (!newName.trim()) return;
@@ -744,10 +896,10 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
         const data = await res.json();
         setRevealedToken(data.token);
         setNewName("");
-        onToast(t('tokenCreated'), true);
+        onToast(t("tokenCreated"), true);
         fetchTokens();
       } else {
-        onToast(t('failedToCreateToken'), false);
+        onToast(t("failedToCreateToken"), false);
       }
     } finally {
       setCreating(false);
@@ -757,57 +909,68 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
   async function revokeToken(id: number) {
     const res = await fetch(`/api/tokens/${id}`, { method: "DELETE" });
     if (res.ok) {
-      onToast(t('tokenRevoked'), true);
+      onToast(t("tokenRevoked"), true);
       fetchTokens();
     } else {
-      onToast(t('failedToRevokeToken'), false);
+      onToast(t("failedToRevokeToken"), false);
     }
   }
 
   function copyToken() {
     if (revealedToken) {
       navigator.clipboard.writeText(revealedToken);
-      onToast(tc('copiedToClipboard'), true);
+      onToast(tc("copiedToClipboard"), true);
     }
   }
 
-  const fmtDate = (d: string | null) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" }) : t('never');
+  const fmtDate = (d: string | null) =>
+    d
+      ? new Date(d).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : t("never");
 
   return (
     <div>
       {revealedToken && (
-        <div style={{
-          ...card,
-          background: "rgba(74,222,128,0.06)",
-          border: "1px solid rgba(74,222,128,0.25)",
-          marginBottom: 24,
-        }}>
+        <div
+          style={{
+            ...card,
+            background: "rgba(74,222,128,0.06)",
+            border: "1px solid rgba(74,222,128,0.25)",
+            marginBottom: 24,
+          }}
+        >
           <div style={{ ...sectionTitle, color: "var(--success)", marginBottom: 8 }}>
             <KeyRound style={{ width: 16, height: 16 }} />
-            {t('tokenCreatedCopyNow')}
+            {t("tokenCreatedCopyNow")}
           </div>
-          <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 12 }}>
-            {t('tokenShownOnce')}
-          </p>
+          <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 12 }}>{t("tokenShownOnce")}</p>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <code style={{
-              flex: 1,
-              padding: "10px 12px",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              fontSize: "0.75rem",
-              fontFamily: "var(--font-mono)",
-              color: "var(--text)",
-              wordBreak: "break-all",
-            }}>
+            <code
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                fontSize: "0.75rem",
+                fontFamily: "var(--font-mono)",
+                color: "var(--text)",
+                wordBreak: "break-all",
+              }}
+            >
               {revealedToken}
             </code>
             <button onClick={copyToken} style={btnPrimary}>
-              <Copy style={{ width: 14, height: 14 }} /> {tc('copy')}
+              <Copy style={{ width: 14, height: 14 }} /> {tc("copy")}
             </button>
             <button onClick={() => setRevealedToken(null)} style={btnGhost}>
-              <X style={{ width: 14, height: 14 }} /> {tc('dismiss')}
+              <X style={{ width: 14, height: 14 }} /> {tc("dismiss")}
             </button>
           </div>
         </div>
@@ -816,67 +979,96 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
       <div style={card}>
         <div style={sectionTitle}>
           <KeyRound style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          {t('apiTokens')}
+          {t("apiTokens")}
         </div>
         <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 16 }}>
-          {t('apiTokensDescription')}
+          {t("apiTokensDescription")}
         </p>
         <div style={{ display: "flex", gap: 8 }}>
           <input
             value={newName}
-            onChange={e => setNewName(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && createToken()}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && createToken()}
             style={{ ...inputStyle, flex: 1 }}
-            placeholder={t('tokenNamePlaceholder')}
+            placeholder={t("tokenNamePlaceholder")}
           />
           <button onClick={createToken} disabled={creating} style={{ ...btnPrimary, opacity: creating ? 0.6 : 1 }}>
-            {creating ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Plus style={{ width: 14, height: 14 }} />}
-            {t('generate')}
+            {creating ? (
+              <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+            ) : (
+              <Plus style={{ width: 14, height: 14 }} />
+            )}
+            {t("generate")}
           </button>
         </div>
       </div>
 
       <div style={card}>
         <div style={sectionTitle}>
-          {t('activeTokens')}
-          {loading && <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />}
+          {t("activeTokens")}
+          {loading && (
+            <Loader2 style={{ width: 14, height: 14, marginLeft: "auto", color: "var(--text-dim)" }} className="spin" />
+          )}
         </div>
 
         {!loading && tokens.length === 0 && (
-          <p style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>{t('noTokensYet')}</p>
+          <p style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>{t("noTokensYet")}</p>
         )}
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {tokens.map(tk => (
-            <div key={tk.id} style={{
-              display: "flex", alignItems: "center", gap: 12,
-              padding: "10px 14px",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              opacity: tk.revoked ? 0.5 : 1,
-            }}>
-              <KeyRound style={{ width: 14, height: 14, color: tk.revoked ? "var(--text-dim)" : "var(--accent)", flexShrink: 0 }} />
+          {tokens.map((tk) => (
+            <div
+              key={tk.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "10px 14px",
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                opacity: tk.revoked ? 0.5 : 1,
+              }}
+            >
+              <KeyRound
+                style={{
+                  width: 14,
+                  height: 14,
+                  color: tk.revoked ? "var(--text-dim)" : "var(--accent)",
+                  flexShrink: 0,
+                }}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--text)" }}>{tk.name}</div>
-                <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)", marginTop: 2 }}>
+                <div
+                  style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)", marginTop: 2 }}
+                >
                   {tk.token_prefix}...
                 </div>
               </div>
               <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", textAlign: "right", flexShrink: 0 }}>
-                <div>{t('created')}: {fmtDate(tk.created_at)}</div>
-                <div>{t('lastUsed')}: {fmtDate(tk.last_used_at)}</div>
+                <div>
+                  {t("created")}: {fmtDate(tk.created_at)}
+                </div>
+                <div>
+                  {t("lastUsed")}: {fmtDate(tk.last_used_at)}
+                </div>
               </div>
               {tk.revoked ? (
-                <span style={{
-                  fontSize: "0.7rem", color: "var(--danger)", padding: "2px 8px",
-                  background: "rgba(248,113,113,0.1)", borderRadius: 12,
-                }}>
-                  {t('revoked')}
+                <span
+                  style={{
+                    fontSize: "0.7rem",
+                    color: "var(--danger)",
+                    padding: "2px 8px",
+                    background: "rgba(248,113,113,0.1)",
+                    borderRadius: 12,
+                  }}
+                >
+                  {t("revoked")}
                 </span>
               ) : (
                 <button onClick={() => revokeToken(tk.id)} style={btnDanger}>
-                  <Trash2 style={{ width: 12, height: 12 }} /> {t('revoke')}
+                  <Trash2 style={{ width: 12, height: 12 }} /> {t("revoke")}
                 </button>
               )}
             </div>
@@ -891,7 +1083,7 @@ function ApiTokensTab({ onToast }: { onToast: (msg: string, ok: boolean) => void
 type Tab = "options" | "embedding" | "storage" | "tokens";
 
 export default function SettingsClient({ initialSettings }: { initialSettings: AllSettings }) {
-  const t = useTranslations('Settings');
+  const t = useTranslations("Settings");
   const [activeTab, setActiveTab] = useState<Tab>("options");
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
@@ -903,33 +1095,36 @@ export default function SettingsClient({ initialSettings }: { initialSettings: A
   return (
     <div>
       {/* Tabs */}
-      <div style={{
-        display: "flex", gap: 4,
-        padding: 4,
-        background: "var(--surface)",
-        borderRadius: "var(--radius-md)",
-        border: "1px solid var(--border)",
-        marginBottom: 24,
-        width: "fit-content",
-      }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 4,
+          padding: 4,
+          background: "var(--surface)",
+          borderRadius: "var(--radius-md)",
+          border: "1px solid var(--border)",
+          marginBottom: 24,
+          width: "fit-content",
+        }}
+      >
         <button onClick={() => setActiveTab("options")} style={tabBtn(activeTab === "options")}>
-          <List style={{ width: 14, height: 14 }} /> {t('tabOptions')}
+          <List style={{ width: 14, height: 14 }} /> {t("tabOptions")}
         </button>
         <button onClick={() => setActiveTab("embedding")} style={tabBtn(activeTab === "embedding")}>
-          <Database style={{ width: 14, height: 14 }} /> {t('tabEmbedding')}
+          <Database style={{ width: 14, height: 14 }} /> {t("tabEmbedding")}
         </button>
         <button onClick={() => setActiveTab("storage")} style={tabBtn(activeTab === "storage")}>
-          <HardDrive style={{ width: 14, height: 14 }} /> {t('tabStorage')}
+          <HardDrive style={{ width: 14, height: 14 }} /> {t("tabStorage")}
         </button>
         <button onClick={() => setActiveTab("tokens")} style={tabBtn(activeTab === "tokens")}>
-          <KeyRound style={{ width: 14, height: 14 }} /> {t('tabApiTokens')}
+          <KeyRound style={{ width: 14, height: 14 }} /> {t("tabApiTokens")}
         </button>
       </div>
 
-      {activeTab === "options"   && <OptionsTab   settings={initialSettings} onToast={showToast} />}
-      {activeTab === "embedding" && <EmbeddingTab  settings={initialSettings} onToast={showToast} />}
-      {activeTab === "storage"   && <StorageTab    settings={initialSettings} onToast={showToast} />}
-      {activeTab === "tokens"    && <ApiTokensTab  onToast={showToast} />}
+      {activeTab === "options" && <OptionsTab settings={initialSettings} onToast={showToast} />}
+      {activeTab === "embedding" && <EmbeddingTab settings={initialSettings} onToast={showToast} />}
+      {activeTab === "storage" && <StorageTab settings={initialSettings} onToast={showToast} />}
+      {activeTab === "tokens" && <ApiTokensTab onToast={showToast} />}
 
       {toast && <Toast msg={toast.msg} ok={toast.ok} />}
 

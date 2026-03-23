@@ -28,13 +28,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // Show loading while checking auth
   if (status === "loading") {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--background)",
-      }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--background)",
+        }}
+      >
         <Loader2 style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -56,9 +58,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <CommandSearch />
       <FloatingChat />
       <main id="main-content" className="min-h-screen">
-        <div id="main-inner">
-          {children}
-        </div>
+        <div id="main-inner">{children}</div>
       </main>
       <style>{`
         #main-content {

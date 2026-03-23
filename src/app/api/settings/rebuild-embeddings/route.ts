@@ -13,13 +13,13 @@ export async function POST(request: Request) {
   const force = body.force === true; // re-embed all, or only NULL
   const mode = body.mode || "chunked"; // "legacy" or "chunked"
 
-  const whereClause = force ? "" : (mode === "chunked"
-    ? `WHERE NOT EXISTS (SELECT 1 FROM entry_chunks ec WHERE ec.entry_id = e.id)`
-    : `WHERE embedding IS NULL`);
+  const whereClause = force
+    ? ""
+    : mode === "chunked"
+      ? `WHERE NOT EXISTS (SELECT 1 FROM entry_chunks ec WHERE ec.entry_id = e.id)`
+      : `WHERE embedding IS NULL`;
 
-  const entries = await pool.query(
-    `SELECT id, title, summary, content FROM "Entry" e ${whereClause} ORDER BY id`
-  );
+  const entries = await pool.query(`SELECT id, title, summary, content FROM "Entry" e ${whereClause} ORDER BY id`);
 
   const total = entries.rows.length;
   let success = 0;

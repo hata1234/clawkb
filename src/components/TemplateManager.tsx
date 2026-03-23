@@ -77,8 +77,8 @@ const btnDanger: React.CSSProperties = {
 };
 
 export default function TemplateManager() {
-  const t = useTranslations('TemplateManager');
-  const tc = useTranslations('Common');
+  const t = useTranslations("TemplateManager");
+  const tc = useTranslations("Common");
   const [templates, setTemplates] = useState<EntryTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -102,7 +102,9 @@ export default function TemplateManager() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function createTemplate() {
     if (!newForm.name?.trim()) return;
@@ -116,7 +118,7 @@ export default function TemplateManager() {
     if (res.ok) {
       setNewForm({ name: "" });
       setShowNew(false);
-      flash(t('templateCreated'));
+      flash(t("templateCreated"));
       load();
     }
   }
@@ -132,7 +134,7 @@ export default function TemplateManager() {
     setSaving(false);
     if (res.ok) {
       setEditId(null);
-      flash(t('templateUpdated'));
+      flash(t("templateUpdated"));
       load();
     }
   }
@@ -140,7 +142,7 @@ export default function TemplateManager() {
   async function deleteTemplate(id: string) {
     const res = await fetch(`/api/plugins/entry-templates/templates/${id}`, { method: "DELETE" });
     if (res.ok) {
-      flash(t('templateDeleted'));
+      flash(t("templateDeleted"));
       load();
     }
   }
@@ -165,74 +167,123 @@ export default function TemplateManager() {
       {templates.length === 0 && !showNew && (
         <div style={{ textAlign: "center", padding: "24px 16px", color: "var(--text-dim)" }}>
           <LayoutTemplate style={{ width: 32, height: 32, margin: "0 auto 8px", opacity: 0.3 }} />
-          <p style={{ fontSize: "0.82rem" }}>{t('noTemplates')}</p>
+          <p style={{ fontSize: "0.82rem" }}>{t("noTemplates")}</p>
         </div>
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {templates.map((tpl) => (
-          <div key={tpl.id} style={{
-            background: "var(--background)",
-            border: editId === tpl.id ? "1px solid var(--accent)" : "1px solid var(--border)",
-            borderRadius: "var(--radius-md)",
-            padding: "12px 14px",
-          }}>
+          <div
+            key={tpl.id}
+            style={{
+              background: "var(--background)",
+              border: editId === tpl.id ? "1px solid var(--accent)" : "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              padding: "12px 14px",
+            }}
+          >
             {editId === tpl.id ? (
               /* ── Edit Mode ── */
               <div style={{ display: "grid", gap: 10 }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
-                    <label style={labelStyle}>{t('name')}</label>
-                    <input value={editForm.name || ""} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} />
+                    <label style={labelStyle}>{t("name")}</label>
+                    <input
+                      value={editForm.name || ""}
+                      onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                      style={inputStyle}
+                    />
                   </div>
                   <div>
-                    <label style={labelStyle}>{t('type')}</label>
-                    <input value={editForm.type || ""} onChange={e => setEditForm(f => ({ ...f, type: e.target.value }))} style={inputStyle} placeholder="e.g. report" />
+                    <label style={labelStyle}>{t("type")}</label>
+                    <input
+                      value={editForm.type || ""}
+                      onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="e.g. report"
+                    />
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   <div>
-                    <label style={labelStyle}>{t('source')}</label>
-                    <input value={editForm.source || ""} onChange={e => setEditForm(f => ({ ...f, source: e.target.value }))} style={inputStyle} placeholder="e.g. manual" />
+                    <label style={labelStyle}>{t("source")}</label>
+                    <input
+                      value={editForm.source || ""}
+                      onChange={(e) => setEditForm((f) => ({ ...f, source: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="e.g. manual"
+                    />
                   </div>
                   <div>
-                    <label style={labelStyle}>{t('status')}</label>
-                    <input value={editForm.status || ""} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} style={inputStyle} placeholder="e.g. new" />
+                    <label style={labelStyle}>{t("status")}</label>
+                    <input
+                      value={editForm.status || ""}
+                      onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}
+                      style={inputStyle}
+                      placeholder="e.g. new"
+                    />
                   </div>
                 </div>
                 <div>
-                  <label style={labelStyle}>{t('tags')}</label>
-                  <input value={editForm.tags || ""} onChange={e => setEditForm(f => ({ ...f, tags: e.target.value }))} style={inputStyle} placeholder={t('commaSeparated')} />
+                  <label style={labelStyle}>{t("tags")}</label>
+                  <input
+                    value={editForm.tags || ""}
+                    onChange={(e) => setEditForm((f) => ({ ...f, tags: e.target.value }))}
+                    style={inputStyle}
+                    placeholder={t("commaSeparated")}
+                  />
                 </div>
                 <div>
-                  <label style={labelStyle}>{t('summaryTemplate')}</label>
-                  <input value={editForm.summary || ""} onChange={e => setEditForm(f => ({ ...f, summary: e.target.value }))} style={inputStyle} placeholder={t('optional')} />
+                  <label style={labelStyle}>{t("summaryTemplate")}</label>
+                  <input
+                    value={editForm.summary || ""}
+                    onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
+                    style={inputStyle}
+                    placeholder={t("optional")}
+                  />
                 </div>
                 <div>
-                  <label style={labelStyle}>{t('contentTemplate')}</label>
+                  <label style={labelStyle}>{t("contentTemplate")}</label>
                   <textarea
                     value={editForm.content || ""}
-                    onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))}
-                    style={{ ...inputStyle, minHeight: 120, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.78rem" }}
+                    onChange={(e) => setEditForm((f) => ({ ...f, content: e.target.value }))}
+                    style={{
+                      ...inputStyle,
+                      minHeight: 120,
+                      resize: "vertical",
+                      fontFamily: "var(--font-mono)",
+                      fontSize: "0.78rem",
+                    }}
                     placeholder="## Section 1&#10;&#10;## Section 2"
                   />
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button onClick={updateTemplate} disabled={saving} style={btnPrimary}>
-                    <Check style={{ width: 12, height: 12 }} /> {tc('save')}
+                    <Check style={{ width: 12, height: 12 }} /> {tc("save")}
                   </button>
                   <button onClick={() => setEditId(null)} style={btnGhost}>
-                    <X style={{ width: 12, height: 12 }} /> {tc('cancel')}
+                    <X style={{ width: 12, height: 12 }} /> {tc("cancel")}
                   </button>
                 </div>
               </div>
             ) : (
               /* ── View Mode ── */
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <GripVertical style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0, opacity: 0.4 }} />
+                <GripVertical
+                  style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0, opacity: 0.4 }}
+                />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: "0.88rem", fontWeight: 500, color: "var(--text)" }}>{tpl.name}</div>
-                  <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginTop: 2, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--text-dim)",
+                      marginTop: 2,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     {tpl.type && <span>type: {tpl.type}</span>}
                     {tpl.source && <span>· source: {tpl.source}</span>}
                     {tpl.status && <span>· status: {tpl.status}</span>}
@@ -253,53 +304,96 @@ export default function TemplateManager() {
 
       {/* New template form */}
       {showNew && (
-        <div style={{
-          background: "var(--background)",
-          border: "1px solid var(--accent)",
-          borderRadius: "var(--radius-md)",
-          padding: "14px",
-          marginTop: 8,
-        }}>
+        <div
+          style={{
+            background: "var(--background)",
+            border: "1px solid var(--accent)",
+            borderRadius: "var(--radius-md)",
+            padding: "14px",
+            marginTop: 8,
+          }}
+        >
           <div style={{ display: "grid", gap: 10 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <div>
-                <label style={labelStyle}>{t('name')} *</label>
-                <input value={newForm.name || ""} onChange={e => setNewForm(f => ({ ...f, name: e.target.value }))} style={inputStyle} placeholder="e.g. Weekly Report" />
+                <label style={labelStyle}>{t("name")} *</label>
+                <input
+                  value={newForm.name || ""}
+                  onChange={(e) => setNewForm((f) => ({ ...f, name: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="e.g. Weekly Report"
+                />
               </div>
               <div>
-                <label style={labelStyle}>{t('type')}</label>
-                <input value={newForm.type || ""} onChange={e => setNewForm(f => ({ ...f, type: e.target.value }))} style={inputStyle} placeholder="e.g. report" />
+                <label style={labelStyle}>{t("type")}</label>
+                <input
+                  value={newForm.type || ""}
+                  onChange={(e) => setNewForm((f) => ({ ...f, type: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="e.g. report"
+                />
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <div>
-                <label style={labelStyle}>{t('source')}</label>
-                <input value={newForm.source || ""} onChange={e => setNewForm(f => ({ ...f, source: e.target.value }))} style={inputStyle} placeholder="e.g. manual" />
+                <label style={labelStyle}>{t("source")}</label>
+                <input
+                  value={newForm.source || ""}
+                  onChange={(e) => setNewForm((f) => ({ ...f, source: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="e.g. manual"
+                />
               </div>
               <div>
-                <label style={labelStyle}>{t('status')}</label>
-                <input value={newForm.status || ""} onChange={e => setNewForm(f => ({ ...f, status: e.target.value }))} style={inputStyle} placeholder="e.g. new" />
+                <label style={labelStyle}>{t("status")}</label>
+                <input
+                  value={newForm.status || ""}
+                  onChange={(e) => setNewForm((f) => ({ ...f, status: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="e.g. new"
+                />
               </div>
             </div>
             <div>
-              <label style={labelStyle}>{t('tags')}</label>
-              <input value={newForm.tags || ""} onChange={e => setNewForm(f => ({ ...f, tags: e.target.value }))} style={inputStyle} placeholder={t('commaSeparated')} />
+              <label style={labelStyle}>{t("tags")}</label>
+              <input
+                value={newForm.tags || ""}
+                onChange={(e) => setNewForm((f) => ({ ...f, tags: e.target.value }))}
+                style={inputStyle}
+                placeholder={t("commaSeparated")}
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('contentTemplate')}</label>
+              <label style={labelStyle}>{t("contentTemplate")}</label>
               <textarea
                 value={newForm.content || ""}
-                onChange={e => setNewForm(f => ({ ...f, content: e.target.value }))}
-                style={{ ...inputStyle, minHeight: 100, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.78rem" }}
+                onChange={(e) => setNewForm((f) => ({ ...f, content: e.target.value }))}
+                style={{
+                  ...inputStyle,
+                  minHeight: 100,
+                  resize: "vertical",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.78rem",
+                }}
                 placeholder="## Section 1&#10;&#10;## Section 2"
               />
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={createTemplate} disabled={saving || !newForm.name?.trim()} style={{ ...btnPrimary, opacity: saving || !newForm.name?.trim() ? 0.5 : 1 }}>
-                <Plus style={{ width: 12, height: 12 }} /> {tc('create')}
+              <button
+                onClick={createTemplate}
+                disabled={saving || !newForm.name?.trim()}
+                style={{ ...btnPrimary, opacity: saving || !newForm.name?.trim() ? 0.5 : 1 }}
+              >
+                <Plus style={{ width: 12, height: 12 }} /> {tc("create")}
               </button>
-              <button onClick={() => { setShowNew(false); setNewForm({ name: "" }); }} style={btnGhost}>
-                <X style={{ width: 12, height: 12 }} /> {tc('cancel')}
+              <button
+                onClick={() => {
+                  setShowNew(false);
+                  setNewForm({ name: "" });
+                }}
+                style={btnGhost}
+              >
+                <X style={{ width: 12, height: 12 }} /> {tc("cancel")}
               </button>
             </div>
           </div>
@@ -309,20 +403,22 @@ export default function TemplateManager() {
       {/* Add button */}
       {!showNew && editId === null && (
         <button onClick={() => setShowNew(true)} style={{ ...btnPrimary, marginTop: 12 }}>
-          <Plus style={{ width: 12, height: 12 }} /> {t('addTemplate')}
+          <Plus style={{ width: 12, height: 12 }} /> {t("addTemplate")}
         </button>
       )}
 
       {/* Toast */}
       {toast && (
-        <div style={{
-          marginTop: 8,
-          fontSize: "0.8rem",
-          color: "var(--accent)",
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-        }}>
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: "0.8rem",
+            color: "var(--accent)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
           <Check style={{ width: 12, height: 12 }} /> {toast}
         </div>
       )}

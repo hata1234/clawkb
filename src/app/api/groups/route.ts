@@ -24,8 +24,8 @@ export async function GET(request: Request) {
       description: g.description,
       builtIn: g.builtIn,
       memberCount: g._count.users,
-      users: g.users.map(ug => ({ id: ug.user.id, username: ug.user.username, displayName: ug.user.displayName })),
-      collectionRoles: g.collectionRoles.map(cr => ({
+      users: g.users.map((ug) => ({ id: ug.user.id, username: ug.user.username, displayName: ug.user.displayName })),
+      collectionRoles: g.collectionRoles.map((cr) => ({
         collectionId: cr.collectionId,
         collectionName: cr.collection.name,
         role: cr.role,
@@ -46,19 +46,21 @@ export async function POST(request: Request) {
     data: {
       name: name.trim(),
       description: description || null,
-      ...(userIds && userIds.length > 0 && {
-        users: {
-          create: (userIds as number[]).map(userId => ({ userId })),
-        },
-      }),
-      ...(collectionRoles && collectionRoles.length > 0 && {
-        collectionRoles: {
-          create: (collectionRoles as { collectionId: number; role: string }[]).map(cr => ({
-            collectionId: cr.collectionId,
-            role: cr.role || "viewer",
-          })),
-        },
-      }),
+      ...(userIds &&
+        userIds.length > 0 && {
+          users: {
+            create: (userIds as number[]).map((userId) => ({ userId })),
+          },
+        }),
+      ...(collectionRoles &&
+        collectionRoles.length > 0 && {
+          collectionRoles: {
+            create: (collectionRoles as { collectionId: number; role: string }[]).map((cr) => ({
+              collectionId: cr.collectionId,
+              role: cr.role || "viewer",
+            })),
+          },
+        }),
     },
     include: {
       _count: { select: { users: true } },
@@ -66,18 +68,21 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.json({
-    group: {
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      builtIn: group.builtIn,
-      memberCount: group._count.users,
-      collectionRoles: group.collectionRoles.map(cr => ({
-        collectionId: cr.collectionId,
-        collectionName: cr.collection.name,
-        role: cr.role,
-      })),
+  return NextResponse.json(
+    {
+      group: {
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        builtIn: group.builtIn,
+        memberCount: group._count.users,
+        collectionRoles: group.collectionRoles.map((cr) => ({
+          collectionId: cr.collectionId,
+          collectionName: cr.collection.name,
+          role: cr.role,
+        })),
+      },
     },
-  }, { status: 201 });
+    { status: 201 },
+  );
 }

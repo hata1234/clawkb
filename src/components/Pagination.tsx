@@ -30,15 +30,11 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
           })
           .map((page, idx, arr) => (
             <span key={page} className="flex items-center">
-              {idx > 0 && arr[idx - 1] !== page - 1 && (
-                <span className="px-1 text-muted-dark">...</span>
-              )}
+              {idx > 0 && arr[idx - 1] !== page - 1 && <span className="px-1 text-muted-dark">...</span>}
               <button
                 onClick={() => onPageChange(page)}
                 className={`min-w-[36px] h-9 rounded-lg text-sm font-medium transition-colors ${
-                  page === currentPage
-                    ? "bg-accent text-white"
-                    : "hover:bg-surface-hover text-muted"
+                  page === currentPage ? "bg-accent text-white" : "hover:bg-surface-hover text-muted"
                 }`}
               >
                 {page}

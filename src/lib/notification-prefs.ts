@@ -1,15 +1,15 @@
 // Notification preference types and defaults
 
 export interface NotificationPrefs {
-  comment_on_entry: "all" | "inapp" | "off";      // Someone comments on my entry
-  favorite_updated: "all" | "inapp" | "off";       // A favorited entry is updated
-  webhook_failed: "all" | "inapp" | "off";         // Webhook delivery failed (admin)
+  comment_on_entry: "all" | "inapp" | "off"; // Someone comments on my entry
+  favorite_updated: "all" | "inapp" | "off"; // A favorited entry is updated
+  webhook_failed: "all" | "inapp" | "off"; // Webhook delivery failed (admin)
 }
 
 export const DEFAULT_PREFS: NotificationPrefs = {
-  comment_on_entry: "all",       // in-app + email by default
-  favorite_updated: "inapp",     // in-app only by default
-  webhook_failed: "inapp",       // in-app only by default
+  comment_on_entry: "all", // in-app + email by default
+  favorite_updated: "inapp", // in-app only by default
+  webhook_failed: "inapp", // in-app only by default
 };
 
 export function resolvePrefs(raw: unknown): NotificationPrefs {
@@ -31,9 +31,13 @@ export function resolvePrefs(raw: unknown): NotificationPrefs {
  */
 export function prefKeyForType(type: string): keyof NotificationPrefs | null {
   switch (type) {
-    case "comment": return "comment_on_entry";
-    case "favorite_updated": return "favorite_updated";
-    case "webhook_failed": return "webhook_failed";
-    default: return null;
+    case "comment":
+      return "comment_on_entry";
+    case "favorite_updated":
+      return "favorite_updated";
+    case "webhook_failed":
+      return "webhook_failed";
+    default:
+      return null;
   }
 }

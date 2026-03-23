@@ -24,31 +24,52 @@ interface SharedEntry {
 }
 
 const containerStyle: React.CSSProperties = {
-  minHeight: "100vh", background: "var(--background)",
-  display: "flex", flexDirection: "column",
+  minHeight: "100vh",
+  background: "var(--background)",
+  display: "flex",
+  flexDirection: "column",
 };
 
 const mainStyle: React.CSSProperties = {
-  flex: 1, maxWidth: "48rem", margin: "0 auto",
-  padding: "40px 20px", width: "100%",
+  flex: 1,
+  maxWidth: "48rem",
+  margin: "0 auto",
+  padding: "40px 20px",
+  width: "100%",
 };
 
 const cardStyle: React.CSSProperties = {
-  background: "var(--surface)", border: "1px solid var(--border)",
-  borderRadius: "var(--radius-xl)", padding: "24px", marginBottom: 16,
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius-xl)",
+  padding: "24px",
+  marginBottom: 16,
 };
 
 const inputStyle: React.CSSProperties = {
-  width: "100%", background: "var(--background)", border: "1px solid var(--border)",
-  borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: "0.9rem",
-  color: "var(--text)", outline: "none", boxSizing: "border-box",
+  width: "100%",
+  background: "var(--background)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius-md)",
+  padding: "10px 14px",
+  fontSize: "0.9rem",
+  color: "var(--text)",
+  outline: "none",
+  boxSizing: "border-box",
 };
 
 const btnStyle: React.CSSProperties = {
-  display: "inline-flex", alignItems: "center", gap: 6,
-  padding: "10px 20px", borderRadius: "var(--radius-md)",
-  fontSize: "0.85rem", fontWeight: 500, cursor: "pointer", border: "none",
-  background: "var(--accent)", color: "var(--accent-contrast)",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "10px 20px",
+  borderRadius: "var(--radius-md)",
+  fontSize: "0.85rem",
+  fontWeight: 500,
+  cursor: "pointer",
+  border: "none",
+  background: "var(--accent)",
+  color: "var(--accent-contrast)",
   transition: "all 0.15s ease",
 };
 
@@ -107,7 +128,9 @@ export default function SharePage() {
     return (
       <div style={containerStyle}>
         <div style={{ ...mainStyle, display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <Loader2 style={{ width: 28, height: 28, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+          <Loader2
+            style={{ width: 28, height: 28, color: "var(--text-muted)", animation: "spin 1s linear infinite" }}
+          />
         </div>
         <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -117,7 +140,16 @@ export default function SharePage() {
   if (error) {
     return (
       <div style={containerStyle}>
-        <div style={{ ...mainStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+        <div
+          style={{
+            ...mainStyle,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+          }}
+        >
           <AlertCircle style={{ width: 40, height: 40, color: "var(--text-dim)", marginBottom: 16 }} />
           <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.25rem", color: "var(--text)", marginBottom: 8 }}>
             Unavailable
@@ -132,10 +164,20 @@ export default function SharePage() {
   if (needsPassword) {
     return (
       <div style={containerStyle}>
-        <div style={{ ...mainStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <div
+          style={{
+            ...mainStyle,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <div style={{ ...cardStyle, maxWidth: 380, width: "100%", textAlign: "center" }}>
             <Lock style={{ width: 32, height: 32, color: "var(--accent)", marginBottom: 16 }} />
-            <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.15rem", color: "var(--text)", marginBottom: 8 }}>
+            <h1
+              style={{ fontFamily: "var(--font-heading)", fontSize: "1.15rem", color: "var(--text)", marginBottom: 8 }}
+            >
               Password Required
             </h1>
             <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 20 }}>
@@ -145,8 +187,13 @@ export default function SharePage() {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setPasswordError(false); }}
-                onKeyDown={(e) => { if (e.key === "Enter" && password) submitPassword(); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && password) submitPassword();
+                }}
                 placeholder="Enter password"
                 style={{ ...inputStyle, borderColor: passwordError ? "var(--danger)" : "var(--border)" }}
                 autoFocus
@@ -154,8 +201,16 @@ export default function SharePage() {
               {passwordError && (
                 <p style={{ fontSize: "0.8rem", color: "var(--danger)", margin: 0 }}>Incorrect password</p>
               )}
-              <button onClick={submitPassword} disabled={!password || verifying} style={{ ...btnStyle, justifyContent: "center", opacity: !password || verifying ? 0.5 : 1 }}>
-                {verifying ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Lock style={{ width: 14, height: 14 }} />}
+              <button
+                onClick={submitPassword}
+                disabled={!password || verifying}
+                style={{ ...btnStyle, justifyContent: "center", opacity: !password || verifying ? 0.5 : 1 }}
+              >
+                {verifying ? (
+                  <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} />
+                ) : (
+                  <Lock style={{ width: 14, height: 14 }} />
+                )}
                 Unlock
               </button>
             </div>
@@ -174,16 +229,54 @@ export default function SharePage() {
       <div style={mainStyle}>
         {/* Hero */}
         <div style={cardStyle}>
-          <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.5rem", fontWeight: 400, color: "var(--text)", marginBottom: 16, lineHeight: 1.3 }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-heading)",
+              fontSize: "1.5rem",
+              fontWeight: 400,
+              color: "var(--text)",
+              marginBottom: 16,
+              lineHeight: 1.3,
+            }}
+          >
             {entry.title}
           </h1>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: entry.tags.length > 0 ? 16 : 0 }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 16,
+              fontSize: "0.8rem",
+              color: "var(--text-muted)",
+              marginBottom: entry.tags.length > 0 ? 16 : 0,
+            }}
+          >
             {entry.author && (
               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 22, height: 22, borderRadius: 999, overflow: "hidden", background: "var(--accent-muted)", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--accent)", fontSize: "0.65rem", fontWeight: 700 }}>
-                  {entry.author.avatarUrl
-                    ? <img src={entry.author.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : entry.author.displayName.charAt(0).toUpperCase()}
+                <span
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 999,
+                    overflow: "hidden",
+                    background: "var(--accent-muted)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--accent)",
+                    fontSize: "0.65rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  {entry.author.avatarUrl ? (
+                    <img
+                      src={entry.author.avatarUrl}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    entry.author.displayName.charAt(0).toUpperCase()
+                  )}
                 </span>
                 {entry.author.displayName}
               </span>
@@ -197,7 +290,16 @@ export default function SharePage() {
               <Tag style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {entry.tags.map((tag) => (
-                  <span key={tag} style={{ fontSize: "0.75rem", background: "var(--surface-hover)", color: "var(--text-secondary)", padding: "3px 10px", borderRadius: 999 }}>
+                  <span
+                    key={tag}
+                    style={{
+                      fontSize: "0.75rem",
+                      background: "var(--surface-hover)",
+                      color: "var(--text-secondary)",
+                      padding: "3px 10px",
+                      borderRadius: 999,
+                    }}
+                  >
                     {tag}
                   </span>
                 ))}
@@ -213,10 +315,22 @@ export default function SharePage() {
               {entry.images.map((img, i) => (
                 <div key={i}>
                   <a href={img.url} target="_blank" rel="noopener noreferrer">
-                    <img src={img.url} alt={img.caption || img.filename}
-                      style={{ width: "100%", height: 200, objectFit: "cover", borderRadius: "var(--radius-md)", display: "block", border: "1px solid var(--border)" }} />
+                    <img
+                      src={img.url}
+                      alt={img.caption || img.filename}
+                      style={{
+                        width: "100%",
+                        height: 200,
+                        objectFit: "cover",
+                        borderRadius: "var(--radius-md)",
+                        display: "block",
+                        border: "1px solid var(--border)",
+                      }}
+                    />
                   </a>
-                  {img.caption && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>{img.caption}</p>}
+                  {img.caption && (
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>{img.caption}</p>
+                  )}
                 </div>
               ))}
             </div>
@@ -227,7 +341,16 @@ export default function SharePage() {
         {/* Summary */}
         {entry.summary && (
           <div style={cardStyle}>
-            <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>
+            <h2
+              style={{
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                color: "var(--text-dim)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginBottom: 10,
+              }}
+            >
               Summary
             </h2>
             <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.7 }}>{entry.summary}</p>
@@ -237,7 +360,16 @@ export default function SharePage() {
         {/* Content */}
         {entry.content && (
           <div style={cardStyle}>
-            <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+            <h2
+              style={{
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                color: "var(--text-dim)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginBottom: 12,
+              }}
+            >
               Content
             </h2>
             <SharedMarkdownRenderer content={entry.content} linkedShares={entry.linkedShares || {}} />
@@ -252,7 +384,15 @@ export default function SharePage() {
 
 function Footer() {
   return (
-    <footer style={{ textAlign: "center", padding: "24px 20px", fontSize: "0.75rem", color: "var(--text-dim)", borderTop: "1px solid var(--border)" }}>
+    <footer
+      style={{
+        textAlign: "center",
+        padding: "24px 20px",
+        fontSize: "0.75rem",
+        color: "var(--text-dim)",
+        borderTop: "1px solid var(--border)",
+      }}
+    >
       <a href="/" style={{ color: "var(--text-dim)", textDecoration: "none" }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <BookOpen style={{ width: 14, height: 14 }} />

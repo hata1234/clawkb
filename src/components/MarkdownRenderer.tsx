@@ -34,10 +34,7 @@ export default function MarkdownRenderer({ content, resolvedTags }: Props) {
   if (tagMap.size === 0) {
     return (
       <div className="prose-kb">
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkInternalLinks]}
-          components={markdownComponents}
-        >
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkInternalLinks]} components={markdownComponents}>
           {content}
         </ReactMarkdown>
       </div>
@@ -54,17 +51,14 @@ export default function MarkdownRenderer({ content, resolvedTags }: Props) {
         if (resolved) {
           const TagComponent = getContentTagComponent(resolved.component);
           if (TagComponent) {
-            return (
-              <TagComponent
-                key={`tag-${i}`}
-                tag={resolved.tag}
-                value={resolved.value}
-                props={resolved.props}
-              />
-            );
+            return <TagComponent key={`tag-${i}`} tag={resolved.tag} value={resolved.value} props={resolved.props} />;
           }
           // Unknown component — render placeholder as-is
-          return <code key={`tag-${i}`} style={{ color: "var(--text-dim)" }}>{segment}</code>;
+          return (
+            <code key={`tag-${i}`} style={{ color: "var(--text-dim)" }}>
+              {segment}
+            </code>
+          );
         }
 
         // Regular markdown segment

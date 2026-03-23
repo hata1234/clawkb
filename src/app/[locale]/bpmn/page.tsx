@@ -63,15 +63,16 @@ export default function BpmnPage() {
             transition: "all 0.15s ease",
           }}
         >
-          {saving ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Save style={{ width: 14, height: 14 }} />}
+          {saving ? (
+            <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} />
+          ) : (
+            <Save style={{ width: 14, height: 14 }} />
+          )}
           {t("saveToEntry")}
         </button>
       </div>
       <div style={{ flex: 1, border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-        <BpmnEditor
-          onChange={(xml) => setCurrentXml(xml)}
-          height="100%"
-        />
+        <BpmnEditor onChange={(xml) => setCurrentXml(xml)} height="100%" />
       </div>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>

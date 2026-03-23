@@ -62,7 +62,11 @@ export async function GET(request: Request) {
       request.signal.addEventListener("abort", () => {
         closed = true;
         clearInterval(interval);
-        try { controller.close(); } catch { /* already closed */ }
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       });
     },
   });

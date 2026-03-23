@@ -17,13 +17,7 @@ interface EntryMentionPopupProps {
   activeIndex: number;
 }
 
-export default function EntryMentionPopup({
-  query,
-  position,
-  onSelect,
-  onClose,
-  activeIndex,
-}: EntryMentionPopupProps) {
+export default function EntryMentionPopup({ query, position, onSelect, onClose, activeIndex }: EntryMentionPopupProps) {
   const [results, setResults] = useState<MentionEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -44,7 +38,7 @@ export default function EntryMentionPopup({
           id: e.id,
           title: e.title,
           type: e.type,
-        }))
+        })),
       );
     } catch {
       // ignore
@@ -156,8 +150,7 @@ export default function EntryMentionPopup({
               gap: 10,
               width: "100%",
               padding: "8px 12px",
-              background:
-                i === activeIndex ? "var(--surface-hover)" : "transparent",
+              background: i === activeIndex ? "var(--surface-hover)" : "transparent",
               border: "none",
               borderRadius: "var(--radius-md)",
               cursor: "pointer",
@@ -165,13 +158,11 @@ export default function EntryMentionPopup({
               transition: "background 0.1s ease",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLElement).style.background =
-                "var(--surface-hover)";
+              (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)";
             }}
             onMouseLeave={(e) => {
               if (i !== activeIndex) {
-                (e.currentTarget as HTMLElement).style.background =
-                  "transparent";
+                (e.currentTarget as HTMLElement).style.background = "transparent";
               }
             }}
           >

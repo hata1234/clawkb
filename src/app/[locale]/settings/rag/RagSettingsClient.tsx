@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import { Check, X, Loader2, Bot, Wifi, WifiOff } from "lucide-react";
 import type { RagConfig } from "@/lib/settings";
 
@@ -80,16 +80,25 @@ async function saveSetting(key: string, value: unknown): Promise<boolean> {
 
 function Toast({ msg, ok }: { msg: string; ok: boolean }) {
   return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 999,
-      padding: "10px 16px", borderRadius: "var(--radius-md)",
-      background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
-      border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
-      color: ok ? "var(--success)" : "var(--danger)",
-      fontSize: "0.875rem", fontWeight: 500,
-      display: "flex", alignItems: "center", gap: 8,
-      boxShadow: "var(--shadow-lg)",
-    }}>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 999,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-md)",
+        background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
+        border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
+        color: ok ? "var(--success)" : "var(--danger)",
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        boxShadow: "var(--shadow-lg)",
+      }}
+    >
       {ok ? <Check style={{ width: 14, height: 14 }} /> : <X style={{ width: 14, height: 14 }} />}
       {msg}
     </div>
@@ -97,8 +106,8 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 }
 
 export default function RagSettingsClient({ initialSettings }: { initialSettings: RagConfig }) {
-  const t = useTranslations('RagSettings');
-  const tc = useTranslations('Common');
+  const t = useTranslations("RagSettings");
+  const tc = useTranslations("Common");
   const [cfg, setCfg] = useState<RagConfig>(initialSettings);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -114,7 +123,7 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
     setSaving(true);
     const ok = await saveSetting("rag", cfg);
     setSaving(false);
-    showToast(ok ? t('ragSettingsSaved') : tc('saveFailed'), ok);
+    showToast(ok ? t("ragSettingsSaved") : tc("saveFailed"), ok);
   }
 
   async function testConnection() {
@@ -122,17 +131,17 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
     setTestResult(null);
     try {
       const baseUrl = cfg.baseUrl.replace(/\/$/, "");
-      const testUrl = cfg.provider === "ollama"
-        ? `${baseUrl.replace(/\/v1\/?$/, "")}/api/tags`
-        : `${baseUrl}/models`;
+      const testUrl = cfg.provider === "ollama" ? `${baseUrl.replace(/\/v1\/?$/, "")}/api/tags` : `${baseUrl}/models`;
       const headers: Record<string, string> = {};
       if (cfg.apiKey) headers["Authorization"] = `Bearer ${cfg.apiKey}`;
       const res = await fetch(testUrl, { headers });
-      setTestResult(res.ok
-        ? { ok: true, message: t('connectedTo', { provider: cfg.provider, status: res.status }) }
-        : { ok: false, message: t('connectionFailed', { status: res.status, statusText: res.statusText }) });
+      setTestResult(
+        res.ok
+          ? { ok: true, message: t("connectedTo", { provider: cfg.provider, status: res.status }) }
+          : { ok: false, message: t("connectionFailed", { status: res.status, statusText: res.statusText }) },
+      );
     } catch {
-      setTestResult({ ok: false, message: t('networkError') });
+      setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);
     }
@@ -143,18 +152,20 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
       <div style={card}>
         <div style={sectionTitle}>
           <Bot style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          {t('ragAiAssistant')}
+          {t("ragAiAssistant")}
         </div>
         <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.5 }}>
-          {t('ragDescription')}
+          {t("ragDescription")}
         </p>
 
         {/* Provider */}
         <div style={{ marginBottom: 20 }}>
-          <label style={labelStyle}>{t('provider')}</label>
+          <label style={labelStyle}>{t("provider")}</label>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {(["spark-vllm", "openai", "ollama", "disabled"] as const).map(p => (
-              <button key={p} onClick={() => setCfg(c => ({ ...c, provider: p }))}
+            {(["spark-vllm", "openai", "ollama", "disabled"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setCfg((c) => ({ ...c, provider: p }))}
                 style={{
                   padding: "8px 16px",
                   borderRadius: "var(--radius-md)",
@@ -164,7 +175,8 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
                   fontSize: "0.875rem",
                   fontWeight: 500,
                   cursor: "pointer",
-                }}>
+                }}
+              >
                 {p === "spark-vllm" ? "Spark vLLM" : p.charAt(0).toUpperCase() + p.slice(1)}
               </button>
             ))}
@@ -174,55 +186,88 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
         {cfg.provider !== "disabled" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
             <div>
-              <label style={labelStyle}>{t('baseUrl')}</label>
-              <input value={cfg.baseUrl} onChange={e => setCfg(c => ({ ...c, baseUrl: e.target.value }))}
-                style={inputStyle} placeholder="http://localhost:8888/v1" />
+              <label style={labelStyle}>{t("baseUrl")}</label>
+              <input
+                value={cfg.baseUrl}
+                onChange={(e) => setCfg((c) => ({ ...c, baseUrl: e.target.value }))}
+                style={inputStyle}
+                placeholder="http://localhost:8888/v1"
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('model')}</label>
-              <input value={cfg.model} onChange={e => setCfg(c => ({ ...c, model: e.target.value }))}
-                style={inputStyle} placeholder="Qwen/Qwen3.5-35B-A3B-FP8" />
+              <label style={labelStyle}>{t("model")}</label>
+              <input
+                value={cfg.model}
+                onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
+                style={inputStyle}
+                placeholder="Qwen/Qwen3.5-35B-A3B-FP8"
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('apiKeyOptional')}</label>
-              <input type="password" value={cfg.apiKey} onChange={e => setCfg(c => ({ ...c, apiKey: e.target.value }))}
-                style={inputStyle} placeholder={t('apiKeyPlaceholder')} autoComplete="off" />
+              <label style={labelStyle}>{t("apiKeyOptional")}</label>
+              <input
+                type="password"
+                value={cfg.apiKey}
+                onChange={(e) => setCfg((c) => ({ ...c, apiKey: e.target.value }))}
+                style={inputStyle}
+                placeholder={t("apiKeyPlaceholder")}
+                autoComplete="off"
+              />
             </div>
             <div style={{ display: "flex", gap: 12 }}>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>{t('topK')}</label>
-                <input type="number" value={cfg.topK} onChange={e => setCfg(c => ({ ...c, topK: parseInt(e.target.value) || 5 }))}
-                  style={inputStyle} min={1} max={20} />
+                <label style={labelStyle}>{t("topK")}</label>
+                <input
+                  type="number"
+                  value={cfg.topK}
+                  onChange={(e) => setCfg((c) => ({ ...c, topK: parseInt(e.target.value) || 5 }))}
+                  style={inputStyle}
+                  min={1}
+                  max={20}
+                />
               </div>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>{t('maxTokens')}</label>
-                <input type="number" value={cfg.maxTokens} onChange={e => setCfg(c => ({ ...c, maxTokens: parseInt(e.target.value) || 1024 }))}
-                  style={inputStyle} min={256} max={8192} />
+                <label style={labelStyle}>{t("maxTokens")}</label>
+                <input
+                  type="number"
+                  value={cfg.maxTokens}
+                  onChange={(e) => setCfg((c) => ({ ...c, maxTokens: parseInt(e.target.value) || 1024 }))}
+                  style={inputStyle}
+                  min={256}
+                  max={8192}
+                />
               </div>
             </div>
             <div>
-              <label style={labelStyle}>{t('systemPrompt')}</label>
-              <textarea value={cfg.systemPrompt} onChange={e => setCfg(c => ({ ...c, systemPrompt: e.target.value }))}
-                style={{ ...inputStyle, minHeight: 100, resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }} />
+              <label style={labelStyle}>{t("systemPrompt")}</label>
+              <textarea
+                value={cfg.systemPrompt}
+                onChange={(e) => setCfg((c) => ({ ...c, systemPrompt: e.target.value }))}
+                style={{ ...inputStyle, minHeight: 100, resize: "vertical", fontFamily: "inherit", lineHeight: 1.5 }}
+              />
             </div>
           </div>
         )}
 
         {cfg.provider === "disabled" && (
-          <p style={{ fontSize: "0.875rem", color: "var(--text-dim)", marginBottom: 20 }}>
-            {t('ragDisabledMessage')}
-          </p>
+          <p style={{ fontSize: "0.875rem", color: "var(--text-dim)", marginBottom: 20 }}>{t("ragDisabledMessage")}</p>
         )}
 
         {testResult && (
-          <div style={{
-            padding: "10px 14px", borderRadius: "var(--radius-md)",
-            background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
-            border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
-            color: testResult.ok ? "var(--success)" : "var(--danger)",
-            fontSize: "0.8rem", marginBottom: 16,
-            display: "flex", alignItems: "center", gap: 8,
-          }}>
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: "var(--radius-md)",
+              background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+              border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+              color: testResult.ok ? "var(--success)" : "var(--danger)",
+              fontSize: "0.8rem",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
             {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
             {testResult.message}
           </div>
@@ -230,13 +275,21 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
 
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={save} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
-            {saving ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
-            {tc('save')}
+            {saving ? (
+              <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+            ) : (
+              <Check style={{ width: 14, height: 14 }} />
+            )}
+            {tc("save")}
           </button>
           {cfg.provider !== "disabled" && (
             <button onClick={testConnection} disabled={testing} style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}>
-              {testing ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Wifi style={{ width: 14, height: 14 }} />}
-              {tc('testConnection')}
+              {testing ? (
+                <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+              ) : (
+                <Wifi style={{ width: 14, height: 14 }} />
+              )}
+              {tc("testConnection")}
             </button>
           )}
         </div>

@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations('Dashboard');
-  const tCommon = await getTranslations('Common');
+  const t = await getTranslations("Dashboard");
+  const tCommon = await getTranslations("Common");
 
   const session = await auth();
   if (!session) redirect("/login");
@@ -26,15 +26,15 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const accessibleIds = await getAccessibleCollectionIds(userId, isAdmin);
 
   // Build ACL where clause for entries
-  const aclWhere = accessibleIds !== null
-    ? { collections: { some: { id: { in: accessibleIds } } } }
-    : {};
+  const aclWhere = accessibleIds !== null ? { collections: { some: { id: { in: accessibleIds } } } } : {};
 
   // Build collection query with ACL
   async function queryCollections() {
     if (accessibleIds === null) {
       // Admin: show all
-      return prisma.$queryRaw<{ id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]>`
+      return prisma.$queryRaw<
+        { id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]
+      >`
         SELECT c.id, c.name, c.color, c.icon, count(ec."B") as entry_count
         FROM collections c
         LEFT JOIN "_EntryCollections" ec ON ec."A" = c.id
@@ -44,7 +44,9 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
       `;
     } else {
       // Non-admin: only accessible collections
-      return prisma.$queryRaw<{ id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]>`
+      return prisma.$queryRaw<
+        { id: number; name: string; color: string | null; icon: string | null; entry_count: bigint }[]
+      >`
         SELECT c.id, c.name, c.color, c.icon, count(ec."B") as entry_count
         FROM collections c
         LEFT JOIN "_EntryCollections" ec ON ec."A" = c.id
@@ -59,7 +61,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const [total, byStatus, bySource, byCollection, thisWeek, recent] = await Promise.all([
     prisma.entry.count({ where: aclWhere }),
     prisma.entry.groupBy({ by: ["status"], _count: { id: true }, where: aclWhere }),
-    prisma.entry.groupBy({ by: ["source"], _count: { id: true }, orderBy: { _count: { id: "desc" } }, where: aclWhere }),
+    prisma.entry.groupBy({
+      by: ["source"],
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+      where: aclWhere,
+    }),
     queryCollections(),
     prisma.entry.count({
       where: { ...aclWhere, createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } },
@@ -74,32 +81,44 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
 
   const newCount = byStatus.find((s) => s.status === "new")?._count.id || 0;
   const interestedCount = byStatus.find((s) => s.status === "interested")?._count.id || 0;
-  
-  const allCollections = byCollection.map(c => ({
+
+  const allCollections = byCollection.map((c) => ({
     ...c,
     entry_count: Number(c.entry_count),
   }));
   const collections = allCollections.slice(0, 10);
   const topSources = bySource.slice(0, 10);
-  const maxCollectionCount = Math.max(...collections.map(c => c.entry_count), 1);
-  const maxSourceCount = Math.max(...topSources.map(s => s._count.id), 1);
+  const maxCollectionCount = Math.max(...collections.map((c) => c.entry_count), 1);
+  const maxSourceCount = Math.max(...topSources.map((s) => s._count.id), 1);
 
   // Default palette for collections without a custom color
   const defaultPalette = [
-    "#C9A96E", "#60A5FA", "#4ADE80", "#A78BFA", "#F97316",
-    "#F472B6", "#FBBF24", "#34D399", "#818CF8", "#FB923C",
-    "#E879F9", "#38BDF8", "#A3E635", "#FDA4AF", "#71717A",
+    "#C9A96E",
+    "#60A5FA",
+    "#4ADE80",
+    "#A78BFA",
+    "#F97316",
+    "#F472B6",
+    "#FBBF24",
+    "#34D399",
+    "#818CF8",
+    "#FB923C",
+    "#E879F9",
+    "#38BDF8",
+    "#A3E635",
+    "#FDA4AF",
+    "#71717A",
   ];
 
   const sourceColors: Record<string, string> = {
     "pod-daily": "#C9A96E",
-    "moltbook": "#F472B6",
+    moltbook: "#F472B6",
     "idea-backlog": "#4ADE80",
     "nightly-recon": "#A78BFA",
     "stock-daily": "#60A5FA",
-    "reddit": "#F97316",
-    "web": "#FBBF24",
-    "manual": "#71717A",
+    reddit: "#F97316",
+    web: "#FBBF24",
+    manual: "#71717A",
   };
 
   function collectionColor(c: { color: string | null }, idx: number): string {
@@ -111,31 +130,58 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
       {/* Header */}
       <div className="dash-header animate-fade-in-up">
         <div>
-          <p className="dash-label">{t('label')}</p>
-          <h1 className="dash-title">{t('title')}</h1>
+          <p className="dash-label">{t("label")}</p>
+          <h1 className="dash-title">{t("title")}</h1>
         </div>
         <Link href="/entries/new" className="dash-new-btn">
-          {t('newEntry')}
+          {t("newEntry")}
         </Link>
       </div>
 
       {/* Stats */}
       <div className="dash-stats-grid">
-        <StatsCard title={t('totalEntries')} value={total} subtitle={t('allTime')} iconName="FileText" className="animate-fade-in-up stagger-1" />
-        <StatsCard title={t('thisWeek')} value={thisWeek} subtitle={t('newEntries')} iconName="CalendarDays" className="animate-fade-in-up stagger-2" />
-        <StatsCard title={t('awaitingReview')} value={newCount} subtitle={t('statusNew')} iconName="TrendingUp" className="animate-fade-in-up stagger-3" />
-        <StatsCard title={t('interested')} value={interestedCount} subtitle={t('wantToPursue')} iconName="Sparkles" className="animate-fade-in-up stagger-4" />
+        <StatsCard
+          title={t("totalEntries")}
+          value={total}
+          subtitle={t("allTime")}
+          iconName="FileText"
+          className="animate-fade-in-up stagger-1"
+        />
+        <StatsCard
+          title={t("thisWeek")}
+          value={thisWeek}
+          subtitle={t("newEntries")}
+          iconName="CalendarDays"
+          className="animate-fade-in-up stagger-2"
+        />
+        <StatsCard
+          title={t("awaitingReview")}
+          value={newCount}
+          subtitle={t("statusNew")}
+          iconName="TrendingUp"
+          className="animate-fade-in-up stagger-3"
+        />
+        <StatsCard
+          title={t("interested")}
+          value={interestedCount}
+          subtitle={t("wantToPursue")}
+          iconName="Sparkles"
+          className="animate-fade-in-up stagger-4"
+        />
       </div>
 
       {/* Charts Row */}
       <div className="dash-charts-row">
         {/* By Collection Chart */}
         <div className="dash-chart-card animate-fade-in-up stagger-2">
-          <h3 className="dash-chart-title">{t('byCollection')}</h3>
+          <h3 className="dash-chart-title">{t("byCollection")}</h3>
           <div className="dash-bar-chart">
             {collections.map((c, i) => (
               <Link key={c.id} href={`/entries?collectionId=${c.id}`} className="dash-bar-row">
-                <span className="dash-bar-label">{c.icon ? `${c.icon} ` : ""}{c.name}</span>
+                <span className="dash-bar-label">
+                  {c.icon ? `${c.icon} ` : ""}
+                  {c.name}
+                </span>
                 <div className="dash-bar-track">
                   <div
                     className="dash-bar-fill"
@@ -153,7 +199,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
 
         {/* By Source Chart */}
         <div className="dash-chart-card animate-fade-in-up stagger-3">
-          <h3 className="dash-chart-title">{t('bySource')}</h3>
+          <h3 className="dash-chart-title">{t("bySource")}</h3>
           <div className="dash-bar-chart">
             {topSources.map((s) => (
               <Link key={s.source} href={`/entries?source=${s.source}`} className="dash-bar-row">
@@ -183,12 +229,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
               href={`/entries?collectionId=${c.id}`}
               className={`dash-type-card card-hover animate-fade-in-up stagger-${Math.min(i + 1, 5)}`}
             >
-              <div
-                className="type-bar"
-                style={{ top: 8, bottom: 8, background: collectionColor(c, i) }}
-              />
+              <div className="type-bar" style={{ top: 8, bottom: 8, background: collectionColor(c, i) }} />
               <div style={{ paddingLeft: 4 }}>
-                <p className="dash-type-label">{c.icon ? `${c.icon} ` : ""}{c.name}</p>
+                <p className="dash-type-label">
+                  {c.icon ? `${c.icon} ` : ""}
+                  {c.name}
+                </p>
                 <p className="dash-type-value">{c.entry_count}</p>
               </div>
             </Link>
@@ -199,15 +245,19 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
       {/* Recent Entries */}
       <div>
         <div className="dash-section-header animate-fade-in-up">
-          <h2 className="dash-section-title">{t('recentEntries')}</h2>
-          <Link href="/entries" className="dash-view-all">{tCommon('viewAll')}</Link>
+          <h2 className="dash-section-title">{t("recentEntries")}</h2>
+          <Link href="/entries" className="dash-view-all">
+            {tCommon("viewAll")}
+          </Link>
         </div>
         {recent.length === 0 ? (
           <div className="dash-empty animate-fade-in">
             <div className="dash-empty-icon">📭</div>
-            <p className="dash-empty-title">{t('noEntriesYet')}</p>
-            <p className="dash-empty-sub">{t('startBuilding')}</p>
-            <Link href="/entries/new" className="dash-empty-link">{t('createFirstEntry')}</Link>
+            <p className="dash-empty-title">{t("noEntriesYet")}</p>
+            <p className="dash-empty-sub">{t("startBuilding")}</p>
+            <Link href="/entries/new" className="dash-empty-link">
+              {t("createFirstEntry")}
+            </Link>
           </div>
         ) : (
           <div className="dash-entries-list">

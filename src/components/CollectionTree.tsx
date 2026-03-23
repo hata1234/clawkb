@@ -42,7 +42,7 @@ function CollectionNode({
   onSelect: (id: number) => void;
   onAction: (action: string, collection: Collection) => void;
 }) {
-  const t = useTranslations('Collections');
+  const t = useTranslations("Collections");
   const [expanded, setExpanded] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const hasChildren = node.children.length > 0;
@@ -58,15 +58,27 @@ function CollectionNode({
         {hasChildren && !sidebarCollapsed ? (
           <button
             className="collection-expand-btn"
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
           >
-            {expanded ? <ChevronDown style={{ width: 14, height: 14 }} /> : <ChevronRight style={{ width: 14, height: 14 }} />}
+            {expanded ? (
+              <ChevronDown style={{ width: 14, height: 14 }} />
+            ) : (
+              <ChevronRight style={{ width: 14, height: 14 }} />
+            )}
           </button>
         ) : (
           <span style={{ width: 14, flexShrink: 0 }} />
         )}
         <span className="collection-icon" style={node.color ? { color: node.color } : undefined}>
-          {node.icon || (expanded && hasChildren ? <FolderOpen style={{ width: 15, height: 15 }} /> : <Folder style={{ width: 15, height: 15 }} />)}
+          {node.icon ||
+            (expanded && hasChildren ? (
+              <FolderOpen style={{ width: 15, height: 15 }} />
+            ) : (
+              <Folder style={{ width: 15, height: 15 }} />
+            ))}
         </span>
         {!sidebarCollapsed && (
           <>
@@ -75,7 +87,10 @@ function CollectionNode({
             <div style={{ position: "relative" }}>
               <button
                 className="collection-menu-btn"
-                onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
               >
                 <MoreHorizontal style={{ width: 14, height: 14 }} />
               </button>
@@ -83,14 +98,33 @@ function CollectionNode({
                 <>
                   <div style={{ position: "fixed", inset: 0, zIndex: 60 }} onClick={() => setShowMenu(false)} />
                   <div className="collection-menu">
-                    <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onAction("rename", node); }}>
-                      <Pencil style={{ width: 12, height: 12 }} /> {t('rename')}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onAction("rename", node);
+                      }}
+                    >
+                      <Pencil style={{ width: 12, height: 12 }} /> {t("rename")}
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onAction("add-child", node); }}>
-                      <FolderPlus style={{ width: 12, height: 12 }} /> {t('addSubCollection')}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onAction("add-child", node);
+                      }}
+                    >
+                      <FolderPlus style={{ width: 12, height: 12 }} /> {t("addSubCollection")}
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); setShowMenu(false); onAction("delete", node); }} className="collection-menu-danger">
-                      <Trash2 style={{ width: 12, height: 12 }} /> {t('delete')}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onAction("delete", node);
+                      }}
+                      className="collection-menu-danger"
+                    >
+                      <Trash2 style={{ width: 12, height: 12 }} /> {t("delete")}
                     </button>
                   </div>
                 </>
@@ -119,8 +153,8 @@ function CollectionNode({
 }
 
 export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
-  const t = useTranslations('Collections');
-  const tc = useTranslations('Common');
+  const t = useTranslations("Collections");
+  const tc = useTranslations("Common");
   const [collections, setCollections] = useState<Collection[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [createName, setCreateName] = useState("");
@@ -131,18 +165,18 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const activeCollectionId = pathname === "/entries"
-    ? parseInt(searchParams.get("collectionId") || "0") || null
-    : null;
+  const activeCollectionId = pathname === "/entries" ? parseInt(searchParams.get("collectionId") || "0") || null : null;
 
   const fetchCollections = () => {
     fetch("/api/collections")
-      .then((r) => r.ok ? r.json() : { collections: [] })
+      .then((r) => (r.ok ? r.json() : { collections: [] }))
       .then((data) => setCollections(data.collections || []))
       .catch(() => {});
   };
 
-  useEffect(() => { fetchCollections(); }, []);
+  useEffect(() => {
+    fetchCollections();
+  }, []);
 
   const handleSelect = (id: number) => {
     if (activeCollectionId === id) {
@@ -176,7 +210,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
       setCreateName("");
       setShowCreate(true);
     } else if (action === "delete") {
-      if (confirm(t('deleteConfirm', { name: collection.name }))) {
+      if (confirm(t("deleteConfirm", { name: collection.name }))) {
         await fetch(`/api/collections/${collection.id}`, { method: "DELETE" });
         fetchCollections();
       }
@@ -197,7 +231,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
 
   if (collapsed) {
     return (
-      <div className="collection-tree-collapsed" title={t('title')}>
+      <div className="collection-tree-collapsed" title={t("title")}>
         <Folder style={{ width: 18, height: 18, color: "var(--text-secondary)" }} />
         <style>{collectionStyles}</style>
       </div>
@@ -207,8 +241,15 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
   return (
     <div className="collection-tree">
       <div className="collection-tree-header">
-        <span className="collection-tree-label">{t('title')}</span>
-        <button className="collection-tree-add" onClick={() => { setShowCreate(!showCreate); setCreateParentId(null); }} title={t('newCollection')}>
+        <span className="collection-tree-label">{t("title")}</span>
+        <button
+          className="collection-tree-add"
+          onClick={() => {
+            setShowCreate(!showCreate);
+            setCreateParentId(null);
+          }}
+          title={t("newCollection")}
+        >
           <Plus style={{ width: 14, height: 14 }} />
         </button>
       </div>
@@ -219,12 +260,17 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
           <input
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleRename(); if (e.key === "Escape") setEditingId(null); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRename();
+              if (e.key === "Escape") setEditingId(null);
+            }}
             className="collection-inline-input"
             autoFocus
-            placeholder={t('collectionName')}
+            placeholder={t("collectionName")}
           />
-          <button onClick={handleRename} className="collection-inline-btn">{tc('save')}</button>
+          <button onClick={handleRename} className="collection-inline-btn">
+            {tc("save")}
+          </button>
         </div>
       )}
 
@@ -234,12 +280,17 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
           <input
             value={createName}
             onChange={(e) => setCreateName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleCreate(); if (e.key === "Escape") setShowCreate(false); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreate();
+              if (e.key === "Escape") setShowCreate(false);
+            }}
             className="collection-inline-input"
             autoFocus
-            placeholder={createParentId ? t('subCollectionName') : t('collectionName')}
+            placeholder={createParentId ? t("subCollectionName") : t("collectionName")}
           />
-          <button onClick={handleCreate} className="collection-inline-btn">{tc('add')}</button>
+          <button onClick={handleCreate} className="collection-inline-btn">
+            {tc("add")}
+          </button>
         </div>
       )}
 
@@ -255,9 +306,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
             onAction={handleAction}
           />
         ))}
-        {collections.length === 0 && (
-          <p className="collection-empty">{t('noCollections')}</p>
-        )}
+        {collections.length === 0 && <p className="collection-empty">{t("noCollections")}</p>}
       </div>
 
       <style>{collectionStyles}</style>

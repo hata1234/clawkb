@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import { Download, FileText, FileSpreadsheet, FileCode, Loader2, ChevronDown, X, Search } from "lucide-react";
 
 /* ─── types ─── */
@@ -57,7 +57,7 @@ function Combobox({
   options: OptionItem[];
   placeholder: string;
 }) {
-  const t = useTranslations('Export');
+  const t = useTranslations("Export");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
@@ -71,16 +71,17 @@ function Combobox({
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const filtered = options.filter(
-    (o) => o.value.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = options.filter((o) => o.value.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
       {/* trigger */}
       <button
         type="button"
-        onClick={() => { setOpen((v) => !v); setTimeout(() => inputRef.current?.focus(), 50); }}
+        onClick={() => {
+          setOpen((v) => !v);
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }}
         style={{
           width: "100%",
           display: "flex",
@@ -105,42 +106,70 @@ function Combobox({
         <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
           {value && (
             <span
-              onClick={(e) => { e.stopPropagation(); onChange(""); setSearch(""); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange("");
+                setSearch("");
+              }}
               style={{ display: "flex", padding: 2, borderRadius: 4, cursor: "pointer" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "transparent"; }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "transparent";
+              }}
             >
               <X style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
             </span>
           )}
-          <ChevronDown style={{ width: 14, height: 14, color: "var(--text-muted)", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.15s ease" }} />
+          <ChevronDown
+            style={{
+              width: 14,
+              height: 14,
+              color: "var(--text-muted)",
+              transform: open ? "rotate(180deg)" : "none",
+              transition: "transform 0.15s ease",
+            }}
+          />
         </span>
       </button>
 
       {/* dropdown */}
       {open && (
-        <div style={{
-          position: "absolute",
-          top: "100%",
-          left: 0,
-          right: 0,
-          marginTop: 4,
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-md)",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-          zIndex: 50,
-          overflow: "hidden",
-        }}>
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            marginTop: 4,
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+            zIndex: 50,
+            overflow: "hidden",
+          }}
+        >
           {/* search input */}
           <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--border)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "6px 10px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                padding: "6px 10px",
+              }}
+            >
               <Search style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
               <input
                 ref={inputRef}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('search')}
+                placeholder={t("search")}
                 style={{
                   flex: 1,
                   background: "none",
@@ -158,7 +187,11 @@ function Combobox({
           <div style={{ maxHeight: 200, overflowY: "auto" }}>
             {/* All option */}
             <button
-              onClick={() => { onChange(""); setSearch(""); setOpen(false); }}
+              onClick={() => {
+                onChange("");
+                setSearch("");
+                setOpen(false);
+              }}
               style={{
                 display: "flex",
                 width: "100%",
@@ -174,21 +207,29 @@ function Combobox({
                 cursor: "pointer",
                 textAlign: "left",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "none"; }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = "none";
+              }}
             >
-              {t('all')}
+              {t("all")}
             </button>
 
             {filtered.length === 0 ? (
               <div style={{ padding: "12px 14px", fontSize: "0.82rem", color: "var(--text-dim)" }}>
-                {t('noMatches')}
+                {t("noMatches")}
               </div>
             ) : (
               filtered.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => { onChange(opt.value); setSearch(""); setOpen(false); }}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setSearch("");
+                    setOpen(false);
+                  }}
                   style={{
                     display: "flex",
                     width: "100%",
@@ -204,11 +245,17 @@ function Combobox({
                     cursor: "pointer",
                     textAlign: "left",
                   }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = "none"; }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background = "none";
+                  }}
                 >
                   <span>{opt.value}</span>
-                  <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>{opt.count}</span>
+                  <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
+                    {opt.count}
+                  </span>
                 </button>
               ))
             )}
@@ -222,8 +269,8 @@ function Combobox({
 /* ─── ExportClient ─── */
 
 export default function ExportClient() {
-  const t = useTranslations('Export');
-  const tc = useTranslations('Common');
+  const t = useTranslations("Export");
+  const tc = useTranslations("Common");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
   const [source, setSource] = useState("");
@@ -243,7 +290,7 @@ export default function ExportClient() {
   // Load filter options once
   useEffect(() => {
     fetch("/api/plugins/export/options")
-      .then((r) => r.ok ? r.json() : null)
+      .then((r) => (r.ok ? r.json() : null))
       .then((data) => setOptions(data))
       .catch(() => {});
   }, []);
@@ -334,46 +381,63 @@ export default function ExportClient() {
     <div style={{ maxWidth: 720 }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
-          {t('tools')}
+        <p
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--text-dim)",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: 4,
+          }}
+        >
+          {t("tools")}
         </p>
         <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>
-          {t('export')}
+          {t("export")}
         </h1>
-        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: 2 }}>
-          {t('exportDescription')}
-        </p>
+        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginTop: 2 }}>{t("exportDescription")}</p>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* Filters */}
         <div style={sectionStyle}>
           <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t('filters')}
+            {t("filters")}
           </h2>
           <div className="export-filter-grid">
             <div>
-              <label style={labelStyle}>{t('type')}</label>
-              <Combobox value={type} onChange={setType} options={options?.types || []} placeholder={t('allTypes')} />
+              <label style={labelStyle}>{t("type")}</label>
+              <Combobox value={type} onChange={setType} options={options?.types || []} placeholder={t("allTypes")} />
             </div>
             <div>
-              <label style={labelStyle}>{t('status')}</label>
-              <Combobox value={status} onChange={setStatus} options={options?.statuses || []} placeholder={t('allStatuses')} />
+              <label style={labelStyle}>{t("status")}</label>
+              <Combobox
+                value={status}
+                onChange={setStatus}
+                options={options?.statuses || []}
+                placeholder={t("allStatuses")}
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('source')}</label>
-              <Combobox value={source} onChange={setSource} options={options?.sources || []} placeholder={t('allSources')} />
+              <label style={labelStyle}>{t("source")}</label>
+              <Combobox
+                value={source}
+                onChange={setSource}
+                options={options?.sources || []}
+                placeholder={t("allSources")}
+              />
             </div>
             <div>
-              <label style={labelStyle}>{t('tag')}</label>
-              <Combobox value={tag} onChange={setTag} options={options?.tags || []} placeholder={t('allTags')} />
+              <label style={labelStyle}>{t("tag")}</label>
+              <Combobox value={tag} onChange={setTag} options={options?.tags || []} placeholder={t("allTags")} />
             </div>
             <div>
-              <label style={labelStyle}>{t('from')}</label>
+              <label style={labelStyle}>{t("from")}</label>
               <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} style={dateInputStyle} />
             </div>
             <div>
-              <label style={labelStyle}>{t('to')}</label>
+              <label style={labelStyle}>{t("to")}</label>
               <input type="date" value={to} onChange={(e) => setTo(e.target.value)} style={dateInputStyle} />
             </div>
           </div>
@@ -382,16 +446,26 @@ export default function ExportClient() {
         {/* Options */}
         <div style={sectionStyle}>
           <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t('options')}
+            {t("options")}
           </h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             {[
-              { label: t('content'), checked: includeContent, set: setIncludeContent },
-              { label: t('comments'), checked: includeComments, set: setIncludeComments },
-              { label: t('images'), checked: includeImages, set: setIncludeImages },
-              { label: t('metadata'), checked: includeMetadata, set: setIncludeMetadata },
+              { label: t("content"), checked: includeContent, set: setIncludeContent },
+              { label: t("comments"), checked: includeComments, set: setIncludeComments },
+              { label: t("images"), checked: includeImages, set: setIncludeImages },
+              { label: t("metadata"), checked: includeMetadata, set: setIncludeMetadata },
             ].map((opt) => (
-              <label key={opt.label} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+              <label
+                key={opt.label}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  color: "var(--text-secondary)",
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={opt.checked}
@@ -406,9 +480,7 @@ export default function ExportClient() {
 
         {/* Format */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t('format')}
-          </h2>
+          <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>{t("format")}</h2>
           <div style={{ display: "flex", gap: 8 }}>
             {formats.map((f) => {
               const Icon = f.icon;
@@ -445,26 +517,56 @@ export default function ExportClient() {
         {/* Preview */}
         <div style={sectionStyle}>
           <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t('preview')}
+            {t("preview")}
           </h2>
           {loading ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-muted)", fontSize: "0.875rem" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                color: "var(--text-muted)",
+                fontSize: "0.875rem",
+              }}
+            >
               <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
-              {tc('loading')}
+              {tc("loading")}
             </div>
           ) : stats ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ fontSize: "1.5rem", fontWeight: 600, color: "var(--text)" }}>
-                {stats.count} <span style={{ fontSize: "0.875rem", fontWeight: 400, color: "var(--text-muted)" }}>{t('entries')}</span>
+                {stats.count}{" "}
+                <span style={{ fontSize: "0.875rem", fontWeight: 400, color: "var(--text-muted)" }}>
+                  {t("entries")}
+                </span>
               </div>
               {Object.keys(stats.types).length > 0 && (
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-                    {t('byType')}
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-dim)",
+                      fontWeight: 600,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t("byType")}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {Object.entries(stats.types).map(([k, v]) => (
-                      <span key={k} style={{ fontSize: "0.8rem", color: "var(--text-secondary)", background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "4px 10px" }}>
+                      <span
+                        key={k}
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "var(--text-secondary)",
+                          background: "var(--background)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "var(--radius-md)",
+                          padding: "4px 10px",
+                        }}
+                      >
                         {k} <span style={{ color: "var(--text-muted)" }}>{v}</span>
                       </span>
                     ))}
@@ -473,12 +575,31 @@ export default function ExportClient() {
               )}
               {Object.keys(stats.statuses).length > 0 && (
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-                    {t('byStatus')}
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-dim)",
+                      fontWeight: 600,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t("byStatus")}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {Object.entries(stats.statuses).map(([k, v]) => (
-                      <span key={k} style={{ fontSize: "0.8rem", color: "var(--text-secondary)", background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "4px 10px" }}>
+                      <span
+                        key={k}
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "var(--text-secondary)",
+                          background: "var(--background)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "var(--radius-md)",
+                          padding: "4px 10px",
+                        }}
+                      >
                         {k} <span style={{ color: "var(--text-muted)" }}>{v}</span>
                       </span>
                     ))}
@@ -487,12 +608,31 @@ export default function ExportClient() {
               )}
               {Object.keys(stats.sources).length > 0 && (
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6 }}>
-                    {t('bySource')}
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-dim)",
+                      fontWeight: 600,
+                      letterSpacing: "0.08em",
+                      textTransform: "uppercase",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t("bySource")}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     {Object.entries(stats.sources).map(([k, v]) => (
-                      <span key={k} style={{ fontSize: "0.8rem", color: "var(--text-secondary)", background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "4px 10px" }}>
+                      <span
+                        key={k}
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "var(--text-secondary)",
+                          background: "var(--background)",
+                          border: "1px solid var(--border)",
+                          borderRadius: "var(--radius-md)",
+                          padding: "4px 10px",
+                        }}
+                      >
                         {k} <span style={{ color: "var(--text-muted)" }}>{v}</span>
                       </span>
                     ))}
@@ -501,7 +641,7 @@ export default function ExportClient() {
               )}
             </div>
           ) : (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>{t('noDataAvailable')}</p>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>{t("noDataAvailable")}</p>
           )}
         </div>
 
@@ -530,7 +670,7 @@ export default function ExportClient() {
           ) : (
             <Download style={{ width: 18, height: 18 }} />
           )}
-          {exporting ? t('exporting') : t('exportButton', { count: stats?.count || 0, format: format.toUpperCase() })}
+          {exporting ? t("exporting") : t("exportButton", { count: stats?.count || 0, format: format.toUpperCase() })}
         </button>
       </div>
 

@@ -26,9 +26,9 @@ export async function GET(request: Request) {
     }),
   ]);
 
-  const byType = Object.fromEntries(byTypeRaw.map(r => [r.type, r._count]));
-  const byStatus = Object.fromEntries(byStatusRaw.map(r => [r.status, r._count]));
-  const bySource = Object.fromEntries(bySourceRaw.map(r => [r.source, r._count]));
+  const byType = Object.fromEntries(byTypeRaw.map((r) => [r.type, r._count]));
+  const byStatus = Object.fromEntries(byStatusRaw.map((r) => [r.status, r._count]));
+  const bySource = Object.fromEntries(bySourceRaw.map((r) => [r.source, r._count]));
 
   // Aggregate recent by day (last 14 days)
   const dayMap: Record<string, number> = {};

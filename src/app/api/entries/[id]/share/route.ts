@@ -26,9 +26,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const token = crypto.randomBytes(32).toString("hex");
   const passwordHash = password ? await bcrypt.hash(password, 10) : null;
-  const expiresAt = expiresInHours
-    ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000)
-    : null;
+  const expiresAt = expiresInHours ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000) : null;
 
   // Create main share link
   const shareLink = await prisma.shareLink.create({
@@ -60,7 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           createdById: principal.id!,
           parentId: shareLink.id,
           passwordHash, // inherit same password
-          expiresAt,    // inherit same expiry
+          expiresAt, // inherit same expiry
           maxViews: null,
         },
       });
@@ -123,6 +121,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
         title: c.entry.title,
         token: c.token,
       })),
-    }))
+    })),
   );
 }

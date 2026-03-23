@@ -29,7 +29,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   });
   if (!entry) return NextResponse.json({ error: "Entry not found" }, { status: 404 });
 
-  const allowed = await canEditEntry(principal.id, { authorId: entry.authorId, collections: entry.collections }, principal.isAdmin);
+  const allowed = await canEditEntry(
+    principal.id,
+    { authorId: entry.authorId, collections: entry.collections },
+    principal.isAdmin,
+  );
   if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
@@ -61,7 +65,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   });
   if (!entry) return NextResponse.json({ error: "Entry not found" }, { status: 404 });
 
-  const allowed = await canEditEntry(principal.id, { authorId: entry.authorId, collections: entry.collections }, principal.isAdmin);
+  const allowed = await canEditEntry(
+    principal.id,
+    { authorId: entry.authorId, collections: entry.collections },
+    principal.isAdmin,
+  );
   if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   await prisma.entryFlow.delete({ where: { id: parseInt(flowId) } });

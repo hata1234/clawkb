@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
-import { redirect } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { redirect } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import SettingsLayout from "@/components/SettingsLayout";

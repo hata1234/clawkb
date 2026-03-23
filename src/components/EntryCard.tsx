@@ -68,26 +68,30 @@ function CardElementIcon({ el }: { el: CardElement }) {
 }
 
 function CardElementIndicator({ el }: { el: CardElement }) {
-  return (
-    <span
-      className="card-el-indicator"
-      style={{ background: el.color || "var(--accent)" }}
-      title={el.tooltip}
-    />
-  );
+  return <span className="card-el-indicator" style={{ background: el.color || "var(--accent)" }} title={el.tooltip} />;
 }
 
 function renderCardElement(el: CardElement) {
   switch (el.type) {
-    case "badge": return <CardElementBadge key={el.id} el={el} />;
-    case "icon": return <CardElementIcon key={el.id} el={el} />;
-    case "indicator": return <CardElementIndicator key={el.id} el={el} />;
-    default: return null;
+    case "badge":
+      return <CardElementBadge key={el.id} el={el} />;
+    case "icon":
+      return <CardElementIcon key={el.id} el={el} />;
+    case "indicator":
+      return <CardElementIndicator key={el.id} el={el} />;
+    default:
+      return null;
   }
 }
 
-export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; onToggleFavorite?: (id: number) => void }) {
-  const t = useTranslations('EntryCard');
+export default function EntryCard({
+  entry,
+  onToggleFavorite,
+}: {
+  entry: Entry;
+  onToggleFavorite?: (id: number) => void;
+}) {
+  const t = useTranslations("EntryCard");
   const topRight = entry.cardElements?.filter((el) => el.position === "top-right") || [];
   const bottomLeft = entry.cardElements?.filter((el) => el.position === "bottom-left") || [];
   const metaRow = entry.cardElements?.filter((el) => el.position === "meta-row") || [];
@@ -95,40 +99,47 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
   return (
     <Link href={`/entries/${entry.id}`} style={{ textDecoration: "none" }}>
       <div className="entry-card card-hover">
-        {topRight.length > 0 && (
-          <div className="card-el-top-right">
-            {topRight.map((el) => renderCardElement(el))}
-          </div>
-        )}
+        {topRight.length > 0 && <div className="card-el-top-right">{topRight.map((el) => renderCardElement(el))}</div>}
         {onToggleFavorite && (
           <button
             className="entry-card-star"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleFavorite(entry.id); }}
-            title={entry.isFavorited ? t('removeFromFavorites') : t('addToFavorites')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite(entry.id);
+            }}
+            title={entry.isFavorited ? t("removeFromFavorites") : t("addToFavorites")}
           >
-            <Star style={{ width: 16, height: 16, fill: entry.isFavorited ? "var(--accent)" : "none", color: entry.isFavorited ? "var(--accent)" : "var(--text-dim)" }} />
+            <Star
+              style={{
+                width: 16,
+                height: 16,
+                fill: entry.isFavorited ? "var(--accent)" : "none",
+                color: entry.isFavorited ? "var(--accent)" : "var(--text-dim)",
+              }}
+            />
           </button>
         )}
         {entry.images && entry.images.length > 0 && (
-          <img
-            src={entry.images[0].url}
-            alt=""
-            className="entry-card-thumb"
-          />
+          <img src={entry.images[0].url} alt="" className="entry-card-thumb" />
         )}
         <div className="entry-card-inner">
           <div className="entry-badges">
             <StatusBadge status={entry.status} />
-            {entry.collections && entry.collections.length > 0 && entry.collections.slice(0, 2).map((col) => (
-              <span key={col.id} className="entry-collection-pill" style={col.color ? { borderColor: col.color, color: col.color } : undefined}>
-                {col.icon || "📁"} {col.name}
-              </span>
-            ))}
+            {entry.collections &&
+              entry.collections.length > 0 &&
+              entry.collections.slice(0, 2).map((col) => (
+                <span
+                  key={col.id}
+                  className="entry-collection-pill"
+                  style={col.color ? { borderColor: col.color, color: col.color } : undefined}
+                >
+                  {col.icon || "📁"} {col.name}
+                </span>
+              ))}
           </div>
           <h3 className="entry-title">{entry.title}</h3>
-          {entry.summary && (
-            <p className="entry-summary">{entry.summary}</p>
-          )}
+          {entry.summary && <p className="entry-summary">{entry.summary}</p>}
           <div className="entry-meta">
             {entry.author && (
               <>
@@ -136,7 +147,9 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
                   {entry.author.avatarUrl ? (
                     <img src={entry.author.avatarUrl} alt="" className="entry-author-avatar-image" />
                   ) : (
-                    <span className="entry-author-avatar-fallback">{entry.author.displayName.charAt(0).toUpperCase()}</span>
+                    <span className="entry-author-avatar-fallback">
+                      {entry.author.displayName.charAt(0).toUpperCase()}
+                    </span>
                   )}
                   <span className="entry-meta-item">{entry.author.displayName}</span>
                 </span>
@@ -157,7 +170,7 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
             {entry.collections && entry.collections.length > 2 && (
               <>
                 <span className="entry-meta-dot">·</span>
-                <span className="entry-meta-item">{t('moreCollections', { count: entry.collections.length - 2 })}</span>
+                <span className="entry-meta-item">{t("moreCollections", { count: entry.collections.length - 2 })}</span>
               </>
             )}
             {entry.tags.length > 0 && (
@@ -165,26 +178,25 @@ export default function EntryCard({ entry, onToggleFavorite }: { entry: Entry; o
                 <span className="entry-meta-dot">·</span>
                 <div className="entry-tags">
                   {entry.tags.slice(0, 3).map((tag) => (
-                    <span key={tag.id} className="entry-tag">{tag.name}</span>
+                    <span key={tag.id} className="entry-tag">
+                      {tag.name}
+                    </span>
                   ))}
-                  {entry.tags.length > 3 && (
-                    <span className="entry-meta-item">+{entry.tags.length - 3}</span>
-                  )}
+                  {entry.tags.length > 3 && <span className="entry-meta-item">+{entry.tags.length - 3}</span>}
                 </div>
               </>
             )}
-            {metaRow.length > 0 && metaRow.map((el) => (
-              <span key={el.id}>
-                <span className="entry-meta-dot">·</span>
-                {renderCardElement(el)}
-              </span>
-            ))}
+            {metaRow.length > 0 &&
+              metaRow.map((el) => (
+                <span key={el.id}>
+                  <span className="entry-meta-dot">·</span>
+                  {renderCardElement(el)}
+                </span>
+              ))}
           </div>
         </div>
         {bottomLeft.length > 0 && (
-          <div className="card-el-bottom-left">
-            {bottomLeft.map((el) => renderCardElement(el))}
-          </div>
+          <div className="card-el-bottom-left">{bottomLeft.map((el) => renderCardElement(el))}</div>
         )}
       </div>
       <style>{`

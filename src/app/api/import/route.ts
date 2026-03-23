@@ -81,9 +81,12 @@ export async function POST(request: Request) {
         }
         if (duplicateHandling === "overwrite") {
           // Update existing entry
-          const tagRecords = tags.length > 0
-            ? await Promise.all(tags.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } })))
-            : [];
+          const tagRecords =
+            tags.length > 0
+              ? await Promise.all(
+                  tags.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } })),
+                )
+              : [];
 
           const updated = await prisma.entry.update({
             where: { id: existingId },
@@ -111,15 +114,28 @@ export async function POST(request: Request) {
       }
 
       // Run before-create hooks
-      const hookedBody = await runEntryBeforeCreateHooks(
-        { type: entryType, source: "import", title: raw.title.trim(), summary: raw.summary || null, content, status, url: raw.url || null, tags, metadata: raw.metadata || {} } as Record<string, unknown>,
-        principal
-      ) as Record<string, unknown>;
+      const hookedBody = (await runEntryBeforeCreateHooks(
+        {
+          type: entryType,
+          source: "import",
+          title: raw.title.trim(),
+          summary: raw.summary || null,
+          content,
+          status,
+          url: raw.url || null,
+          tags,
+          metadata: raw.metadata || {},
+        } as Record<string, unknown>,
+        principal,
+      )) as Record<string, unknown>;
 
       const finalTags = (hookedBody.tags as string[] | undefined) || tags;
-      const tagRecords = finalTags.length > 0
-        ? await Promise.all(finalTags.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } })))
-        : [];
+      const tagRecords =
+        finalTags.length > 0
+          ? await Promise.all(
+              finalTags.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } })),
+            )
+          : [];
 
       const entry = await prisma.entry.create({
         data: {
@@ -148,7 +164,9 @@ export async function POST(request: Request) {
 
       results.created++;
     } catch (err) {
-      results.errors.push(`Entry ${i + 1} ("${raw.title || "untitled"}"): ${err instanceof Error ? err.message : "unknown error"}`);
+      results.errors.push(
+        `Entry ${i + 1} ("${raw.title || "untitled"}"): ${err instanceof Error ? err.message : "unknown error"}`,
+      );
     }
   }
 

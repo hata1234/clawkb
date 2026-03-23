@@ -7,9 +7,7 @@ import { prisma } from "./prisma";
  * @param collectionIds - Array of collection IDs the entry belongs to
  * @returns Generated doc number like "QP-RAW-0001", or null if no prefix configured
  */
-export async function generateDocNumber(
-  collectionIds: number[]
-): Promise<string | null> {
+export async function generateDocNumber(collectionIds: number[]): Promise<string | null> {
   if (!collectionIds || collectionIds.length === 0) return null;
 
   // Find the first collection that has a docPrefix

@@ -8,10 +8,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [plugins, panels] = await Promise.all([
-    listPlugins(),
-    getSettingsPanels(principal),
-  ]);
+  const [plugins, panels] = await Promise.all([listPlugins(), getSettingsPanels(principal)]);
 
   return NextResponse.json({
     plugins: plugins.map((plugin) => ({

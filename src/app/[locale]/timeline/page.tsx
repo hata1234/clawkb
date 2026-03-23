@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from "next-intl/server";
 import TimelineFeed from "@/components/TimelineFeed";
 
 export const metadata = {

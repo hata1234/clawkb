@@ -27,7 +27,11 @@ const userWithGroupsInclude = {
 
 type DbUser = Awaited<ReturnType<typeof findUserById>>;
 
-async function principalFromUser(user: NonNullable<DbUser>, authMethod: "session" | "token", token?: { id: number; tokenType: ApiTokenType }): Promise<AppPrincipal> {
+async function principalFromUser(
+  user: NonNullable<DbUser>,
+  authMethod: "session" | "token",
+  token?: { id: number; tokenType: ApiTokenType },
+): Promise<AppPrincipal> {
   return {
     id: user.id,
     username: user.username,
@@ -35,7 +39,7 @@ async function principalFromUser(user: NonNullable<DbUser>, authMethod: "session
     displayName: user.displayName || user.username,
     avatarUrl: user.avatarUrl,
     isAdmin: user.isAdmin,
-    groupIds: user.groups.map(g => g.groupId),
+    groupIds: user.groups.map((g) => g.groupId),
     approvalStatus: user.approvalStatus,
     agent: user.agent,
     authMethod,
@@ -72,10 +76,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const user = await findUserByUsername(credentials.username as string);
         if (!user || user.approvalStatus !== "approved") return null;
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.passwordHash
-        );
+        const isValid = await bcrypt.compare(credentials.password as string, user.passwordHash);
         if (!isValid) return null;
 
         return {

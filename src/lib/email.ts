@@ -26,12 +26,7 @@ export async function getTransporter(): Promise<Transporter | null> {
   return _transporter;
 }
 
-export async function sendEmail(
-  to: string,
-  subject: string,
-  html: string,
-  text?: string,
-): Promise<boolean> {
+export async function sendEmail(to: string, subject: string, html: string, text?: string): Promise<boolean> {
   try {
     const cfg = await getSmtpConfig();
     const transporter = await getTransporter();

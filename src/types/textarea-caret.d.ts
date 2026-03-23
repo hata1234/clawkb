@@ -7,7 +7,7 @@ declare module "textarea-caret" {
   function getCaretCoordinates(
     element: HTMLTextAreaElement | HTMLInputElement,
     position: number,
-    options?: { debug?: boolean }
+    options?: { debug?: boolean },
   ): CaretCoordinates;
   export default getCaretCoordinates;
 }

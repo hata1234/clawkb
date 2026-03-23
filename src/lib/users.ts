@@ -9,10 +9,7 @@ export const userWithGroupInclude = {
   },
 } satisfies Prisma.UserInclude;
 
-export function buildDisplayName(user: {
-  username: string;
-  displayName?: string | null;
-}) {
+export function buildDisplayName(user: { username: string; displayName?: string | null }) {
   return user.displayName || user.username;
 }
 
@@ -43,7 +40,7 @@ export function serializeUser(user: {
     avatarUrl: user.avatarUrl,
     bio: user.bio,
     isAdmin: user.isAdmin,
-    groups: (user.groups || []).map(ug => ({ id: ug.group.id, name: ug.group.name })),
+    groups: (user.groups || []).map((ug) => ({ id: ug.group.id, name: ug.group.name })),
     approvalStatus: user.approvalStatus,
     emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
     agent: user.agent,

@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
 import KnowledgeGraph from "@/components/KnowledgeGraph";
 

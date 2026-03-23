@@ -60,7 +60,7 @@ function nodeRadius(degree: number): number {
 /* ═══ Component ═══ */
 
 export default function KnowledgeGraph() {
-  const t = useTranslations('Graph');
+  const t = useTranslations("Graph");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const simRef = useRef<ReturnType<typeof forceSimulation<GraphNode>> | null>(null);
@@ -173,11 +173,14 @@ export default function KnowledgeGraph() {
         forceLink<GraphNode, GraphEdge>(edges)
           .id((d) => d.id)
           .distance(100)
-          .strength((d) => (d as GraphEdge).similarity * 0.5)
+          .strength((d) => (d as GraphEdge).similarity * 0.5),
       )
       .force("charge", forceManyBody().strength(-120))
       .force("center", forceCenter(0, 0))
-      .force("collide", forceCollide<GraphNode>().radius((d) => nodeRadius(d.degree) + 4))
+      .force(
+        "collide",
+        forceCollide<GraphNode>().radius((d) => nodeRadius(d.degree) + 4),
+      )
       .alphaDecay(0.02);
 
     simRef.current = sim;
@@ -310,8 +313,7 @@ export default function KnowledgeGraph() {
       let color = "rgba(113, 113, 122, 0.25)";
 
       if (sel) {
-        const isConnected =
-          s.id === sel.id || tgt.id === sel.id;
+        const isConnected = s.id === sel.id || tgt.id === sel.id;
         if (isConnected) {
           color = "rgba(201, 169, 110, 0.8)";
           lineWidth = 1 + e.similarity * 3;
@@ -406,7 +408,7 @@ export default function KnowledgeGraph() {
       }
       return null;
     },
-    [nodes, screenToWorld]
+    [nodes, screenToWorld],
   );
 
   /* ═══ Mouse Events ═══ */
@@ -436,7 +438,7 @@ export default function KnowledgeGraph() {
         };
       }
     },
-    [findNodeAt]
+    [findNodeAt],
   );
 
   const handleMouseMove = useCallback(
@@ -472,40 +474,37 @@ export default function KnowledgeGraph() {
         canvasRef.current.style.cursor = node ? "pointer" : "grab";
       }
     },
-    [findNodeAt, screenToWorld, drawCanvas]
+    [findNodeAt, screenToWorld, drawCanvas],
   );
 
-  const handleMouseUp = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      const drag = dragRef.current;
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const sx = e.clientX - rect.left;
-      const sy = e.clientY - rect.top;
+  const handleMouseUp = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const drag = dragRef.current;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const sx = e.clientX - rect.left;
+    const sy = e.clientY - rect.top;
 
-      if (drag.node) {
-        // Check if it was a click (not a drag)
-        const dx = sx - drag.startX;
-        const dy = sy - drag.startY;
-        if (dx * dx + dy * dy < 25) {
-          setSelectedNode((prev) => (prev?.id === drag.node!.id ? null : drag.node));
-        }
-        drag.node.fx = null;
-        drag.node.fy = null;
-        simRef.current?.alphaTarget(0);
-      } else if (drag.panning) {
-        // Click on empty space — deselect
-        const dx = e.clientX - drag.startX;
-        const dy = e.clientY - drag.startY;
-        if (dx * dx + dy * dy < 25) {
-          setSelectedNode(null);
-        }
+    if (drag.node) {
+      // Check if it was a click (not a drag)
+      const dx = sx - drag.startX;
+      const dy = sy - drag.startY;
+      if (dx * dx + dy * dy < 25) {
+        setSelectedNode((prev) => (prev?.id === drag.node!.id ? null : drag.node));
       }
+      drag.node.fx = null;
+      drag.node.fy = null;
+      simRef.current?.alphaTarget(0);
+    } else if (drag.panning) {
+      // Click on empty space — deselect
+      const dx = e.clientX - drag.startX;
+      const dy = e.clientY - drag.startY;
+      if (dx * dx + dy * dy < 25) {
+        setSelectedNode(null);
+      }
+    }
 
-      dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
-    },
-    []
-  );
+    dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+  }, []);
 
   const handleWheel = useCallback(
     (e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -526,7 +525,7 @@ export default function KnowledgeGraph() {
 
       drawCanvas();
     },
-    [drawCanvas]
+    [drawCanvas],
   );
 
   /* ═══ Touch Events ═══ */
@@ -570,7 +569,7 @@ export default function KnowledgeGraph() {
         touchRef.current.lastPinchDist = Math.sqrt(dx * dx + dy * dy);
       }
     },
-    [findNodeAt]
+    [findNodeAt],
   );
 
   const handleTouchMove = useCallback(
@@ -617,41 +616,40 @@ export default function KnowledgeGraph() {
         touchRef.current.lastPinchDist = dist;
       }
     },
-    [screenToWorld, drawCanvas]
+    [screenToWorld, drawCanvas],
   );
 
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent<HTMLCanvasElement>) => {
-      e.preventDefault();
-      const drag = dragRef.current;
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const drag = dragRef.current;
 
-      if (e.touches.length === 0) {
-        if (drag.node) {
-          const dx = (e.changedTouches[0]?.clientX ?? 0) - (canvasRef.current?.getBoundingClientRect().left ?? 0) - drag.startX;
-          const dy = (e.changedTouches[0]?.clientY ?? 0) - (canvasRef.current?.getBoundingClientRect().top ?? 0) - drag.startY;
+    if (e.touches.length === 0) {
+      if (drag.node) {
+        const dx =
+          (e.changedTouches[0]?.clientX ?? 0) - (canvasRef.current?.getBoundingClientRect().left ?? 0) - drag.startX;
+        const dy =
+          (e.changedTouches[0]?.clientY ?? 0) - (canvasRef.current?.getBoundingClientRect().top ?? 0) - drag.startY;
+        if (dx * dx + dy * dy < 100) {
+          // Tap on node
+          setSelectedNode((prev) => (prev?.id === drag.node!.id ? null : drag.node));
+        }
+        drag.node.fx = null;
+        drag.node.fy = null;
+        simRef.current?.alphaTarget(0);
+      } else if (drag.panning) {
+        const touch = e.changedTouches[0];
+        if (touch) {
+          const dx = touch.clientX - drag.startX;
+          const dy = touch.clientY - drag.startY;
           if (dx * dx + dy * dy < 100) {
-            // Tap on node
-            setSelectedNode((prev) => (prev?.id === drag.node!.id ? null : drag.node));
-          }
-          drag.node.fx = null;
-          drag.node.fy = null;
-          simRef.current?.alphaTarget(0);
-        } else if (drag.panning) {
-          const touch = e.changedTouches[0];
-          if (touch) {
-            const dx = touch.clientX - drag.startX;
-            const dy = touch.clientY - drag.startY;
-            if (dx * dx + dy * dy < 100) {
-              setSelectedNode(null);
-            }
+            setSelectedNode(null);
           }
         }
-        dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
-        touchRef.current.lastPinchDist = null;
       }
-    },
-    []
-  );
+      dragRef.current = { node: null, panning: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+      touchRef.current.lastPinchDist = null;
+    }
+  }, []);
 
   /* ═══ Filter Handlers ═══ */
 
@@ -694,15 +692,15 @@ export default function KnowledgeGraph() {
       {loading && (
         <div className="kg-loading">
           <div className="kg-loading-spinner" />
-          <span>{t('loading')}</span>
+          <span>{t("loading")}</span>
         </div>
       )}
 
       {/* Empty state */}
       {!loading && nodes.length === 0 && (
         <div className="kg-empty">
-          <p>{t('emptyTitle')}</p>
-          <p className="kg-empty-sub">{t('emptyHint')}</p>
+          <p>{t("emptyTitle")}</p>
+          <p className="kg-empty-sub">{t("emptyHint")}</p>
         </div>
       )}
 
@@ -734,22 +732,18 @@ export default function KnowledgeGraph() {
       {filtersOpen && (
         <div className="kg-filters">
           <div className="kg-filters-header">
-            <span className="kg-filters-title">{t('filters')}</span>
+            <span className="kg-filters-title">{t("filters")}</span>
             <button className="kg-filters-close" onClick={() => setFiltersOpen(false)}>
               <X style={{ width: 16, height: 16 }} />
             </button>
           </div>
 
           <div className="kg-filters-section">
-            <label className="kg-filters-label">{t('type')}</label>
+            <label className="kg-filters-label">{t("type")}</label>
             <div className="kg-filters-checks">
               {TYPE_OPTIONS.map((type) => (
                 <label key={type} className="kg-check">
-                  <input
-                    type="checkbox"
-                    checked={activeTypes.has(type)}
-                    onChange={() => toggleType(type)}
-                  />
+                  <input type="checkbox" checked={activeTypes.has(type)} onChange={() => toggleType(type)} />
                   <span className="kg-check-dot" style={{ background: getTypeColor(type) }} />
                   <span>{type.replace("_", " ")}</span>
                 </label>
@@ -759,7 +753,7 @@ export default function KnowledgeGraph() {
 
           <div className="kg-filters-section">
             <label className="kg-filters-label">
-              {t('similarityThreshold')} <strong>{threshold.toFixed(2)}</strong>
+              {t("similarityThreshold")} <strong>{threshold.toFixed(2)}</strong>
             </label>
             <input
               type="range"
@@ -777,7 +771,7 @@ export default function KnowledgeGraph() {
           </div>
 
           <div className="kg-filters-legend">
-            <span className="kg-filters-label">{t('legend')}</span>
+            <span className="kg-filters-label">{t("legend")}</span>
             <div className="kg-legend-items">
               {TYPE_OPTIONS.map((type) => (
                 <div key={type} className="kg-legend-item">
@@ -798,21 +792,24 @@ export default function KnowledgeGraph() {
           </button>
           <h3 className="kg-panel-title">{selectedNode.title}</h3>
           <div className="kg-panel-meta">
-            <span className="kg-panel-badge" style={{ background: getTypeColor(selectedNode.type) + "22", color: getTypeColor(selectedNode.type), borderColor: getTypeColor(selectedNode.type) + "44" }}>
+            <span
+              className="kg-panel-badge"
+              style={{
+                background: getTypeColor(selectedNode.type) + "22",
+                color: getTypeColor(selectedNode.type),
+                borderColor: getTypeColor(selectedNode.type) + "44",
+              }}
+            >
               {selectedNode.type.replace("_", " ")}
             </span>
             <span className="kg-panel-source">{selectedNode.source}</span>
           </div>
-          {selectedNode.summary && (
-            <p className="kg-panel-summary">{selectedNode.summary}</p>
-          )}
+          {selectedNode.summary && <p className="kg-panel-summary">{selectedNode.summary}</p>}
           <div className="kg-panel-connections">
-            <span className="kg-panel-conn-label">
-              {t('connections', { count: selectedNode.degree })}
-            </span>
+            <span className="kg-panel-conn-label">{t("connections", { count: selectedNode.degree })}</span>
           </div>
           <Link href={`/entries/${selectedNode.id}`} className="kg-panel-link">
-            {t('viewEntry')}
+            {t("viewEntry")}
           </Link>
         </div>
       )}
@@ -824,16 +821,21 @@ export default function KnowledgeGraph() {
           <div className="kg-sheet-content">
             <h3 className="kg-panel-title">{selectedNode.title}</h3>
             <div className="kg-panel-meta">
-              <span className="kg-panel-badge" style={{ background: getTypeColor(selectedNode.type) + "22", color: getTypeColor(selectedNode.type), borderColor: getTypeColor(selectedNode.type) + "44" }}>
+              <span
+                className="kg-panel-badge"
+                style={{
+                  background: getTypeColor(selectedNode.type) + "22",
+                  color: getTypeColor(selectedNode.type),
+                  borderColor: getTypeColor(selectedNode.type) + "44",
+                }}
+              >
                 {selectedNode.type.replace("_", " ")}
               </span>
               <span className="kg-panel-source">{selectedNode.source}</span>
             </div>
-            {selectedNode.summary && (
-              <p className="kg-panel-summary">{selectedNode.summary}</p>
-            )}
+            {selectedNode.summary && <p className="kg-panel-summary">{selectedNode.summary}</p>}
             <Link href={`/entries/${selectedNode.id}`} className="kg-panel-link">
-              {t('viewEntry')}
+              {t("viewEntry")}
             </Link>
           </div>
         </div>

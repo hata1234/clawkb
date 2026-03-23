@@ -5,7 +5,13 @@ import { getAccessibleCollectionIds } from "@/lib/permissions";
 import { serializeEntry, entryWithAuthorInclude } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
-import { getEntryCardElements, runEntryAfterCreateHooks, runEntryAfterQueryHooks, runEntryBeforeCreateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
+import {
+  getEntryCardElements,
+  runEntryAfterCreateHooks,
+  runEntryAfterQueryHooks,
+  runEntryBeforeCreateHooks,
+  runEntrySerializeHooks,
+} from "@/lib/plugins/manager";
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { generateDocNumber } from "@/lib/doc-number";
@@ -33,7 +39,6 @@ interface EntryMutationInput {
   collectionIds?: number[];
   bpmnXml?: string | null;
 }
-
 
 // Recursively collect collection IDs (self + all descendants)
 async function getCollectionIdsRecursive(rootId: number): Promise<number[]> {
@@ -99,7 +104,9 @@ export async function GET(request: Request) {
     ...(status && { status }),
     ...(source && { source }),
     ...(tag && { tags: { some: { name: tag } } }),
-    ...(collectionId && { collections: { some: { id: { in: await getCollectionIdsRecursive(parseInt(collectionId)) } } } }),
+    ...(collectionId && {
+      collections: { some: { id: { in: await getCollectionIdsRecursive(parseInt(collectionId)) } } },
+    }),
     ...(andConditions.length > 0 && { AND: andConditions }),
   };
 
@@ -131,11 +138,11 @@ export async function GET(request: Request) {
       const serialized = await runEntrySerializeHooks(base, principal);
       const cardElements = await getEntryCardElements(serialized, principal);
       return { ...serialized, cardElements };
-    })
+    }),
   );
 
   // Run batch afterQuery hooks
-  serializedEntries = await runEntryAfterQueryHooks(serializedEntries, principal) as typeof serializedEntries;
+  serializedEntries = (await runEntryAfterQueryHooks(serializedEntries, principal)) as typeof serializedEntries;
 
   return NextResponse.json({
     entries: serializedEntries,
@@ -152,8 +159,12 @@ export async function POST(request: Request) {
   if (!canCreateEntries(principal)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
-  const hookedBody = await runEntryBeforeCreateHooks(body as Record<string, unknown>, principal) as EntryMutationInput;
-  const { type, source, title, summary, content, status, url, tags, metadata, images, collectionIds, bpmnXml } = hookedBody;
+  const hookedBody = (await runEntryBeforeCreateHooks(
+    body as Record<string, unknown>,
+    principal,
+  )) as EntryMutationInput;
+  const { type, source, title, summary, content, status, url, tags, metadata, images, collectionIds, bpmnXml } =
+    hookedBody;
 
   // Default type to "entry" if not specified
   const entryType = type || "entry";
@@ -163,13 +174,10 @@ export async function POST(request: Request) {
   }
 
   // Upsert tags
-  const tagRecords = tags && tags.length > 0
-    ? await Promise.all(
-        tags.map((name) =>
-          prisma.tag.upsert({ where: { name }, update: {}, create: { name } })
-        )
-      )
-    : [];
+  const tagRecords =
+    tags && tags.length > 0
+      ? await Promise.all(tags.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } })))
+      : [];
 
   const entry = await prisma.entry.create({
     data: {
@@ -184,29 +192,31 @@ export async function POST(request: Request) {
       authorId: principal.id,
       ...(bpmnXml !== undefined && { bpmnXml }),
       tags: { connect: tagRecords.map((t) => ({ id: t.id })) },
-      ...(collectionIds && collectionIds.length > 0 && {
-        collections: { connect: collectionIds.map((id) => ({ id })) },
-      }),
-      ...(images && images.length > 0 && {
-        images: {
-          create: images.map((img, i: number) => ({
-            url: img.url,
-            key: img.key,
-            filename: img.filename,
-            mimeType: img.mimeType || "image/png",
-            size: img.size || 0,
-            caption: img.caption || null,
-            sortOrder: i,
-          })),
-        },
-      }),
+      ...(collectionIds &&
+        collectionIds.length > 0 && {
+          collections: { connect: collectionIds.map((id) => ({ id })) },
+        }),
+      ...(images &&
+        images.length > 0 && {
+          images: {
+            create: images.map((img, i: number) => ({
+              url: img.url,
+              key: img.key,
+              filename: img.filename,
+              mimeType: img.mimeType || "image/png",
+              size: img.size || 0,
+              caption: img.caption || null,
+              sortOrder: i,
+            })),
+          },
+        }),
     },
     include: entryWithAuthorInclude,
   });
 
   // Auto-assign to Uncategorized if no collections specified
   if (!collectionIds || collectionIds.length === 0) {
-    const uncategorized = await prisma.collection.findFirst({ where: { builtIn: true, name: '未歸類' } });
+    const uncategorized = await prisma.collection.findFirst({ where: { builtIn: true, name: "未歸類" } });
     if (uncategorized) {
       await prisma.entry.update({
         where: { id: entry.id },
@@ -220,11 +230,11 @@ export async function POST(request: Request) {
   if (collectionIds && collectionIds.length > 0) {
     const docNumber = await generateDocNumber(collectionIds);
     if (docNumber) {
-      finalEntry = await prisma.entry.update({
+      finalEntry = (await prisma.entry.update({
         where: { id: entry.id },
         data: { docNumber },
         include: entryWithAuthorInclude,
-      }) as typeof entry;
+      })) as typeof entry;
     }
   }
 
@@ -232,10 +242,19 @@ export async function POST(request: Request) {
   generateAndStoreChunks(finalEntry).catch(() => {});
 
   // Auto-tag if no manual tags provided (fire-and-forget)
-  runEntryAfterCreateHooks(finalEntry as unknown as Record<string, unknown>, hookedBody as unknown as Record<string, unknown>, principal).catch(() => {});
+  runEntryAfterCreateHooks(
+    finalEntry as unknown as Record<string, unknown>,
+    hookedBody as unknown as Record<string, unknown>,
+    principal,
+  ).catch(() => {});
 
   logActivity("entry.created", principal.id, finalEntry.id, { title: finalEntry.title }).catch(() => {});
-  dispatchWebhookEvent("entry.created", { id: finalEntry.id, title: finalEntry.title, type: finalEntry.type, source: finalEntry.source });
+  dispatchWebhookEvent("entry.created", {
+    id: finalEntry.id,
+    title: finalEntry.title,
+    type: finalEntry.type,
+    source: finalEntry.source,
+  });
 
   return NextResponse.json(serializeEntry(finalEntry), { status: 201 });
 }

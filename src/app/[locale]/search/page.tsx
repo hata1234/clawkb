@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Link } from '@/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import StatusBadge from "@/components/StatusBadge";
 import { Search, Filter, X, FileText, Sparkles, Type, TextSearch, Loader2 } from "lucide-react";
 import { STATUS_OPTIONS, formatRelativeDate } from "@/lib/utils";
@@ -53,16 +53,24 @@ function sanitizeHighlight(html: string): string {
 }
 
 function SearchPageInner() {
-  const t = useTranslations('Search');
-  const tc = useTranslations('Common');
+  const t = useTranslations("Search");
+  const tc = useTranslations("Common");
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const MODE_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-    vector: { label: t('modeSemantic'), icon: <Sparkles style={{ width: 12, height: 12 }} />, color: "var(--type-opportunity)" },
-    fulltext: { label: t('modeFulltext'), icon: <TextSearch style={{ width: 12, height: 12 }} />, color: "var(--type-reference)" },
-    ilike: { label: t('modeKeyword'), icon: <Type style={{ width: 12, height: 12 }} />, color: "var(--type-report)" },
-    none: { label: t('modeNone'), icon: null, color: "var(--text-dim)" },
+    vector: {
+      label: t("modeSemantic"),
+      icon: <Sparkles style={{ width: 12, height: 12 }} />,
+      color: "var(--type-opportunity)",
+    },
+    fulltext: {
+      label: t("modeFulltext"),
+      icon: <TextSearch style={{ width: 12, height: 12 }} />,
+      color: "var(--type-reference)",
+    },
+    ilike: { label: t("modeKeyword"), icon: <Type style={{ width: 12, height: 12 }} />, color: "var(--type-report)" },
+    none: { label: t("modeNone"), icon: null, color: "var(--text-dim)" },
   };
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -86,8 +94,14 @@ function SearchPageInner() {
   const [allCollections, setAllCollections] = useState<{ id: number; name: string }[]>([]);
 
   useEffect(() => {
-    fetch("/api/tags").then((r) => r.json()).then(setAllTags).catch(() => {});
-    fetch("/api/collections").then((r) => r.json()).then((data) => setAllCollections(data.flat || [])).catch(() => {});
+    fetch("/api/tags")
+      .then((r) => r.json())
+      .then(setAllTags)
+      .catch(() => {});
+    fetch("/api/collections")
+      .then((r) => r.json())
+      .then((data) => setAllCollections(data.flat || []))
+      .catch(() => {});
   }, []);
 
   // Focus input on mount
@@ -103,58 +117,64 @@ function SearchPageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updateURL = useCallback((q: string) => {
-    const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (type) params.set("type", type);
-    if (status) params.set("status", status);
-    if (tag) params.set("tag", tag);
-    if (collectionId) params.set("collectionId", collectionId);
-    if (dateFrom) params.set("dateFrom", dateFrom);
-    if (dateTo) params.set("dateTo", dateTo);
-    if (mode && mode !== "auto") params.set("mode", mode);
-    const qs = params.toString();
-    window.history.replaceState(null, "", qs ? `/search?${qs}` : "/search");
-  }, [type, status, tag, collectionId, dateFrom, dateTo, mode]);
+  const updateURL = useCallback(
+    (q: string) => {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (type) params.set("type", type);
+      if (status) params.set("status", status);
+      if (tag) params.set("tag", tag);
+      if (collectionId) params.set("collectionId", collectionId);
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo) params.set("dateTo", dateTo);
+      if (mode && mode !== "auto") params.set("mode", mode);
+      const qs = params.toString();
+      window.history.replaceState(null, "", qs ? `/search?${qs}` : "/search");
+    },
+    [type, status, tag, collectionId, dateFrom, dateTo, mode],
+  );
 
-  const doSearch = useCallback(async (q?: string) => {
-    const searchQuery = q ?? query;
-    if (!searchQuery.trim()) return;
+  const doSearch = useCallback(
+    async (q?: string) => {
+      const searchQuery = q ?? query;
+      if (!searchQuery.trim()) return;
 
-    setLoading(true);
-    setHasSearched(true);
-    updateURL(searchQuery);
+      setLoading(true);
+      setHasSearched(true);
+      updateURL(searchQuery);
 
-    try {
-      const body: Record<string, unknown> = {
-        query: searchQuery,
-        limit: 30,
-      };
-      if (mode && mode !== "auto") body.mode = mode;
-      if (type) body.type = type;
-      if (status) body.status = status;
-      if (tag) body.tags = [tag];
-      if (collectionId) body.collectionId = collectionId;
-      if (dateFrom) body.dateFrom = dateFrom;
-      if (dateTo) body.dateTo = dateTo;
+      try {
+        const body: Record<string, unknown> = {
+          query: searchQuery,
+          limit: 30,
+        };
+        if (mode && mode !== "auto") body.mode = mode;
+        if (type) body.type = type;
+        if (status) body.status = status;
+        if (tag) body.tags = [tag];
+        if (collectionId) body.collectionId = collectionId;
+        if (dateFrom) body.dateFrom = dateFrom;
+        if (dateTo) body.dateTo = dateTo;
 
-      const res = await fetch("/api/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data: SearchResponse = await res.json();
-      setResults(data.results);
-      setSearchMode(data.mode);
-      setTotal(data.total);
-    } catch {
-      setResults([]);
-      setSearchMode("none");
-      setTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [query, mode, type, status, tag, collectionId, dateFrom, dateTo, updateURL]);
+        const res = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data: SearchResponse = await res.json();
+        setResults(data.results);
+        setSearchMode(data.mode);
+        setTotal(data.total);
+      } catch {
+        setResults([]);
+        setSearchMode("none");
+        setTotal(0);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [query, mode, type, status, tag, collectionId, dateFrom, dateTo, updateURL],
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -163,8 +183,13 @@ function SearchPageInner() {
   };
 
   const clearFilters = () => {
-    setType(""); setStatus(""); setTag(""); setCollectionId("");
-    setDateFrom(""); setDateTo(""); setMode("auto");
+    setType("");
+    setStatus("");
+    setTag("");
+    setCollectionId("");
+    setDateFrom("");
+    setDateTo("");
+    setMode("auto");
   };
 
   const hasFilters = type || status || tag || collectionId || dateFrom || dateTo || mode !== "auto";
@@ -174,28 +199,56 @@ function SearchPageInner() {
     <div className="search-page">
       {/* Header */}
       <div style={{ marginBottom: 32, textAlign: "center" }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>{t('label')}</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 400, color: "var(--text)" }}>{t('title')}</h1>
+        <p
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--text-dim)",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: 4,
+          }}
+        >
+          {t("label")}
+        </p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 400, color: "var(--text)" }}>
+          {t("title")}
+        </h1>
       </div>
 
       {/* Search bar */}
       <div style={{ maxWidth: 720, margin: "0 auto 24px" }}>
         <div style={{ position: "relative" }}>
-          <Search style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", width: 20, height: 20, color: "var(--text-muted)", pointerEvents: "none" }} />
+          <Search
+            style={{
+              position: "absolute",
+              left: 16,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 20,
+              height: 20,
+              color: "var(--text-muted)",
+              pointerEvents: "none",
+            }}
+          />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('placeholder')}
+            placeholder={t("placeholder")}
             className="search-input"
           />
-          {loading && (
-            <Loader2 className="search-spinner" />
-          )}
+          {loading && <Loader2 className="search-spinner" />}
           {!loading && query && (
             <button
-              onClick={() => { setQuery(""); setResults([]); setHasSearched(false); updateURL(""); inputRef.current?.focus(); }}
+              onClick={() => {
+                setQuery("");
+                setResults([]);
+                setHasSearched(false);
+                updateURL("");
+                inputRef.current?.focus();
+              }}
               className="search-clear-btn"
             >
               <X style={{ width: 16, height: 16 }} />
@@ -209,36 +262,56 @@ function SearchPageInner() {
             <button
               onClick={() => setShowFilters(!showFilters)}
               style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "6px 12px", borderRadius: 6,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "6px 12px",
+                borderRadius: 6,
                 border: hasFilters ? "1px solid var(--accent)" : "1px solid var(--border)",
                 background: hasFilters ? "var(--accent-muted)" : "transparent",
                 color: hasFilters ? "var(--accent)" : "var(--text-secondary)",
-                fontSize: "0.8rem", cursor: "pointer",
+                fontSize: "0.8rem",
+                cursor: "pointer",
               }}
             >
               <Filter style={{ width: 14, height: 14 }} />
-              {t('filters')}
+              {t("filters")}
             </button>
             {hasFilters && (
-              <button onClick={clearFilters} style={{
-                fontSize: "0.75rem", color: "var(--text-dim)", background: "none",
-                border: "none", cursor: "pointer", textDecoration: "underline",
-              }}>
-                {tc('clear')}
+              <button
+                onClick={clearFilters}
+                style={{
+                  fontSize: "0.75rem",
+                  color: "var(--text-dim)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                {tc("clear")}
               </button>
             )}
           </div>
           {hasSearched && !loading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.8rem", color: "var(--text-dim)" }}>
-              <span>{t('results', { count: total })}</span>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.8rem", color: "var(--text-dim)" }}
+            >
+              <span>{t("results", { count: total })}</span>
               {searchMode && searchMode !== "none" && (
-                <span style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  padding: "2px 8px", borderRadius: 999, fontSize: "0.7rem",
-                  background: `color-mix(in srgb, ${modeInfo.color} 15%, transparent)`,
-                  color: modeInfo.color, fontWeight: 500,
-                }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    fontSize: "0.7rem",
+                    background: `color-mix(in srgb, ${modeInfo.color} 15%, transparent)`,
+                    color: modeInfo.color,
+                    fontWeight: 500,
+                  }}
+                >
                   {modeInfo.icon} {modeInfo.label}
                 </span>
               )}
@@ -252,51 +325,71 @@ function SearchPageInner() {
         <div className="search-filters" style={{ maxWidth: 720, margin: "0 auto 24px" }}>
           <div className="search-filters-grid">
             <div>
-              <label className="search-filter-label">{t('status')}</label>
+              <label className="search-filter-label">{t("status")}</label>
               <select value={status} onChange={(e) => setStatus(e.target.value)} style={selectStyle}>
-                <option value="">{t('allStatuses')}</option>
-                {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                <option value="">{t("allStatuses")}</option>
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace("_", " ")}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="search-filter-label">{t('tag')}</label>
+              <label className="search-filter-label">{t("tag")}</label>
               <select value={tag} onChange={(e) => setTag(e.target.value)} style={selectStyle}>
-                <option value="">{t('allTags')}</option>
-                {allTags.map((tg) => <option key={tg.id} value={tg.name}>{tg.name}</option>)}
+                <option value="">{t("allTags")}</option>
+                {allTags.map((tg) => (
+                  <option key={tg.id} value={tg.name}>
+                    {tg.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="search-filter-label">{t('collection')}</label>
+              <label className="search-filter-label">{t("collection")}</label>
               <select value={collectionId} onChange={(e) => setCollectionId(e.target.value)} style={selectStyle}>
-                <option value="">{t('allCollections')}</option>
-                {allCollections.map((c) => <option key={c.id} value={String(c.id)}>{c.name}</option>)}
+                <option value="">{t("allCollections")}</option>
+                {allCollections.map((c) => (
+                  <option key={c.id} value={String(c.id)}>
+                    {c.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="search-filter-label">{t('from')}</label>
+              <label className="search-filter-label">{t("from")}</label>
               <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={selectStyle} />
             </div>
             <div>
-              <label className="search-filter-label">{t('to')}</label>
+              <label className="search-filter-label">{t("to")}</label>
               <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={selectStyle} />
             </div>
             <div>
-              <label className="search-filter-label">{t('searchMode')}</label>
+              <label className="search-filter-label">{t("searchMode")}</label>
               <select value={mode} onChange={(e) => setMode(e.target.value)} style={selectStyle}>
-                <option value="auto">{t('auto')}</option>
-                <option value="vector">{t('semantic')}</option>
-                <option value="ilike">{t('keyword')}</option>
+                <option value="auto">{t("auto")}</option>
+                <option value="vector">{t("semantic")}</option>
+                <option value="ilike">{t("keyword")}</option>
               </select>
             </div>
           </div>
           {hasFilters && (
             <div style={{ marginTop: 12, textAlign: "right" }}>
-              <button onClick={() => doSearch()} style={{
-                padding: "6px 16px", borderRadius: 6,
-                background: "var(--accent)", color: "var(--accent-contrast)",
-                border: "none", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer",
-              }}>
-                {t('applyFilters')}
+              <button
+                onClick={() => doSearch()}
+                style={{
+                  padding: "6px 16px",
+                  borderRadius: 6,
+                  background: "var(--accent)",
+                  color: "var(--accent-contrast)",
+                  border: "none",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {t("applyFilters")}
               </button>
             </div>
           )}
@@ -308,19 +401,24 @@ function SearchPageInner() {
         {loading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="skeleton" style={{
-                background: "var(--surface)", border: "1px solid var(--border)",
-                borderRadius: "var(--radius-md)", padding: 20, height: 120,
-              }} />
+              <div
+                key={i}
+                className="skeleton"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-md)",
+                  padding: 20,
+                  height: 120,
+                }}
+              />
             ))}
           </div>
         ) : hasSearched && results.length === 0 ? (
           <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
             <FileText style={{ width: 48, height: 48, margin: "0 auto 16px", opacity: 0.3 }} />
-            <p style={{ fontSize: "1rem", fontWeight: 500, marginBottom: 8 }}>{t('noResults')}</p>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>
-              {t('noResultsHint')}
-            </p>
+            <p style={{ fontSize: "1rem", fontWeight: 500, marginBottom: 8 }}>{t("noResults")}</p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>{t("noResultsHint")}</p>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -335,14 +433,10 @@ function SearchPageInner() {
           <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
             <Search style={{ width: 48, height: 48, margin: "0 auto 16px", opacity: 0.2 }} />
             <p style={{ fontSize: "1rem", fontWeight: 500, marginBottom: 8, color: "var(--text-secondary)" }}>
-              {t('initialTitle')}
+              {t("initialTitle")}
             </p>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>
-              {t('initialHint')}
-            </p>
-            <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: 16 }}>
-              {t('tip')}
-            </p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>{t("initialHint")}</p>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: 16 }}>{t("tip")}</p>
           </div>
         )}
       </div>
@@ -518,7 +612,15 @@ function SearchPageInner() {
   );
 }
 
-function SearchResultCard({ result, searchMode, modeLabels }: { result: SearchResult; searchMode: string; modeLabels: Record<string, { label: string; icon: React.ReactNode; color: string }> }) {
+function SearchResultCard({
+  result,
+  searchMode,
+  modeLabels,
+}: {
+  result: SearchResult;
+  searchMode: string;
+  modeLabels: Record<string, { label: string; icon: React.ReactNode; color: string }>;
+}) {
   const modeInfo = modeLabels[searchMode] || modeLabels.none;
 
   // NOTE: sanitizeHighlight strips all HTML except <mark> tags, making this safe
@@ -528,10 +630,13 @@ function SearchResultCard({ result, searchMode, modeLabels }: { result: SearchRe
       <div className="sr-header">
         <StatusBadge status={result.status} />
         {result.similarity != null && (
-          <span className="sr-score" style={{
-            background: `color-mix(in srgb, ${modeInfo.color} 15%, transparent)`,
-            color: modeInfo.color,
-          }}>
+          <span
+            className="sr-score"
+            style={{
+              background: `color-mix(in srgb, ${modeInfo.color} 15%, transparent)`,
+              color: modeInfo.color,
+            }}
+          >
             {result.similarity}% match
           </span>
         )}
@@ -560,7 +665,11 @@ function SearchResultCard({ result, searchMode, modeLabels }: { result: SearchRe
           <>
             <span className="sr-meta-dot">&middot;</span>
             {result.collections.slice(0, 2).map((col) => (
-              <span key={col.id} className="sr-collection-pill" style={col.color ? { borderColor: col.color, color: col.color } : undefined}>
+              <span
+                key={col.id}
+                className="sr-collection-pill"
+                style={col.color ? { borderColor: col.color, color: col.color } : undefined}
+              >
                 {col.icon || "\uD83D\uDCC1"} {col.name}
               </span>
             ))}
@@ -570,11 +679,11 @@ function SearchResultCard({ result, searchMode, modeLabels }: { result: SearchRe
           <>
             <span className="sr-meta-dot">&middot;</span>
             {result.tags.slice(0, 3).map((tg) => (
-              <span key={tg.id} className="sr-tag">{tg.name}</span>
+              <span key={tg.id} className="sr-tag">
+                {tg.name}
+              </span>
             ))}
-            {result.tags.length > 3 && (
-              <span className="sr-meta-item">+{result.tags.length - 3}</span>
-            )}
+            {result.tags.length > 3 && <span className="sr-meta-item">+{result.tags.length - 3}</span>}
           </>
         )}
       </div>

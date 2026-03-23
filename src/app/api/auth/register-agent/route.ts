@@ -20,7 +20,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "name is required" }, { status: 400 });
   }
 
-  const usernameBase = agentName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "agent";
+  const usernameBase =
+    agentName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "agent";
   let username = usernameBase;
   let suffix = 1;
   while (await prisma.user.findUnique({ where: { username } })) {
@@ -44,14 +48,16 @@ export async function POST(request: Request) {
 
   const token = await issueUserToken(user.id, `${agentName} token`, "agent");
 
-  return NextResponse.json({
-    user: serializeUser(user),
-    apiToken: token.token,
-    token: {
-      id: token.id,
-      prefix: token.token_prefix,
-      type: token.token_type,
-      
+  return NextResponse.json(
+    {
+      user: serializeUser(user),
+      apiToken: token.token,
+      token: {
+        id: token.id,
+        prefix: token.token_prefix,
+        type: token.token_type,
+      },
     },
-  }, { status: 201 });
+    { status: 201 },
+  );
 }

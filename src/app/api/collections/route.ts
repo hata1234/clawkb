@@ -67,14 +67,15 @@ export async function POST(request: Request) {
       color: color || null,
       parentId: parentId || null,
       sortOrder: sortOrder ?? 0,
-      ...(groupRoles && groupRoles.length > 0 && {
-        groupRoles: {
-          create: (groupRoles as { groupId: number; role: string }[]).map((gr) => ({
-            groupId: gr.groupId,
-            role: gr.role || "viewer",
-          })),
-        },
-      }),
+      ...(groupRoles &&
+        groupRoles.length > 0 && {
+          groupRoles: {
+            create: (groupRoles as { groupId: number; role: string }[]).map((gr) => ({
+              groupId: gr.groupId,
+              role: gr.role || "viewer",
+            })),
+          },
+        }),
     },
     include: {
       _count: { select: { entries: true, children: true } },

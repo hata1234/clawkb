@@ -11,5 +11,5 @@ export async function GET(request: Request) {
     orderBy: { entries: { _count: "desc" } },
   });
 
-  return NextResponse.json(tags.map(t => ({ id: t.id, name: t.name, count: t._count.entries })));
+  return NextResponse.json(tags.map((t) => ({ id: t.id, name: t.name, count: t._count.entries })));
 }

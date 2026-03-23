@@ -40,8 +40,8 @@ function groupByDate(entries: Entry[]): Map<string, Entry[]> {
 }
 
 export default function TimelineFeed() {
-  const t = useTranslations('Timeline');
-  const tc = useTranslations('Common');
+  const t = useTranslations("Timeline");
+  const tc = useTranslations("Common");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -76,7 +76,7 @@ export default function TimelineFeed() {
         setLoadingMore(false);
       }
     },
-    [sourceFilter]
+    [sourceFilter],
   );
 
   // Reset when filters change
@@ -97,8 +97,21 @@ export default function TimelineFeed() {
     <div>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>{t('label')}</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>{t('title')}</h1>
+        <p
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--text-dim)",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: 4,
+          }}
+        >
+          {t("label")}
+        </p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>
+          {t("title")}
+        </h1>
       </div>
 
       {/* Filter chips */}
@@ -108,7 +121,7 @@ export default function TimelineFeed() {
           onChange={(e) => setSourceFilter(e.target.value)}
           className="timeline-filter-select"
         >
-          <option value="">{t('allSources')}</option>
+          <option value="">{t("allSources")}</option>
           {SOURCE_OPTIONS.map((s) => (
             <option key={s} value={s}>
               {s}
@@ -122,7 +135,7 @@ export default function TimelineFeed() {
               setSourceFilter("");
             }}
           >
-            {tc('clear')}
+            {tc("clear")}
           </button>
         )}
       </div>
@@ -135,9 +148,7 @@ export default function TimelineFeed() {
       )}
 
       {/* Timeline */}
-      {!loading && entries.length === 0 && (
-        <p className="timeline-empty">{t('noEntries')}</p>
-      )}
+      {!loading && entries.length === 0 && <p className="timeline-empty">{t("noEntries")}</p>}
 
       {!loading && entries.length > 0 && (
         <div className="timeline-container">
@@ -156,24 +167,15 @@ export default function TimelineFeed() {
               {groupEntries.map((entry) => (
                 <div key={entry.id} className="timeline-item">
                   <div className="timeline-node" />
-                  <Link
-                    href={`/entries/${entry.id}`}
-                    className="timeline-card"
-                  >
+                  <Link href={`/entries/${entry.id}`} className="timeline-card">
                     <div className="timeline-card-header">
-                      <span className="timeline-card-source">
-                        {entry.source}
-                      </span>
-                      <span className="timeline-card-time">
-                        {formatRelativeDate(entry.createdAt)}
-                      </span>
+                      <span className="timeline-card-source">{entry.source}</span>
+                      <span className="timeline-card-time">{formatRelativeDate(entry.createdAt)}</span>
                     </div>
                     <h3 className="timeline-card-title">{entry.title}</h3>
                     {entry.summary && (
                       <p className="timeline-card-summary">
-                        {entry.summary.length > 150
-                          ? entry.summary.slice(0, 150) + "…"
-                          : entry.summary}
+                        {entry.summary.length > 150 ? entry.summary.slice(0, 150) + "…" : entry.summary}
                       </p>
                     )}
                     {entry.tags.length > 0 && (
@@ -183,11 +185,7 @@ export default function TimelineFeed() {
                             {tag.name}
                           </span>
                         ))}
-                        {entry.tags.length > 4 && (
-                          <span className="timeline-tag-more">
-                            +{entry.tags.length - 4}
-                          </span>
-                        )}
+                        {entry.tags.length > 4 && <span className="timeline-tag-more">+{entry.tags.length - 4}</span>}
                       </div>
                     )}
                   </Link>
@@ -201,17 +199,13 @@ export default function TimelineFeed() {
       {/* Load more */}
       {!loading && hasMore && (
         <div className="timeline-load-more">
-          <button
-            onClick={loadMore}
-            disabled={loadingMore}
-            className="timeline-load-btn"
-          >
+          <button onClick={loadMore} disabled={loadingMore} className="timeline-load-btn">
             {loadingMore ? (
               <>
-                <Loader2 className="timeline-spinner-sm" /> {tc('loading')}
+                <Loader2 className="timeline-spinner-sm" /> {tc("loading")}
               </>
             ) : (
-              t('loadMore')
+              t("loadMore")
             )}
           </button>
         </div>

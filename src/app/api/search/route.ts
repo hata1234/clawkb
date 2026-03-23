@@ -41,7 +41,7 @@ function buildFilterSQL(
     dateTo?: string;
     collectionId?: string;
   },
-  accessibleCollectionIds?: number[] | null
+  accessibleCollectionIds?: number[] | null,
 ): { clause: string; params: unknown[]; paramOffset: number } {
   const conditions: string[] = ['e."deletedAt" IS NULL'];
   const params: unknown[] = [];
@@ -99,7 +99,7 @@ function buildFilterSQL(
 function resolveFilterParams(
   baseParams: unknown[],
   filterSQL: { clause: string; params: unknown[]; paramOffset: number },
-  startIdx: number
+  startIdx: number,
 ): { sql: string; allParams: unknown[] } {
   let sql = filterSQL.clause;
   const allParams = [...baseParams];
@@ -115,17 +115,7 @@ export async function POST(request: Request) {
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const {
-    query,
-    limit = 20,
-    mode: requestedMode,
-    type,
-    status,
-    tags,
-    dateFrom,
-    dateTo,
-    collectionId,
-  } = body;
+  const { query, limit = 20, mode: requestedMode, type, status, tags, dateFrom, dateTo, collectionId } = body;
   if (!query) return NextResponse.json({ error: "query required" }, { status: 400 });
 
   // Get accessible collection IDs for non-admin users
@@ -133,9 +123,7 @@ export async function POST(request: Request) {
 
   const filters = { type, status, tags, dateFrom, dateTo, collectionId };
   const filterInfo = buildFilterSQL(filters, accessibleCollectionIds);
-  const modes = requestedMode && requestedMode !== "auto"
-    ? [requestedMode]
-    : ["vector", "ilike"];
+  const modes = requestedMode && requestedMode !== "auto" ? [requestedMode] : ["vector", "ilike"];
 
   // Try each mode in order
   for (const searchMode of modes) {
@@ -158,15 +146,18 @@ export async function POST(request: Request) {
              JOIN "Entry" e ON e.id = c.entry_id
              WHERE c.embedding IS NOT NULL AND ${filterClause}
              ORDER BY e.id, similarity DESC`,
-            allParams
+            allParams,
           );
 
           let rows;
           if (chunkRows.length > 0) {
             // Re-sort by similarity after DISTINCT ON
-            rows = chunkRows.sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
-              (b.similarity as number) - (a.similarity as number)
-            ).slice(0, limit as number);
+            rows = chunkRows
+              .sort(
+                (a: Record<string, unknown>, b: Record<string, unknown>) =>
+                  (b.similarity as number) - (a.similarity as number),
+              )
+              .slice(0, limit as number);
           } else {
             // Fallback to Entry.embedding for entries without chunks
             const { rows: legacyRows } = await pool.query(
@@ -178,7 +169,7 @@ export async function POST(request: Request) {
                WHERE e.embedding IS NOT NULL AND ${filterClause}
                ORDER BY similarity DESC
                LIMIT $2`,
-              [...allParams, limit]
+              [...allParams, limit],
             );
             rows = legacyRows;
           }
@@ -242,7 +233,9 @@ export async function POST(request: Request) {
         updatedAt: e.updatedAt.toISOString(),
         tags: e.tags,
         collections: e.collections,
-        author: e.author ? { id: e.author.id, displayName: e.author.displayName || e.author.username, avatarUrl: e.author.avatarUrl } : null,
+        author: e.author
+          ? { id: e.author.id, displayName: e.author.displayName || e.author.username, avatarUrl: e.author.avatarUrl }
+          : null,
         snippet: extractSnippet(e.content, query),
         highlightedTitle: highlightText(e.title, query),
         highlightedSummary: highlightText(e.summary, query),
@@ -257,11 +250,7 @@ export async function POST(request: Request) {
   return NextResponse.json({ results: [], query, mode: "none", total: 0 });
 }
 
-async function enrichResults(
-  rows: Record<string, unknown>[],
-  query: string,
-  mode: "vector" | "fulltext"
-) {
+async function enrichResults(rows: Record<string, unknown>[], query: string, mode: "vector" | "fulltext") {
   const ids = rows.map((r) => r.id as number);
 
   // Batch fetch tags, collections, authors
@@ -291,7 +280,11 @@ async function enrichResults(
       tags: entry?.tags || [],
       collections: entry?.collections || [],
       author: entry?.author
-        ? { id: entry.author.id, displayName: entry.author.displayName || entry.author.username, avatarUrl: entry.author.avatarUrl }
+        ? {
+            id: entry.author.id,
+            displayName: entry.author.displayName || entry.author.username,
+            avatarUrl: entry.author.avatarUrl,
+          }
         : null,
       snippet: (row.matched_chunk as string) || extractSnippet(row.content as string | null, query),
       highlightedTitle: highlightText(row.title as string, query),

@@ -13,7 +13,9 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const username = String(body.username || "").trim();
-  const email = String(body.email || "").trim().toLowerCase();
+  const email = String(body.email || "")
+    .trim()
+    .toLowerCase();
   const password = String(body.password || "");
   const displayName = String(body.displayName || username).trim();
 
@@ -50,9 +52,7 @@ export async function POST(request: Request) {
       passwordHash,
       approvalStatus,
       emailVerificationToken: verificationToken,
-      emailVerificationExpires: verificationToken
-        ? new Date(Date.now() + 1000 * 60 * 60 * 24)
-        : null,
+      emailVerificationExpires: verificationToken ? new Date(Date.now() + 1000 * 60 * 60 * 24) : null,
       emailVerifiedAt: settings.requireEmailVerification ? null : new Date(),
     },
     include: userWithGroupInclude,
@@ -63,10 +63,13 @@ export async function POST(request: Request) {
     sendVerificationEmail({ email, displayName, username }, verificationToken).catch(() => {});
   }
 
-  return NextResponse.json({
-    user: serializeUser(user),
-    requiresEmailVerification: settings.requireEmailVerification,
-    requiresAdminApproval: settings.requireAdminApproval,
-    verificationToken,
-  }, { status: 201 });
+  return NextResponse.json(
+    {
+      user: serializeUser(user),
+      requiresEmailVerification: settings.requireEmailVerification,
+      requiresAdminApproval: settings.requireAdminApproval,
+      verificationToken,
+    },
+    { status: 201 },
+  );
 }

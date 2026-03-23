@@ -18,19 +18,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   try {
     // Get the current entry's embedding
-    const { rows: [current] } = await pool.query(
-      `SELECT embedding FROM "Entry" WHERE id = $1`,
-      [entryId]
-    );
+    const {
+      rows: [current],
+    } = await pool.query(`SELECT embedding FROM "Entry" WHERE id = $1`, [entryId]);
 
     if (!current || !current.embedding) {
       return NextResponse.json({ related: [] });
     }
 
     // Build ACL filter
-    const aclClause = collectionIds
-      ? `AND e.id IN (SELECT "A" FROM "_CollectionToEntry" WHERE "B" = ANY($4))`
-      : "";
+    const aclClause = collectionIds ? `AND e.id IN (SELECT "A" FROM "_CollectionToEntry" WHERE "B" = ANY($4))` : "";
     const queryParams: (string | number | number[])[] = [current.embedding, entryId, limit];
     if (collectionIds) queryParams.push(collectionIds);
 
@@ -42,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
        ${aclClause}
        ORDER BY e.embedding <=> $1
        LIMIT $3`,
-      queryParams
+      queryParams,
     );
 
     return NextResponse.json({ related: rows });

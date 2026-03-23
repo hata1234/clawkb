@@ -33,35 +33,37 @@ type EntryAuthor = {
   avatarUrl: string | null;
 } | null;
 
-export function serializeEntry<T extends {
-  id: number;
-  docNumber?: string | null;
-  type: string;
-  source: string;
-  title: string;
-  summary: string | null;
-  content: string | null;
-  status: string;
-  url: string | null;
-  metadata: unknown;
-  authorId: number | null;
-  bpmnXml?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  tags?: { id: number; name: string }[];
-  collections?: { id: number; name: string; icon?: string | null; color?: string | null }[];
-  images?: {
+export function serializeEntry<
+  T extends {
     id: number;
-    url: string;
-    key: string;
-    filename: string;
-    mimeType: string;
-    size: number;
-    caption: string | null;
-    sortOrder: number;
-  }[];
-  author?: EntryAuthor;
-}>(entry: T) {
+    docNumber?: string | null;
+    type: string;
+    source: string;
+    title: string;
+    summary: string | null;
+    content: string | null;
+    status: string;
+    url: string | null;
+    metadata: unknown;
+    authorId: number | null;
+    bpmnXml?: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    tags?: { id: number; name: string }[];
+    collections?: { id: number; name: string; icon?: string | null; color?: string | null }[];
+    images?: {
+      id: number;
+      url: string;
+      key: string;
+      filename: string;
+      mimeType: string;
+      size: number;
+      caption: string | null;
+      sortOrder: number;
+    }[];
+    author?: EntryAuthor;
+  },
+>(entry: T) {
   return {
     ...entry,
     createdAt: entry.createdAt.toISOString(),

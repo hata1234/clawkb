@@ -17,8 +17,10 @@ async function validateAndGetLink(token: string) {
   });
 
   if (!link || link.revokedAt) return { error: "This link has expired or is no longer available", status: 404 };
-  if (link.expiresAt && link.expiresAt < new Date()) return { error: "This link has expired or is no longer available", status: 410 };
-  if (link.maxViews !== null && link.viewCount >= link.maxViews) return { error: "This link has reached its view limit", status: 410 };
+  if (link.expiresAt && link.expiresAt < new Date())
+    return { error: "This link has expired or is no longer available", status: 410 };
+  if (link.maxViews !== null && link.viewCount >= link.maxViews)
+    return { error: "This link has reached its view limit", status: 410 };
   if (link.entry.deletedAt) return { error: "This link has expired or is no longer available", status: 404 };
 
   return { link };
@@ -53,7 +55,10 @@ async function getLinkedSharesMap(link: { id: number; parentId: number | null })
   return map;
 }
 
-function formatEntryResponse(entry: NonNullable<Awaited<ReturnType<typeof validateAndGetLink>>["link"]>["entry"], linkedShares: Record<number, { token: string; title: string; url: string }>) {
+function formatEntryResponse(
+  entry: NonNullable<Awaited<ReturnType<typeof validateAndGetLink>>["link"]>["entry"],
+  linkedShares: Record<number, { token: string; title: string; url: string }>,
+) {
   return {
     title: entry.title,
     summary: entry.summary,
@@ -64,9 +69,7 @@ function formatEntryResponse(entry: NonNullable<Awaited<ReturnType<typeof valida
       caption: img.caption,
     })),
     tags: entry.tags.map((t) => t.name),
-    author: entry.author
-      ? { displayName: entry.author.displayName, avatarUrl: entry.author.avatarUrl }
-      : null,
+    author: entry.author ? { displayName: entry.author.displayName, avatarUrl: entry.author.avatarUrl } : null,
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
     linkedShares,

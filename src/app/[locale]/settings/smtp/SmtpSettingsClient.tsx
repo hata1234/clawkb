@@ -80,16 +80,25 @@ async function saveSetting(key: string, value: unknown): Promise<boolean> {
 
 function Toast({ msg, ok }: { msg: string; ok: boolean }) {
   return (
-    <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 999,
-      padding: "10px 16px", borderRadius: "var(--radius-md)",
-      background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
-      border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
-      color: ok ? "var(--success)" : "var(--danger)",
-      fontSize: "0.875rem", fontWeight: 500,
-      display: "flex", alignItems: "center", gap: 8,
-      boxShadow: "var(--shadow-lg)",
-    }}>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 999,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-md)",
+        background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
+        border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
+        color: ok ? "var(--success)" : "var(--danger)",
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        boxShadow: "var(--shadow-lg)",
+      }}
+    >
       {ok ? <Check style={{ width: 14, height: 14 }} /> : <X style={{ width: 14, height: 14 }} />}
       {msg}
     </div>
@@ -148,11 +157,13 @@ export default function SmtpSettingsClient({ initialSettings }: { initialSetting
 
         {/* Enabled toggle */}
         <div style={{ marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
-          <label style={{ ...labelStyle, marginBottom: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+          <label
+            style={{ ...labelStyle, marginBottom: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+          >
             <input
               type="checkbox"
               checked={cfg.enabled}
-              onChange={e => setCfg(c => ({ ...c, enabled: e.target.checked }))}
+              onChange={(e) => setCfg((c) => ({ ...c, enabled: e.target.checked }))}
               style={{ accentColor: "var(--accent)" }}
             />
             {t("enableSmtp")}
@@ -163,21 +174,38 @@ export default function SmtpSettingsClient({ initialSettings }: { initialSetting
           <div style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 2 }}>
               <label style={labelStyle}>{t("host")}</label>
-              <input value={cfg.host} onChange={e => setCfg(c => ({ ...c, host: e.target.value }))}
-                style={inputStyle} placeholder="smtp.example.com" />
+              <input
+                value={cfg.host}
+                onChange={(e) => setCfg((c) => ({ ...c, host: e.target.value }))}
+                style={inputStyle}
+                placeholder="smtp.example.com"
+              />
             </div>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>{t("port")}</label>
-              <input type="number" value={cfg.port} onChange={e => setCfg(c => ({ ...c, port: parseInt(e.target.value) || 587 }))}
-                style={inputStyle} />
+              <input
+                type="number"
+                value={cfg.port}
+                onChange={(e) => setCfg((c) => ({ ...c, port: parseInt(e.target.value) || 587 }))}
+                style={inputStyle}
+              />
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <label style={{ ...labelStyle, marginBottom: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+            <label
+              style={{
+                ...labelStyle,
+                marginBottom: 0,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
               <input
                 type="checkbox"
                 checked={cfg.secure}
-                onChange={e => setCfg(c => ({ ...c, secure: e.target.checked }))}
+                onChange={(e) => setCfg((c) => ({ ...c, secure: e.target.checked }))}
                 style={{ accentColor: "var(--accent)" }}
               />
               {t("secure")}
@@ -185,37 +213,62 @@ export default function SmtpSettingsClient({ initialSettings }: { initialSetting
           </div>
           <div>
             <label style={labelStyle}>{t("username")}</label>
-            <input value={cfg.user} onChange={e => setCfg(c => ({ ...c, user: e.target.value }))}
-              style={inputStyle} placeholder={t("usernamePlaceholder")} autoComplete="off" />
+            <input
+              value={cfg.user}
+              onChange={(e) => setCfg((c) => ({ ...c, user: e.target.value }))}
+              style={inputStyle}
+              placeholder={t("usernamePlaceholder")}
+              autoComplete="off"
+            />
           </div>
           <div>
             <label style={labelStyle}>{t("password")}</label>
-            <input type="password" value={cfg.pass} onChange={e => setCfg(c => ({ ...c, pass: e.target.value }))}
-              style={inputStyle} placeholder={t("passwordPlaceholder")} autoComplete="off" />
+            <input
+              type="password"
+              value={cfg.pass}
+              onChange={(e) => setCfg((c) => ({ ...c, pass: e.target.value }))}
+              style={inputStyle}
+              placeholder={t("passwordPlaceholder")}
+              autoComplete="off"
+            />
           </div>
           <div style={{ display: "flex", gap: 12 }}>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>{t("fromAddress")}</label>
-              <input value={cfg.fromAddress} onChange={e => setCfg(c => ({ ...c, fromAddress: e.target.value }))}
-                style={inputStyle} placeholder="noreply@example.com" />
+              <input
+                value={cfg.fromAddress}
+                onChange={(e) => setCfg((c) => ({ ...c, fromAddress: e.target.value }))}
+                style={inputStyle}
+                placeholder="noreply@example.com"
+              />
             </div>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>{t("fromName")}</label>
-              <input value={cfg.fromName} onChange={e => setCfg(c => ({ ...c, fromName: e.target.value }))}
-                style={inputStyle} placeholder="ClawKB" />
+              <input
+                value={cfg.fromName}
+                onChange={(e) => setCfg((c) => ({ ...c, fromName: e.target.value }))}
+                style={inputStyle}
+                placeholder="ClawKB"
+              />
             </div>
           </div>
         </div>
 
         {testResult && (
-          <div style={{
-            padding: "10px 14px", borderRadius: "var(--radius-md)",
-            background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
-            border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
-            color: testResult.ok ? "var(--success)" : "var(--danger)",
-            fontSize: "0.8rem", marginBottom: 16,
-            display: "flex", alignItems: "center", gap: 8,
-          }}>
+          <div
+            style={{
+              padding: "10px 14px",
+              borderRadius: "var(--radius-md)",
+              background: testResult.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+              border: `1px solid ${testResult.ok ? "rgba(74,222,128,0.25)" : "rgba(248,113,113,0.25)"}`,
+              color: testResult.ok ? "var(--success)" : "var(--danger)",
+              fontSize: "0.8rem",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
             {testResult.ok ? <Wifi style={{ width: 14, height: 14 }} /> : <WifiOff style={{ width: 14, height: 14 }} />}
             {testResult.message}
           </div>
@@ -223,11 +276,23 @@ export default function SmtpSettingsClient({ initialSettings }: { initialSetting
 
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={save} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1 }}>
-            {saving ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
+            {saving ? (
+              <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+            ) : (
+              <Check style={{ width: 14, height: 14 }} />
+            )}
             {tc("save")}
           </button>
-          <button onClick={testConnection} disabled={testing || !cfg.host} style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}>
-            {testing ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Mail style={{ width: 14, height: 14 }} />}
+          <button
+            onClick={testConnection}
+            disabled={testing || !cfg.host}
+            style={{ ...btnGhost, opacity: testing ? 0.6 : 1 }}
+          >
+            {testing ? (
+              <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+            ) : (
+              <Mail style={{ width: 14, height: 14 }} />
+            )}
             {tc("testConnection")}
           </button>
         </div>

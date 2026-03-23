@@ -19,11 +19,7 @@ export function generateToken(): string {
   return `clawkb_${crypto.randomBytes(32).toString("hex")}`;
 }
 
-export async function createApiToken(input: {
-  name: string;
-  userId?: number | null;
-  tokenType?: ApiTokenType;
-}) {
+export async function createApiToken(input: { name: string; userId?: number | null; tokenType?: ApiTokenType }) {
   const token = generateToken();
   const hash = hashToken(token);
   const prefix = token.slice(0, 12);

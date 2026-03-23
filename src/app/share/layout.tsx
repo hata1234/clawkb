@@ -1,11 +1,7 @@
 import ThemeProvider from "@/components/ThemeProvider";
 import { ThemeScript } from "@/components/ThemeScript";
 
-export default function ShareLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ShareLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -19,9 +15,7 @@ export default function ShareLayout({
         <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

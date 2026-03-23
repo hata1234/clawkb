@@ -54,7 +54,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     include: commentWithAuthorInclude,
   });
 
-  logActivity("comment.created", principal.id, entryId, { commentId: comment.id, entryTitle: entry.title }).catch(() => {});
+  logActivity("comment.created", principal.id, entryId, { commentId: comment.id, entryTitle: entry.title }).catch(
+    () => {},
+  );
   dispatchWebhookEvent("comment.created", { id: comment.id, entryId, entryTitle: entry.title, authorId: principal.id });
 
   // Notify entry author about the comment (if different from commenter)

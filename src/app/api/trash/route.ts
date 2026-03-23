@@ -22,7 +22,7 @@ export async function GET(request: Request) {
         deletedAt: e.deletedAt?.toISOString() ?? null,
       } as Record<string, unknown>;
       return runEntrySerializeHooks(base, principal);
-    })
+    }),
   );
 
   return NextResponse.json({

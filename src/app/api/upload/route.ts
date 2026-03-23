@@ -15,7 +15,9 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const kind = String(formData.get("kind") || "entry").trim().toLowerCase();
+    const kind = String(formData.get("kind") || "entry")
+      .trim()
+      .toLowerCase();
     if (kind !== "entry" && kind !== "avatar") {
       return NextResponse.json({ error: "Invalid upload kind" }, { status: 400 });
     }
@@ -28,10 +30,7 @@ export async function POST(req: NextRequest) {
     // Validate file type
     const allowed = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"];
     if (!allowed.includes(file.type)) {
-      return NextResponse.json(
-        { error: `Unsupported file type: ${file.type}` },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: `Unsupported file type: ${file.type}` }, { status: 400 });
     }
 
     // Max 20MB
@@ -56,9 +55,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("Upload error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Upload failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Upload failed" }, { status: 500 });
   }
 }

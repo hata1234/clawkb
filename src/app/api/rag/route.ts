@@ -19,7 +19,7 @@ function buildFilterSQL(
     tags?: string[];
     collectionId?: number;
   },
-  accessibleCollectionIds?: number[] | null
+  accessibleCollectionIds?: number[] | null,
 ): { clause: string; params: unknown[]; paramOffset: number } {
   const conditions: string[] = ['e."deletedAt" IS NULL'];
   const params: unknown[] = [];
@@ -67,7 +67,7 @@ function buildFilterSQL(
 function resolveFilterParams(
   baseParams: unknown[],
   filterSQL: { clause: string; params: unknown[]; paramOffset: number },
-  startIdx: number
+  startIdx: number,
 ): { sql: string; allParams: unknown[] } {
   let sql = filterSQL.clause;
   const allParams = [...baseParams];
@@ -82,7 +82,7 @@ async function retrieveChunks(
   queryEmbedding: number[],
   topK: number,
   filters: { type?: string; status?: string; tags?: string[]; collectionId?: number },
-  accessibleCollectionIds?: number[] | null
+  accessibleCollectionIds?: number[] | null,
 ): Promise<RagSource[]> {
   const vectorStr = `[${queryEmbedding.join(",")}]`;
   const filterInfo = buildFilterSQL(filters, accessibleCollectionIds);
@@ -98,13 +98,13 @@ async function retrieveChunks(
      JOIN "Entry" e ON e.id = c.entry_id
      WHERE c.embedding IS NOT NULL AND ${filterClause}
      ORDER BY e.id, similarity DESC`,
-    allParams
+    allParams,
   );
 
   // Re-sort by similarity and take topK
   return rows
-    .sort((a: Record<string, unknown>, b: Record<string, unknown>) =>
-      (b.similarity as number) - (a.similarity as number)
+    .sort(
+      (a: Record<string, unknown>, b: Record<string, unknown>) => (b.similarity as number) - (a.similarity as number),
     )
     .slice(0, topK)
     .map((r: Record<string, unknown>) => ({
@@ -118,7 +118,7 @@ async function retrieveChunks(
 function buildLLMMessages(
   systemPrompt: string,
   query: string,
-  sources: RagSource[]
+  sources: RagSource[],
 ): Array<{ role: string; content: string }> {
   const contextBlock = sources
     .map((s, i) => `[${i + 1}] Entry #${s.entryId} - "${s.title}" (${s.similarity}% match)\n${s.chunkText}`)
@@ -160,7 +160,10 @@ export async function POST(request: Request) {
   // 1. Generate query embedding
   const queryEmbedding = await generateEmbedding(query);
   if (!queryEmbedding) {
-    return NextResponse.json({ error: "Failed to generate query embedding. Check embedding settings." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate query embedding. Check embedding settings." },
+      { status: 500 },
+    );
   }
 
   // 2. Retrieve similar chunks
@@ -182,25 +185,25 @@ export async function POST(request: Request) {
     // Ollama uses a different path
     llmBaseUrl = llmBaseUrl.replace(/\/v1\/?$/, "");
   }
-  const chatUrl = ragConfig.provider === "ollama"
-    ? `${llmBaseUrl}/api/chat`
-    : `${llmBaseUrl.replace(/\/$/, "")}/chat/completions`;
+  const chatUrl =
+    ragConfig.provider === "ollama" ? `${llmBaseUrl}/api/chat` : `${llmBaseUrl.replace(/\/$/, "")}/chat/completions`;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (ragConfig.apiKey) {
     headers["Authorization"] = `Bearer ${ragConfig.apiKey}`;
   }
 
-  const llmBody = ragConfig.provider === "ollama"
-    ? { model: ragConfig.model, messages, stream, options: { num_predict: ragConfig.maxTokens } }
-    : {
-        model: ragConfig.model,
-        messages,
-        stream,
-        max_tokens: ragConfig.maxTokens,
-        // Disable thinking/reasoning for RAG — we want content in the content field
-        ...(ragConfig.provider === "spark-vllm" && { chat_template_kwargs: { enable_thinking: false } }),
-      };
+  const llmBody =
+    ragConfig.provider === "ollama"
+      ? { model: ragConfig.model, messages, stream, options: { num_predict: ragConfig.maxTokens } }
+      : {
+          model: ragConfig.model,
+          messages,
+          stream,
+          max_tokens: ragConfig.maxTokens,
+          // Disable thinking/reasoning for RAG — we want content in the content field
+          ...(ragConfig.provider === "spark-vllm" && { chat_template_kwargs: { enable_thinking: false } }),
+        };
 
   if (!stream) {
     // Non-streaming mode
@@ -216,9 +219,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "LLM request failed" }, { status: 502 });
       }
       const data = await llmRes.json();
-      const answer = ragConfig.provider === "ollama"
-        ? data.message?.content ?? ""
-        : data.choices?.[0]?.message?.content ?? "";
+      const answer =
+        ragConfig.provider === "ollama" ? (data.message?.content ?? "") : (data.choices?.[0]?.message?.content ?? "");
       return NextResponse.json({ answer, sources });
     } catch (err) {
       console.error("LLM request failed:", err);

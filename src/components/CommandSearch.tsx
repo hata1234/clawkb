@@ -36,7 +36,7 @@ const TYPE_DOTS: Record<string, string> = {
 };
 
 export default function CommandSearch() {
-  const t = useTranslations('CommandSearch');
+  const t = useTranslations("CommandSearch");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<QuickResult[]>([]);
@@ -98,13 +98,18 @@ export default function CommandSearch() {
         setLoading(false);
       }
     }, 300);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [query]);
 
-  const navigateTo = useCallback((path: string) => {
-    setOpen(false);
-    router.push(path);
-  }, [router]);
+  const navigateTo = useCallback(
+    (path: string) => {
+      setOpen(false);
+      router.push(path);
+    },
+    [router],
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     const itemCount = results.length + (query.trim() ? 1 : 0); // +1 for "View all" action
@@ -141,7 +146,7 @@ export default function CommandSearch() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('placeholder')}
+            placeholder={t("placeholder")}
             className="cmdk-input"
           />
           {loading && <Loader2 className="cmdk-spinner" />}
@@ -154,7 +159,7 @@ export default function CommandSearch() {
             {results.length === 0 && !loading && (
               <div className="cmdk-empty">
                 <FileText style={{ width: 20, height: 20, opacity: 0.3 }} />
-                <span>{t('noResults')}</span>
+                <span>{t("noResults")}</span>
               </div>
             )}
             {results.map((r, i) => (
@@ -177,14 +182,16 @@ export default function CommandSearch() {
               >
                 <Search style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} />
                 <span style={{ color: "var(--accent)", fontWeight: 500 }}>
-                  {t('searchFor', { query: query.trim() })}
+                  {t("searchFor", { query: query.trim() })}
                 </span>
-                <ArrowRight style={{ width: 14, height: 14, color: "var(--accent)", marginLeft: "auto", flexShrink: 0 }} />
+                <ArrowRight
+                  style={{ width: 14, height: 14, color: "var(--accent)", marginLeft: "auto", flexShrink: 0 }}
+                />
               </button>
             )}
             {searchMode && results.length > 0 && (
               <div className="cmdk-mode-indicator">
-                {MODE_ICONS[searchMode]} {t('searchMode', { mode: searchMode })}
+                {MODE_ICONS[searchMode]} {t("searchMode", { mode: searchMode })}
               </div>
             )}
           </div>

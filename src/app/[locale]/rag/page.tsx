@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Link } from '@/i18n/navigation';
-import { useTranslations } from 'next-intl';
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Send, Bot, User, Loader2, FileText, ExternalLink } from "lucide-react";
 
 interface Source {
@@ -19,7 +19,7 @@ interface Message {
 }
 
 export default function RagPage() {
-  const t = useTranslations('Rag');
+  const t = useTranslations("Rag");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ export default function RagPage() {
     if (!q || loading) return;
 
     setInput("");
-    setMessages(prev => [...prev, { role: "user", content: q }]);
+    setMessages((prev) => [...prev, { role: "user", content: q }]);
     setLoading(true);
     setStreamingContent("");
     setStreamingSources([]);
@@ -54,8 +54,8 @@ export default function RagPage() {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: t('requestFailed') }));
-        setMessages(prev => [...prev, { role: "assistant", content: err.error || t('somethingWrong') }]);
+        const err = await res.json().catch(() => ({ error: t("requestFailed") }));
+        setMessages((prev) => [...prev, { role: "assistant", content: err.error || t("somethingWrong") }]);
         setLoading(false);
         return;
       }
@@ -88,13 +88,17 @@ export default function RagPage() {
                 try {
                   sources = JSON.parse(data);
                   setStreamingSources(sources);
-                } catch { /* skip */ }
+                } catch {
+                  /* skip */
+                }
               } else if (eventType === "delta") {
                 try {
                   const token = JSON.parse(data);
                   fullContent += token;
                   setStreamingContent(fullContent);
-                } catch { /* skip */ }
+                } catch {
+                  /* skip */
+                }
               } else if (eventType === "done") {
                 // Stream finished
               }
@@ -103,16 +107,16 @@ export default function RagPage() {
           }
         }
 
-        setMessages(prev => [...prev, { role: "assistant", content: fullContent, sources }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: fullContent, sources }]);
         setStreamingContent("");
         setStreamingSources([]);
       } else {
         // Non-streaming JSON response
         const data = await res.json();
-        setMessages(prev => [...prev, { role: "assistant", content: data.answer, sources: data.sources }]);
+        setMessages((prev) => [...prev, { role: "assistant", content: data.answer, sources: data.sources }]);
       }
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: t('networkError') }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: t("networkError") }]);
     } finally {
       setLoading(false);
     }
@@ -129,8 +133,21 @@ export default function RagPage() {
     <div className="rag-page">
       {/* Header */}
       <div style={{ marginBottom: 24, textAlign: "center" }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>{t('label')}</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 400, color: "var(--text)" }}>{t('title')}</h1>
+        <p
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--text-dim)",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: 4,
+          }}
+        >
+          {t("label")}
+        </p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "2rem", fontWeight: 400, color: "var(--text)" }}>
+          {t("title")}
+        </h1>
       </div>
 
       {/* Chat area */}
@@ -139,27 +156,24 @@ export default function RagPage() {
           <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
             <Bot style={{ width: 48, height: 48, margin: "0 auto 16px", opacity: 0.2 }} />
             <p style={{ fontSize: "1rem", fontWeight: 500, marginBottom: 8, color: "var(--text-secondary)" }}>
-              {t('prompt')}
+              {t("prompt")}
             </p>
-            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>
-              {t('description')}
-            </p>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-dim)" }}>{t("description")}</p>
           </div>
         )}
 
         {messages.map((msg, i) => (
           <div key={i} className={`rag-message rag-message-${msg.role}`}>
             <div className="rag-message-avatar">
-              {msg.role === "user"
-                ? <User style={{ width: 16, height: 16 }} />
-                : <Bot style={{ width: 16, height: 16 }} />
-              }
+              {msg.role === "user" ? (
+                <User style={{ width: 16, height: 16 }} />
+              ) : (
+                <Bot style={{ width: 16, height: 16 }} />
+              )}
             </div>
             <div className="rag-message-body">
               <div className="rag-message-content">{msg.content}</div>
-              {msg.sources && msg.sources.length > 0 && (
-                <SourceCards sources={msg.sources} />
-              )}
+              {msg.sources && msg.sources.length > 0 && <SourceCards sources={msg.sources} />}
             </div>
           </div>
         ))}
@@ -172,9 +186,7 @@ export default function RagPage() {
             </div>
             <div className="rag-message-body">
               {streamingSources.length > 0 && <SourceCards sources={streamingSources} />}
-              <div className="rag-message-content">
-                {streamingContent || <span className="rag-typing" />}
-              </div>
+              <div className="rag-message-content">{streamingContent || <span className="rag-typing" />}</div>
             </div>
           </div>
         )}
@@ -186,9 +198,11 @@ export default function RagPage() {
               <Bot style={{ width: 16, height: 16 }} />
             </div>
             <div className="rag-message-body">
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-dim)", fontSize: "0.85rem" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--text-dim)", fontSize: "0.85rem" }}
+              >
                 <Loader2 style={{ width: 16, height: 16 }} className="rag-spin" />
-                {t('searching')}
+                {t("searching")}
               </div>
             </div>
           </div>
@@ -203,22 +217,19 @@ export default function RagPage() {
           <textarea
             ref={inputRef}
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={t('placeholder')}
+            placeholder={t("placeholder")}
             className="rag-input"
             rows={1}
             disabled={loading}
           />
-          <button
-            onClick={submit}
-            disabled={loading || !input.trim()}
-            className="rag-send-btn"
-          >
-            {loading
-              ? <Loader2 style={{ width: 18, height: 18 }} className="rag-spin" />
-              : <Send style={{ width: 18, height: 18 }} />
-            }
+          <button onClick={submit} disabled={loading || !input.trim()} className="rag-send-btn">
+            {loading ? (
+              <Loader2 style={{ width: 18, height: 18 }} className="rag-spin" />
+            ) : (
+              <Send style={{ width: 18, height: 18 }} />
+            )}
           </button>
         </div>
       </div>

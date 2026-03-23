@@ -32,7 +32,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   });
   if (!entry) return NextResponse.json({ error: "Entry not found" }, { status: 404 });
 
-  const allowed = await canEditEntry(principal.id, { authorId: entry.authorId, collections: entry.collections }, principal.isAdmin);
+  const allowed = await canEditEntry(
+    principal.id,
+    { authorId: entry.authorId, collections: entry.collections },
+    principal.isAdmin,
+  );
   if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await request.json();
@@ -48,7 +52,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     data: {
       entryId,
       name: name || "",
-      bpmnXml: bpmnXml || '<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn"><bpmn:process id="Process_1" isExecutable="false"><bpmn:startEvent id="StartEvent_1"/></bpmn:process><bpmndi:BPMNDiagram id="BPMNDiagram_1"><bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"><bpmndi:BPMNShape id="_BPMNShape_StartEvent_1" bpmnElement="StartEvent_1"><dc:Bounds xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" x="173" y="102" width="36" height="36"/></bpmndi:BPMNShape></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>',
+      bpmnXml:
+        bpmnXml ||
+        '<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn"><bpmn:process id="Process_1" isExecutable="false"><bpmn:startEvent id="StartEvent_1"/></bpmn:process><bpmndi:BPMNDiagram id="BPMNDiagram_1"><bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"><bpmndi:BPMNShape id="_BPMNShape_StartEvent_1" bpmnElement="StartEvent_1"><dc:Bounds xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" x="173" y="102" width="36" height="36"/></bpmndi:BPMNShape></bpmndi:BPMNPlane></bpmndi:BPMNDiagram></bpmn:definitions>',
       sortOrder: (maxSort._max.sortOrder ?? -1) + 1,
     },
   });

@@ -89,8 +89,8 @@ const labelStyle: React.CSSProperties = {
 
 export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const router = useRouter();
-  const t = useTranslations('EntryForm');
-  const tc = useTranslations('Common');
+  const t = useTranslations("EntryForm");
+  const tc = useTranslations("Common");
   const settings = useSettings();
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -105,8 +105,8 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   useEffect(() => {
     if (mode !== "create") return;
     fetch("/api/plugins/entry-templates/templates")
-      .then(r => r.ok ? r.json() : { templates: [] })
-      .then(data => setTemplates(data.templates || []))
+      .then((r) => (r.ok ? r.json() : { templates: [] }))
+      .then((data) => setTemplates(data.templates || []))
       .catch(() => {});
   }, [mode]);
 
@@ -120,7 +120,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
 
   // Dynamic options from DB settings, with hardcoded fallback
   const sourceOptions = settings?.source_options ?? [...SOURCE_OPTIONS];
-  const statusOptions = settings?.status_options?.map(s => s.id) ?? [...STATUS_OPTIONS];
+  const statusOptions = settings?.status_options?.map((s) => s.id) ?? [...STATUS_OPTIONS];
   const statusLabels: Record<string, string> = {};
   if (settings?.status_options) {
     for (const s of settings.status_options) statusLabels[s.id] = s.label;
@@ -138,9 +138,9 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   });
 
   const applyTemplate = (templateId: string) => {
-    const tpl = templates.find(t => t.id === templateId);
+    const tpl = templates.find((t) => t.id === templateId);
     if (!tpl) return;
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
       source: tpl.source || prev.source,
       status: tpl.status || prev.status,
@@ -150,9 +150,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
     }));
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -161,7 +159,10 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
     setSaving(true);
     setError("");
 
-    const tagList = form.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    const tagList = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
 
     const body = {
       type: "entry",
@@ -179,18 +180,22 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
     try {
       const url = mode === "edit" ? `/api/entries/${initialData?.id}` : "/api/entries";
       const method = mode === "edit" ? "PATCH" : "POST";
-      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || t('failedToSave'));
+        throw new Error(data.error || t("failedToSave"));
       }
 
       const data = await res.json();
       router.push(`/entries/${data.id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('somethingWrong'));
+      setError(err instanceof Error ? err.message : t("somethingWrong"));
     } finally {
       setSaving(false);
     }
@@ -199,30 +204,39 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {error && (
-        <div style={{
-          background: "rgba(248,113,113,0.08)",
-          border: "1px solid rgba(248,113,113,0.2)",
-          borderRadius: "var(--radius-md)",
-          padding: "12px 16px",
-          fontSize: "0.875rem",
-          color: "var(--danger)",
-        }}>
+        <div
+          style={{
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.2)",
+            borderRadius: "var(--radius-md)",
+            padding: "12px 16px",
+            fontSize: "0.875rem",
+            color: "var(--danger)",
+          }}
+        >
           {error}
         </div>
       )}
 
       {/* Template selector — only in create mode and when templates exist */}
       {mode === "create" && templates.length > 0 && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-          padding: "12px 14px",
-          background: "var(--accent-muted)",
-          border: "1px solid rgba(201,169,110,0.2)",
-          borderRadius: "var(--radius-md)",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            flexWrap: "wrap",
+            padding: "12px 14px",
+            background: "var(--accent-muted)",
+            border: "1px solid rgba(201,169,110,0.2)",
+            borderRadius: "var(--radius-md)",
+          }}
+        >
           <LayoutTemplate style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} />
-          <span style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 500, flexShrink: 0 }}>{t('template')}</span>
-          {templates.map(tpl => (
+          <span style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 500, flexShrink: 0 }}>
+            {t("template")}
+          </span>
+          {templates.map((tpl) => (
             <button
               key={tpl.id}
               type="button"
@@ -247,14 +261,51 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
 
       <div className="form-row-2col">
         <div>
-          <label style={labelStyle}>{t('collections')}</label>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, minHeight: 38, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: "6px 10px", alignItems: "center" }}>
+          <label style={labelStyle}>{t("collections")}</label>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 6,
+              minHeight: 38,
+              background: "var(--background)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              padding: "6px 10px",
+              alignItems: "center",
+            }}
+          >
             {selectedCollectionIds.map((cid) => {
               const col = allCollections.find((c) => c.id === cid);
               return col ? (
-                <span key={cid} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: "0.75rem", background: "var(--surface-hover)", color: "var(--text-secondary)", padding: "2px 8px", borderRadius: 999 }}>
+                <span
+                  key={cid}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: "0.75rem",
+                    background: "var(--surface-hover)",
+                    color: "var(--text-secondary)",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                  }}
+                >
                   {col.icon || "📁"} {col.name}
-                  <button type="button" onClick={() => setSelectedCollectionIds((prev) => prev.filter((id) => id !== cid))} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: "var(--text-dim)" }}>&times;</button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCollectionIds((prev) => prev.filter((id) => id !== cid))}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: 0,
+                      display: "flex",
+                      color: "var(--text-dim)",
+                    }}
+                  >
+                    &times;
+                  </button>
                 </span>
               ) : null;
             })}
@@ -264,62 +315,138 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
                 const id = parseInt(e.target.value);
                 if (id && !selectedCollectionIds.includes(id)) setSelectedCollectionIds((prev) => [...prev, id]);
               }}
-              style={{ ...selectStyle, width: "auto", minWidth: 120, padding: "4px 8px", fontSize: "0.75rem", border: "none", background: "transparent" }}
+              style={{
+                ...selectStyle,
+                width: "auto",
+                minWidth: 120,
+                padding: "4px 8px",
+                fontSize: "0.75rem",
+                border: "none",
+                background: "transparent",
+              }}
             >
-              <option value="">{t('addCollection')}</option>
-              {allCollections.filter((c) => !selectedCollectionIds.includes(c.id)).map((c) => (
-                <option key={c.id} value={c.id}>{c.icon || "📁"} {c.name}</option>
-              ))}
+              <option value="">{t("addCollection")}</option>
+              {allCollections
+                .filter((c) => !selectedCollectionIds.includes(c.id))
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.icon || "📁"} {c.name}
+                  </option>
+                ))}
             </select>
           </div>
         </div>
         <div>
-          <label style={labelStyle}>{t('source')}</label>
+          <label style={labelStyle}>{t("source")}</label>
           <select name="source" value={form.source} onChange={handleChange} style={selectStyle}>
-            {sourceOptions.map((s) => (<option key={s} value={s}>{s}</option>))}
+            {sourceOptions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       <div>
-        <label style={labelStyle}>{t('title')}</label>
-        <input type="text" name="title" value={form.title} onChange={handleChange} required placeholder={t('titlePlaceholder')} style={inputStyle} />
+        <label style={labelStyle}>{t("title")}</label>
+        <input
+          type="text"
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+          required
+          placeholder={t("titlePlaceholder")}
+          style={inputStyle}
+        />
       </div>
 
       <div>
-        <label style={labelStyle}>{t('summary')}</label>
-        <input type="text" name="summary" value={form.summary} onChange={handleChange} placeholder={t('summaryPlaceholder')} style={inputStyle} />
+        <label style={labelStyle}>{t("summary")}</label>
+        <input
+          type="text"
+          name="summary"
+          value={form.summary}
+          onChange={handleChange}
+          placeholder={t("summaryPlaceholder")}
+          style={inputStyle}
+        />
       </div>
 
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-          <label style={{ ...labelStyle, marginBottom: 0 }}>{t('contentMarkdown')}</label>
-          <button type="button" onClick={() => setShowPreview(!showPreview)}
-            style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.75rem", color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer" }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>{t("contentMarkdown")}</label>
+          <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: "0.75rem",
+              color: "var(--text-muted)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
             {showPreview ? <EyeOff style={{ width: 14, height: 14 }} /> : <Eye style={{ width: 14, height: 14 }} />}
-            {showPreview ? t('editToggle') : t('previewToggle')}
+            {showPreview ? t("editToggle") : t("previewToggle")}
           </button>
         </div>
         {showPreview ? (
-          <div style={{ minHeight: 200, background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)", padding: 16 }}>
-            {form.content ? <MarkdownRenderer content={form.content} /> : <p style={{ color: "var(--text-dim)", fontSize: "0.875rem" }}>{t('nothingToPreview')}</p>}
+          <div
+            style={{
+              minHeight: 200,
+              background: "var(--background)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              padding: 16,
+            }}
+          >
+            {form.content ? (
+              <MarkdownRenderer content={form.content} />
+            ) : (
+              <p style={{ color: "var(--text-dim)", fontSize: "0.875rem" }}>{t("nothingToPreview")}</p>
+            )}
           </div>
         ) : (
-          <MentionTextarea name="content" value={form.content} onChange={handleChange} rows={10} placeholder={t('contentPlaceholder')}
-            style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 200 }} />
+          <MentionTextarea
+            name="content"
+            value={form.content}
+            onChange={handleChange}
+            rows={10}
+            placeholder={t("contentPlaceholder")}
+            style={{
+              ...inputStyle,
+              resize: "vertical",
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.8rem",
+              minHeight: 200,
+            }}
+          />
         )}
       </div>
 
       <div className="form-row-2col">
         <div>
-          <label style={labelStyle}>{t('url')}</label>
-          <input type="url" name="url" value={form.url} onChange={handleChange} placeholder={t('urlPlaceholder')} style={inputStyle} />
+          <label style={labelStyle}>{t("url")}</label>
+          <input
+            type="url"
+            name="url"
+            value={form.url}
+            onChange={handleChange}
+            placeholder={t("urlPlaceholder")}
+            style={inputStyle}
+          />
         </div>
         <div>
-          <label style={labelStyle}>{t('status')}</label>
+          <label style={labelStyle}>{t("status")}</label>
           <select name="status" value={form.status} onChange={handleChange} style={selectStyle}>
             {statusOptions.map((s) => (
-              <option key={s} value={s}>{statusLabels[s] || s.replace(/_/g, " ")}</option>
+              <option key={s} value={s}>
+                {statusLabels[s] || s.replace(/_/g, " ")}
+              </option>
             ))}
           </select>
         </div>
@@ -328,37 +455,71 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       <ImageUpload images={images} onChange={setImages} />
 
       <div>
-        <label style={labelStyle}>{t('tagsLabel')}</label>
-        <input type="text" name="tags" value={form.tags} onChange={handleChange} placeholder={t('tagsPlaceholder')} style={inputStyle} />
+        <label style={labelStyle}>{t("tagsLabel")}</label>
+        <input
+          type="text"
+          name="tags"
+          value={form.tags}
+          onChange={handleChange}
+          placeholder={t("tagsPlaceholder")}
+          style={inputStyle}
+        />
       </div>
 
       {mode === "create" && (
-        <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", padding: "8px 12px", background: "var(--surface-hover)", borderRadius: "var(--radius-md)", display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          style={{
+            fontSize: "0.8rem",
+            color: "var(--text-dim)",
+            padding: "8px 12px",
+            background: "var(--surface-hover)",
+            borderRadius: "var(--radius-md)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
           <span>📋</span>
-          <span>{t('bpmnNoteCreate')}</span>
+          <span>{t("bpmnNoteCreate")}</span>
         </div>
       )}
 
       <div style={{ display: "flex", alignItems: "center", gap: 12, paddingTop: 8 }}>
-        <button type="submit" disabled={saving} style={{
-          display: "flex", alignItems: "center", gap: 8,
-          padding: "10px 20px",
-          background: "var(--accent)", color: "var(--accent-contrast)",
-          fontSize: "0.875rem", fontWeight: 600,
-          borderRadius: "var(--radius-md)", border: "none", cursor: "pointer",
-          opacity: saving ? 0.5 : 1,
-        }}>
+        <button
+          type="submit"
+          disabled={saving}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 20px",
+            background: "var(--accent)",
+            color: "var(--accent-contrast)",
+            fontSize: "0.875rem",
+            fontWeight: 600,
+            borderRadius: "var(--radius-md)",
+            border: "none",
+            cursor: "pointer",
+            opacity: saving ? 0.5 : 1,
+          }}
+        >
           <Save style={{ width: 16, height: 16 }} />
-          {saving ? t('saving') : mode === "create" ? t('createEntry') : t('saveChanges')}
+          {saving ? t("saving") : mode === "create" ? t("createEntry") : t("saveChanges")}
         </button>
-        <button type="button" onClick={() => router.back()} style={{
-          padding: "10px 20px",
-          fontSize: "0.875rem", color: "var(--text-secondary)",
-          background: "none",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-md)", cursor: "pointer",
-        }}>
-          {tc('cancel')}
+        <button
+          type="button"
+          onClick={() => router.back()}
+          style={{
+            padding: "10px 20px",
+            fontSize: "0.875rem",
+            color: "var(--text-secondary)",
+            background: "none",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            cursor: "pointer",
+          }}
+        >
+          {tc("cancel")}
         </button>
       </div>
 

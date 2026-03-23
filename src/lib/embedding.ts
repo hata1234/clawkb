@@ -26,7 +26,12 @@ async function generateEmbeddingOllama(text: string, ollamaUrl: string, model: s
   }
 }
 
-async function generateEmbeddingOpenAI(text: string, apiKey: string, model: string, baseUrl: string = "https://api.openai.com"): Promise<number[] | null> {
+async function generateEmbeddingOpenAI(
+  text: string,
+  apiKey: string,
+  model: string,
+  baseUrl: string = "https://api.openai.com",
+): Promise<number[] | null> {
   try {
     const res = await fetch(`${baseUrl}/v1/embeddings`, {
       method: "POST",
@@ -56,7 +61,10 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
   if (config.provider === "openai") {
     const key = config.openaiApiKey ?? "";
     const model = config.openaiModel ?? "text-embedding-3-small";
-    if (!key) { console.error("OpenAI embedding: no API key configured"); return null; }
+    if (!key) {
+      console.error("OpenAI embedding: no API key configured");
+      return null;
+    }
     const baseUrl = config.openaiBaseUrl ?? "https://api.openai.com";
     return generateEmbeddingOpenAI(text, key, model, baseUrl);
   }
@@ -67,7 +75,11 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
   return generateEmbeddingOllama(text, url, model);
 }
 
-export function buildEmbeddingInput(entry: { title: string; summary?: string | null; content?: string | null }): string {
+export function buildEmbeddingInput(entry: {
+  title: string;
+  summary?: string | null;
+  content?: string | null;
+}): string {
   // Only title + summary for embedding — long content dilutes vector quality
   return [entry.title, entry.summary].filter(Boolean).join("\n\n");
 }
@@ -77,7 +89,12 @@ export async function storeEmbedding(entryId: number, embedding: number[]): Prom
   await pool.query(`UPDATE "Entry" SET embedding = $1::vector(1024) WHERE id = $2`, [vectorStr, entryId]);
 }
 
-export async function generateAndStoreEmbedding(entry: { id: number; title: string; summary?: string | null; content?: string | null }): Promise<void> {
+export async function generateAndStoreEmbedding(entry: {
+  id: number;
+  title: string;
+  summary?: string | null;
+  content?: string | null;
+}): Promise<void> {
   try {
     const text = buildEmbeddingInput(entry);
     const embedding = await generateEmbedding(text);
@@ -173,7 +190,7 @@ export async function generateAndStoreChunks(entry: {
     await pool.query(
       `INSERT INTO entry_chunks (entry_id, chunk_index, chunk_text, context_text, embedding)
        VALUES ($1, 0, $2, $2, $3::vector(1024))`,
-      [entry.id, chunk0Text, vectorStr]
+      [entry.id, chunk0Text, vectorStr],
     );
   }
 
@@ -191,14 +208,14 @@ export async function generateAndStoreChunks(entry: {
       await pool.query(
         `INSERT INTO entry_chunks (entry_id, chunk_index, chunk_text, context_text, embedding)
          VALUES ($1, $2, $3, $4, $5::vector(1024))`,
-        [entry.id, i + 1, chunkText, contextText, vectorStr]
+        [entry.id, i + 1, chunkText, contextText, vectorStr],
       );
     } else {
       // Store without embedding
       await pool.query(
         `INSERT INTO entry_chunks (entry_id, chunk_index, chunk_text, context_text)
          VALUES ($1, $2, $3, $4)`,
-        [entry.id, i + 1, chunkText, contextText]
+        [entry.id, i + 1, chunkText, contextText],
       );
     }
     totalChunks++;

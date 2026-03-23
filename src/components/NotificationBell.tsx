@@ -45,7 +45,9 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
         if (data.type === "count") {
           setCount(data.count);
         }
-      } catch { /* ignore parse errors */ }
+      } catch {
+        /* ignore parse errors */
+      }
     };
 
     eventSource.onerror = () => {
@@ -64,7 +66,9 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
         const data = await res.json();
         setNotifications(data.notifications);
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     setLoading(false);
   }, []);
 
@@ -87,8 +91,8 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
     // Mark as read
     if (!n.read) {
       fetch(`/api/notifications/${n.id}`, { method: "PATCH" }).catch(() => {});
-      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x));
-      setCount(c => Math.max(0, c - 1));
+      setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+      setCount((c) => Math.max(0, c - 1));
     }
     // Navigate
     if (n.link) {
@@ -99,7 +103,7 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
 
   async function markAllRead() {
     await fetch("/api/notifications/read-all", { method: "POST" });
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     setCount(0);
   }
 
@@ -114,58 +118,62 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
         <Bell style={{ width: 18, height: 18, flexShrink: 0 }} />
         {!collapsed && <span className="sidebar-link-label">{t("title")}</span>}
         {count > 0 && (
-          <span style={{
-            position: "absolute",
-            top: 6,
-            left: collapsed ? 24 : 22,
-            minWidth: 16,
-            height: 16,
-            borderRadius: 999,
-            background: "var(--danger)",
-            color: "#fff",
-            fontSize: "0.6rem",
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "0 4px",
-            lineHeight: 1,
-          }}>
+          <span
+            style={{
+              position: "absolute",
+              top: 6,
+              left: collapsed ? 24 : 22,
+              minWidth: 16,
+              height: 16,
+              borderRadius: 999,
+              background: "var(--danger)",
+              color: "#fff",
+              fontSize: "0.6rem",
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "0 4px",
+              lineHeight: 1,
+            }}
+          >
             {count > 99 ? "99+" : count}
           </span>
         )}
       </button>
 
       {open && (
-        <div style={{
-          position: "absolute",
-          bottom: collapsed ? 0 : "100%",
-          left: collapsed ? 68 : 4,
-          right: collapsed ? "auto" : 4,
-          width: collapsed ? 320 : undefined,
-          minWidth: 280,
-          maxHeight: 400,
-          background: "var(--surface-raised)",
-          border: "1px solid var(--border)",
-          borderRadius: 12,
-          boxShadow: "var(--shadow-lg)",
-          zIndex: 100,
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-          marginBottom: collapsed ? 0 : 4,
-        }}>
-          {/* Header */}
-          <div style={{
-            padding: "12px 16px",
-            borderBottom: "1px solid var(--border)",
+        <div
+          style={{
+            position: "absolute",
+            bottom: collapsed ? 0 : "100%",
+            left: collapsed ? 68 : 4,
+            right: collapsed ? "auto" : 4,
+            width: collapsed ? 320 : undefined,
+            minWidth: 280,
+            maxHeight: 400,
+            background: "var(--surface-raised)",
+            border: "1px solid var(--border)",
+            borderRadius: 12,
+            boxShadow: "var(--shadow-lg)",
+            zIndex: 100,
+            overflow: "hidden",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}>
-            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text)" }}>
-              {t("title")}
-            </span>
+            flexDirection: "column",
+            marginBottom: collapsed ? 0 : 4,
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              padding: "12px 16px",
+              borderBottom: "1px solid var(--border)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text)" }}>{t("title")}</span>
             {count > 0 && (
               <button
                 onClick={markAllRead}
@@ -194,7 +202,7 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
                 {t("empty")}
               </div>
             ) : (
-              notifications.map(n => (
+              notifications.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => handleClick(n)}
@@ -211,39 +219,47 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
                     textAlign: "left",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "var(--surface-hover)")}
-                  onMouseLeave={e => (e.currentTarget.style.background = n.read ? "transparent" : "rgba(201,169,110,0.04)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = n.read ? "transparent" : "rgba(201,169,110,0.04)")
+                  }
                 >
                   {/* Unread dot */}
-                  <div style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: n.read ? "transparent" : "var(--accent)",
-                    flexShrink: 0,
-                    marginTop: 6,
-                  }} />
+                  <div
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: n.read ? "transparent" : "var(--accent)",
+                      flexShrink: 0,
+                      marginTop: 6,
+                    }}
+                  />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontSize: "0.82rem",
-                      fontWeight: n.read ? 400 : 600,
-                      color: "var(--text)",
-                      lineHeight: 1.3,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}>
-                      {n.title}
-                    </div>
-                    {n.body && (
-                      <div style={{
-                        fontSize: "0.75rem",
-                        color: "var(--text-secondary)",
-                        marginTop: 2,
+                    <div
+                      style={{
+                        fontSize: "0.82rem",
+                        fontWeight: n.read ? 400 : 600,
+                        color: "var(--text)",
+                        lineHeight: 1.3,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                      }}>
+                      }}
+                    >
+                      {n.title}
+                    </div>
+                    {n.body && (
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--text-secondary)",
+                          marginTop: 2,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
                         {n.body}
                       </div>
                     )}

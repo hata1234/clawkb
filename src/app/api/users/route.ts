@@ -36,10 +36,7 @@ export async function POST(request: Request) {
 
   const existing = await prisma.user.findFirst({
     where: {
-      OR: [
-        { username },
-        ...(email ? [{ email }] : []),
-      ],
+      OR: [{ username }, ...(email ? [{ email }] : [])],
     },
   });
   if (existing) {
@@ -68,7 +65,9 @@ export async function POST(request: Request) {
           // Auto-join Users group
           ...(usersGroup ? [{ groupId: usersGroup.id }] : []),
           // Additional groups
-          ...(body.groupIds || []).filter((gid: number) => gid !== usersGroup?.id).map((gid: number) => ({ groupId: gid })),
+          ...(body.groupIds || [])
+            .filter((gid: number) => gid !== usersGroup?.id)
+            .map((gid: number) => ({ groupId: gid })),
         ],
       },
     },

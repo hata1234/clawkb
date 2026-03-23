@@ -8,22 +8,22 @@ import { ZoomIn, ZoomOut, Maximize, Download, Save, FileCode } from "lucide-reac
 const EMPTY_BPMN =
   '<?xml version="1.0" encoding="UTF-8"?>' +
   '<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ' +
-                    'xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" ' +
-                    'xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" ' +
-                    'xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" ' +
-                    'targetNamespace="http://bpmn.io/schema/bpmn" ' +
-                    'id="Definitions_1">' +
-    '<bpmn:process id="Process_1" isExecutable="false">' +
-      '<bpmn:startEvent id="StartEvent_1"/>' +
-    '</bpmn:process>' +
-    '<bpmndi:BPMNDiagram id="BPMNDiagram_1">' +
-      '<bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">' +
-        '<bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">' +
-          '<dc:Bounds height="36.0" width="36.0" x="173.0" y="102.0"/>' +
-        '</bpmndi:BPMNShape>' +
-      '</bpmndi:BPMNPlane>' +
-    '</bpmndi:BPMNDiagram>' +
-  '</bpmn:definitions>';
+  'xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" ' +
+  'xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" ' +
+  'xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" ' +
+  'targetNamespace="http://bpmn.io/schema/bpmn" ' +
+  'id="Definitions_1">' +
+  '<bpmn:process id="Process_1" isExecutable="false">' +
+  '<bpmn:startEvent id="StartEvent_1"/>' +
+  "</bpmn:process>" +
+  '<bpmndi:BPMNDiagram id="BPMNDiagram_1">' +
+  '<bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">' +
+  '<bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">' +
+  '<dc:Bounds height="36.0" width="36.0" x="173.0" y="102.0"/>' +
+  "</bpmndi:BPMNShape>" +
+  "</bpmndi:BPMNPlane>" +
+  "</bpmndi:BPMNDiagram>" +
+  "</bpmn:definitions>";
 
 interface BpmnEditorProps {
   xml?: string;
@@ -112,7 +112,7 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
 
     // Use initial xml only (don't react to parent state changes from onChange)
     const initXml = initialXmlRef.current;
-    const hasValidXml = initXml && initXml.trim().startsWith('<?xml');
+    const hasValidXml = initXml && initXml.trim().startsWith("<?xml");
 
     (async () => {
       if (readOnly) {
@@ -192,17 +192,22 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", position: "relative" }}>
       {/* Toolbar */}
-      <div style={{
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 6,
-        padding: "8px 12px",
-        borderBottom: "1px solid var(--border)",
-        background: "var(--surface)",
-        borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
-      }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 6,
+          padding: "8px 12px",
+          borderBottom: "1px solid var(--border)",
+          background: "var(--surface)",
+          borderRadius: "var(--radius-lg) var(--radius-lg) 0 0",
+        }}
+      >
         {!readOnly && onSave && (
-          <button onClick={handleSave} style={{ ...btnStyle, background: "var(--accent)", color: "var(--accent-contrast)", border: "none" }}>
+          <button
+            onClick={handleSave}
+            style={{ ...btnStyle, background: "var(--accent)", color: "var(--accent-contrast)", border: "none" }}
+          >
             <Save style={{ width: 14, height: 14 }} /> {t("saveFlow")}
           </button>
         )}
@@ -238,15 +243,17 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
       />
 
       {!loaded && (
-        <div style={{
-          position: "absolute",
-          inset: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--text-muted)",
-          fontSize: "0.85rem",
-        }}>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--text-muted)",
+            fontSize: "0.85rem",
+          }}
+        >
           Loading...
         </div>
       )}

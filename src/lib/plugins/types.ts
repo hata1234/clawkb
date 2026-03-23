@@ -117,17 +117,46 @@ export interface PluginContentTagDef {
 
 export interface PluginServerModule {
   entry?: {
-    beforeCreate?: (input: { input: Record<string, unknown>; context: PluginContext }) => Promise<Record<string, unknown> | void>;
-    afterCreate?: (input: { entry: Record<string, unknown>; originalInput: Record<string, unknown>; context: PluginContext }) => Promise<void>;
-    beforeUpdate?: (input: { input: Record<string, unknown>; existingEntry: Record<string, unknown>; context: PluginContext }) => Promise<Record<string, unknown> | void>;
-    afterUpdate?: (input: { entry: Record<string, unknown>; existingEntry: Record<string, unknown>; context: PluginContext }) => Promise<void>;
+    beforeCreate?: (input: {
+      input: Record<string, unknown>;
+      context: PluginContext;
+    }) => Promise<Record<string, unknown> | void>;
+    afterCreate?: (input: {
+      entry: Record<string, unknown>;
+      originalInput: Record<string, unknown>;
+      context: PluginContext;
+    }) => Promise<void>;
+    beforeUpdate?: (input: {
+      input: Record<string, unknown>;
+      existingEntry: Record<string, unknown>;
+      context: PluginContext;
+    }) => Promise<Record<string, unknown> | void>;
+    afterUpdate?: (input: {
+      entry: Record<string, unknown>;
+      existingEntry: Record<string, unknown>;
+      context: PluginContext;
+    }) => Promise<void>;
     beforeDelete?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<void>;
-    render?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<PluginEntryRenderBlock[] | void>;
-    serialize?: (input: { entry: Record<string, unknown>; principal: AppPrincipal | null; context: PluginContext }) => Promise<Record<string, unknown> | void>;
-    afterQuery?: (input: { entries: Record<string, unknown>[]; principal: AppPrincipal | null; context: PluginContext }) => Promise<Record<string, unknown>[] | void>;
+    render?: (input: {
+      entry: Record<string, unknown>;
+      context: PluginContext;
+    }) => Promise<PluginEntryRenderBlock[] | void>;
+    serialize?: (input: {
+      entry: Record<string, unknown>;
+      principal: AppPrincipal | null;
+      context: PluginContext;
+    }) => Promise<Record<string, unknown> | void>;
+    afterQuery?: (input: {
+      entries: Record<string, unknown>[];
+      principal: AppPrincipal | null;
+      context: PluginContext;
+    }) => Promise<Record<string, unknown>[] | void>;
   };
   entryCard?: {
-    render?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<PluginEntryCardElement[] | void>;
+    render?: (input: {
+      entry: Record<string, unknown>;
+      context: PluginContext;
+    }) => Promise<PluginEntryCardElement[] | void>;
   };
   sidebar?: {
     register?: (input: { context: PluginContext }) => Promise<PluginSidebarItem[] | void>;

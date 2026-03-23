@@ -1,25 +1,8 @@
-export const TYPE_OPTIONS = [
-  "opportunity",
-  "report",
-  "reference",
-  "project_note",
-] as const;
+export const TYPE_OPTIONS = ["opportunity", "report", "reference", "project_note"] as const;
 
-export const SOURCE_OPTIONS = [
-  "nightly-recon",
-  "stock-daily",
-  "reddit",
-  "web",
-  "manual",
-] as const;
+export const SOURCE_OPTIONS = ["nightly-recon", "stock-daily", "reddit", "web", "manual"] as const;
 
-export const STATUS_OPTIONS = [
-  "new",
-  "interested",
-  "in_progress",
-  "done",
-  "dismissed",
-] as const;
+export const STATUS_OPTIONS = ["new", "interested", "in_progress", "done", "dismissed"] as const;
 
 export type EntryType = (typeof TYPE_OPTIONS)[number];
 export type EntrySource = (typeof SOURCE_OPTIONS)[number];

@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import {
-  Folder, FolderOpen, Plus, Pencil, Trash2, ChevronRight, ChevronDown,
-  GripVertical, Save, X, FolderPlus, Loader2,
+  Folder,
+  FolderOpen,
+  Plus,
+  Pencil,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  GripVertical,
+  Save,
+  X,
+  FolderPlus,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -37,15 +47,28 @@ interface Collection {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "var(--background)", border: "1px solid var(--border)",
-  borderRadius: 8, padding: "8px 12px", fontSize: "0.875rem",
-  color: "var(--text)", outline: "none", width: "100%", boxSizing: "border-box",
+  background: "var(--background)",
+  border: "1px solid var(--border)",
+  borderRadius: 8,
+  padding: "8px 12px",
+  fontSize: "0.875rem",
+  color: "var(--text)",
+  outline: "none",
+  width: "100%",
+  boxSizing: "border-box",
 };
 
 const btnBase: React.CSSProperties = {
-  display: "inline-flex", alignItems: "center", gap: 6,
-  padding: "8px 14px", borderRadius: 8, fontSize: "0.8rem",
-  fontWeight: 500, cursor: "pointer", border: "none", transition: "all 0.15s ease",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "8px 14px",
+  borderRadius: 8,
+  fontSize: "0.8rem",
+  fontWeight: 500,
+  cursor: "pointer",
+  border: "none",
+  transition: "all 0.15s ease",
 };
 
 const ROLES = ["admin", "editor", "viewer"] as const;
@@ -65,7 +88,7 @@ function CollectionRow({
   onAddChild: (parentId: number) => void;
   flatCollections: Collection[];
 }) {
-  const t = useTranslations('CollectionsSettings');
+  const t = useTranslations("CollectionsSettings");
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
 
@@ -75,8 +98,22 @@ function CollectionRow({
         <div className="collection-row-left">
           <GripVertical style={{ width: 14, height: 14, color: "var(--text-dim)", cursor: "grab", flexShrink: 0 }} />
           {hasChildren ? (
-            <button onClick={() => setExpanded(!expanded)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: 0, display: "flex" }}>
-              {expanded ? <ChevronDown style={{ width: 16, height: 16 }} /> : <ChevronRight style={{ width: 16, height: 16 }} />}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--text-secondary)",
+                padding: 0,
+                display: "flex",
+              }}
+            >
+              {expanded ? (
+                <ChevronDown style={{ width: 16, height: 16 }} />
+              ) : (
+                <ChevronRight style={{ width: 16, height: 16 }} />
+              )}
             </button>
           ) : (
             <span style={{ width: 16 }} />
@@ -85,7 +122,10 @@ function CollectionRow({
             {node.icon || <Folder style={{ width: 16, height: 16 }} />}
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <Link href={`/entries?collectionId=${node.id}`} style={{ color: "var(--text)", textDecoration: "none", fontWeight: 500, fontSize: "0.9rem" }}>
+            <Link
+              href={`/entries?collectionId=${node.id}`}
+              style={{ color: "var(--text)", textDecoration: "none", fontWeight: 500, fontSize: "0.9rem" }}
+            >
               {node.name}
             </Link>
             {node.description && (
@@ -93,48 +133,81 @@ function CollectionRow({
             )}
           </div>
           {node.builtIn && (
-            <span style={{ fontSize: "0.65rem", color: "var(--accent)", padding: "2px 6px", background: "var(--accent-dim, rgba(99,102,241,0.15))", borderRadius: 999, whiteSpace: "nowrap", fontWeight: 600 }}>
-              {t('builtInBadge')}
+            <span
+              style={{
+                fontSize: "0.65rem",
+                color: "var(--accent)",
+                padding: "2px 6px",
+                background: "var(--accent-dim, rgba(99,102,241,0.15))",
+                borderRadius: 999,
+                whiteSpace: "nowrap",
+                fontWeight: 600,
+              }}
+            >
+              {t("builtInBadge")}
             </span>
           )}
-          <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", padding: "2px 8px", background: "var(--surface-hover)", borderRadius: 999, whiteSpace: "nowrap" }}>
-            {t('entriesCount', { count: node._count.entries })}
+          <span
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--text-dim)",
+              padding: "2px 8px",
+              background: "var(--surface-hover)",
+              borderRadius: 999,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t("entriesCount", { count: node._count.entries })}
           </span>
         </div>
         <div className="collection-row-actions">
           {!node.builtIn && (
-            <button onClick={() => onAddChild(node.id)} title={t('addSubCollection')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}>
+            <button
+              onClick={() => onAddChild(node.id)}
+              title={t("addSubCollection")}
+              style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}
+            >
               <FolderPlus style={{ width: 14, height: 14 }} />
             </button>
           )}
-          <button onClick={() => onEdit(node)} title={t('edit')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}>
+          <button
+            onClick={() => onEdit(node)}
+            title={t("edit")}
+            style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}
+          >
             <Pencil style={{ width: 14, height: 14 }} />
           </button>
           {!node.builtIn && (
-            <button onClick={() => onDelete(node)} title={t('delete')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--danger)" }}>
+            <button
+              onClick={() => onDelete(node)}
+              title={t("delete")}
+              style={{ ...btnBase, background: "none", padding: 6, color: "var(--danger)" }}
+            >
               <Trash2 style={{ width: 14, height: 14 }} />
             </button>
           )}
         </div>
       </div>
-      {expanded && hasChildren && node.children.map((child) => (
-        <CollectionRow
-          key={child.id}
-          node={child}
-          depth={depth + 1}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onAddChild={onAddChild}
-          flatCollections={flatCollections}
-        />
-      ))}
+      {expanded &&
+        hasChildren &&
+        node.children.map((child) => (
+          <CollectionRow
+            key={child.id}
+            node={child}
+            depth={depth + 1}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onAddChild={onAddChild}
+            flatCollections={flatCollections}
+          />
+        ))}
     </>
   );
 }
 
 export default function CollectionsClient() {
-  const t = useTranslations('CollectionsSettings');
-  const tc = useTranslations('Common');
+  const t = useTranslations("CollectionsSettings");
+  const tc = useTranslations("Common");
   const [collections, setCollections] = useState<Collection[]>([]);
   const [flatCollections, setFlatCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -158,18 +231,29 @@ export default function CollectionsClient() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchCollections(); }, [fetchCollections]);
+  useEffect(() => {
+    fetchCollections();
+  }, [fetchCollections]);
 
   useEffect(() => {
-    fetch("/api/groups").then(r => r.json()).then(data => {
-      setAllGroups((data.groups || []).map((g: GroupRef) => ({ id: g.id, name: g.name })));
-    }).catch(() => {});
+    fetch("/api/groups")
+      .then((r) => r.json())
+      .then((data) => {
+        setAllGroups((data.groups || []).map((g: GroupRef) => ({ id: g.id, name: g.name })));
+      })
+      .catch(() => {});
   }, []);
 
   const resetForm = () => {
-    setFormName(""); setFormDescription(""); setFormIcon(""); setFormColor(""); setFormDocPrefix(""); setFormParentId(null);
+    setFormName("");
+    setFormDescription("");
+    setFormIcon("");
+    setFormColor("");
+    setFormDocPrefix("");
+    setFormParentId(null);
     setFormGroupRoles([]);
-    setEditingCollection(null); setShowForm(false);
+    setEditingCollection(null);
+    setShowForm(false);
   };
 
   const handleEdit = (c: Collection) => {
@@ -180,10 +264,14 @@ export default function CollectionsClient() {
     setFormColor(c.color || "");
     setFormDocPrefix(c.docPrefix || "");
     setFormParentId(c.parentId);
-    setFormGroupRoles((c.groupRoles || []).map(gr => ({
-      groupId: gr.group?.id ?? gr.groupId ?? 0,
-      role: gr.role,
-    })).filter(gr => gr.groupId !== 0));
+    setFormGroupRoles(
+      (c.groupRoles || [])
+        .map((gr) => ({
+          groupId: gr.group?.id ?? gr.groupId ?? 0,
+          role: gr.role,
+        }))
+        .filter((gr) => gr.groupId !== 0),
+    );
     setShowForm(true);
   };
 
@@ -194,18 +282,18 @@ export default function CollectionsClient() {
   };
 
   const handleDelete = async (c: Collection) => {
-    if (!confirm(t('confirmDelete', { name: c.name }))) return;
+    if (!confirm(t("confirmDelete", { name: c.name }))) return;
     await fetch(`/api/collections/${c.id}`, { method: "DELETE" });
     fetchCollections();
   };
 
   function setGroupRole(groupId: number, role: string) {
     if (role === "none") {
-      setFormGroupRoles(prev => prev.filter(gr => gr.groupId !== groupId));
+      setFormGroupRoles((prev) => prev.filter((gr) => gr.groupId !== groupId));
     } else {
-      setFormGroupRoles(prev => {
-        const existing = prev.find(gr => gr.groupId === groupId);
-        if (existing) return prev.map(gr => gr.groupId === groupId ? { ...gr, role } : gr);
+      setFormGroupRoles((prev) => {
+        const existing = prev.find((gr) => gr.groupId === groupId);
+        if (existing) return prev.map((gr) => (gr.groupId === groupId ? { ...gr, role } : gr));
         return [...prev, { groupId, role }];
       });
     }
@@ -245,60 +333,127 @@ export default function CollectionsClient() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
-        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>{t('collectionsCount', { count: flatCollections.length })}</p>
-        <button onClick={() => { resetForm(); setShowForm(true); }} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)" }}>
-          <Plus style={{ width: 14, height: 14 }} /> {t('newCollection')}
+      <div
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, gap: 12 }}
+      >
+        <p style={{ fontSize: "0.875rem", color: "var(--text-muted)" }}>
+          {t("collectionsCount", { count: flatCollections.length })}
+        </p>
+        <button
+          onClick={() => {
+            resetForm();
+            setShowForm(true);
+          }}
+          style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)" }}
+        >
+          <Plus style={{ width: 14, height: 14 }} /> {t("newCollection")}
         </button>
       </div>
 
       {/* Create/Edit form */}
       {showForm && (
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 20, marginBottom: 20 }}>
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
+            padding: 20,
+            marginBottom: 20,
+          }}
+        >
           <h3 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 12 }}>
-            {editingCollection ? t('editCollection') : t('newCollection')}
+            {editingCollection ? t("editCollection") : t("newCollection")}
           </h3>
           <div style={{ display: "grid", gap: 10, gridTemplateColumns: "1fr 1fr" }}>
             <div style={{ gridColumn: "1 / -1" }}>
-              <input value={formName} onChange={(e) => setFormName(e.target.value)} placeholder={t('collectionNamePlaceholder')} style={inputStyle}
-                onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }} autoFocus />
+              <input
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder={t("collectionNamePlaceholder")}
+                style={inputStyle}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSubmit();
+                }}
+                autoFocus
+              />
             </div>
             <div style={{ gridColumn: "1 / -1" }}>
-              <input value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder={t('descriptionPlaceholder')} style={inputStyle} />
+              <input
+                value={formDescription}
+                onChange={(e) => setFormDescription(e.target.value)}
+                placeholder={t("descriptionPlaceholder")}
+                style={inputStyle}
+              />
             </div>
-            <input value={formIcon} onChange={(e) => setFormIcon(e.target.value)} placeholder={t('iconPlaceholder')} style={inputStyle} />
-            <input value={formColor} onChange={(e) => setFormColor(e.target.value)} placeholder={t('colorPlaceholder')} style={inputStyle} />
+            <input
+              value={formIcon}
+              onChange={(e) => setFormIcon(e.target.value)}
+              placeholder={t("iconPlaceholder")}
+              style={inputStyle}
+            />
+            <input
+              value={formColor}
+              onChange={(e) => setFormColor(e.target.value)}
+              placeholder={t("colorPlaceholder")}
+              style={inputStyle}
+            />
             <div style={{ gridColumn: "1 / -1" }}>
-              <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>{t('docPrefix')}</label>
-              <input value={formDocPrefix} onChange={(e) => setFormDocPrefix(e.target.value)} placeholder={t('docPrefixHint')} style={inputStyle} />
+              <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>
+                {t("docPrefix")}
+              </label>
+              <input
+                value={formDocPrefix}
+                onChange={(e) => setFormDocPrefix(e.target.value)}
+                placeholder={t("docPrefixHint")}
+                style={inputStyle}
+              />
             </div>
-            <select value={formParentId ?? ""} onChange={(e) => setFormParentId(e.target.value ? parseInt(e.target.value) : null)}
-              style={{ ...inputStyle, colorScheme: "dark" }}>
-              <option value="">{t('noParentRoot')}</option>
-              {flatCollections.filter((c) => c.id !== editingCollection?.id).map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
+            <select
+              value={formParentId ?? ""}
+              onChange={(e) => setFormParentId(e.target.value ? parseInt(e.target.value) : null)}
+              style={{ ...inputStyle, colorScheme: "dark" }}
+            >
+              <option value="">{t("noParentRoot")}</option>
+              {flatCollections
+                .filter((c) => c.id !== editingCollection?.id)
+                .map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
             </select>
             {/* Group Access */}
             <div style={{ gridColumn: "1 / -1" }}>
-              <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>{t('accessRestrictions')}</label>
-              <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 8 }}>{t('accessRestrictionsHint')}</p>
+              <label style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: 4, display: "block" }}>
+                {t("accessRestrictions")}
+              </label>
+              <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginBottom: 8 }}>
+                {t("accessRestrictionsHint")}
+              </p>
               {allGroups.length === 0 ? (
-                <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic" }}>No groups available.</p>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontStyle: "italic" }}>
+                  No groups available.
+                </p>
               ) : (
                 <div style={{ display: "grid", gap: 6 }}>
                   {allGroups.map((group) => {
-                    const existing = formGroupRoles.find(gr => gr.groupId === group.id);
+                    const existing = formGroupRoles.find((gr) => gr.groupId === group.id);
                     return (
                       <div key={group.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span style={{ flex: 1, fontSize: "0.85rem", color: "var(--text-secondary)" }}>{group.name}</span>
+                        <span style={{ flex: 1, fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                          {group.name}
+                        </span>
                         <select
                           value={existing?.role || "none"}
-                          onChange={e => setGroupRole(group.id, e.target.value)}
+                          onChange={(e) => setGroupRole(group.id, e.target.value)}
                           style={{ ...inputStyle, width: 130, padding: "6px 8px", fontSize: "0.8rem" }}
                         >
                           <option value="none">No access</option>
-                          {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                          {ROLES.map((r) => (
+                            <option key={r} value={r}>
+                              {r}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     );
@@ -308,12 +463,29 @@ export default function CollectionsClient() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-            <button onClick={handleSubmit} disabled={saving} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", opacity: saving ? 0.6 : 1 }}>
+            <button
+              onClick={handleSubmit}
+              disabled={saving}
+              style={{
+                ...btnBase,
+                background: "var(--accent)",
+                color: "var(--accent-contrast)",
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
               {saving ? <Loader2 style={{ width: 14, height: 14 }} /> : <Save style={{ width: 14, height: 14 }} />}
-              {editingCollection ? tc('save') : tc('create')}
+              {editingCollection ? tc("save") : tc("create")}
             </button>
-            <button onClick={resetForm} style={{ ...btnBase, background: "var(--surface-hover)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
-              <X style={{ width: 14, height: 14 }} /> {tc('cancel')}
+            <button
+              onClick={resetForm}
+              style={{
+                ...btnBase,
+                background: "var(--surface-hover)",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <X style={{ width: 14, height: 14 }} /> {tc("cancel")}
             </button>
           </div>
         </div>
@@ -322,18 +494,40 @@ export default function CollectionsClient() {
       {/* Collection list */}
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-          <Loader2 style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+          <Loader2
+            style={{ width: 24, height: 24, color: "var(--text-muted)", animation: "spin 1s linear infinite" }}
+          />
         </div>
       ) : collections.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
           <FolderOpen style={{ width: 40, height: 40, margin: "0 auto 12px", opacity: 0.3 }} />
-          <p style={{ fontSize: "0.875rem" }}>{t('noCollectionsYet')}</p>
-          <button onClick={() => { resetForm(); setShowForm(true); }} style={{ color: "var(--accent)", fontSize: "0.875rem", marginTop: 8, background: "none", border: "none", cursor: "pointer" }}>
-            {t('createFirstCollection')}
+          <p style={{ fontSize: "0.875rem" }}>{t("noCollectionsYet")}</p>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+            style={{
+              color: "var(--accent)",
+              fontSize: "0.875rem",
+              marginTop: 8,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            {t("createFirstCollection")}
           </button>
         </div>
       ) : (
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
+        <div
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-lg)",
+            overflow: "hidden",
+          }}
+        >
           {collections.map((node) => (
             <CollectionRow
               key={node.id}

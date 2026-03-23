@@ -16,11 +16,15 @@ const adminTabs = [
   { href: "/settings/smtp" as const, labelKey: "smtp", icon: Mail },
 ];
 
-const userTabs = [
-  { href: "/settings/notifications" as const, labelKey: "notifications", icon: Bell },
-];
+const userTabs = [{ href: "/settings/notifications" as const, labelKey: "notifications", icon: Bell }];
 
-export default function SettingsLayout({ children, isAdmin = false }: { children: React.ReactNode; isAdmin?: boolean }) {
+export default function SettingsLayout({
+  children,
+  isAdmin = false,
+}: {
+  children: React.ReactNode;
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const t = useTranslations("Settings");
 
@@ -34,18 +38,34 @@ export default function SettingsLayout({ children, isAdmin = false }: { children
   return (
     <div style={{ maxWidth: 1040 }}>
       <div style={{ marginBottom: 20 }}>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>{t("label")}</p>
-        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>{t("title")}</h1>
+        <p
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--text-dim)",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            marginBottom: 4,
+          }}
+        >
+          {t("label")}
+        </p>
+        <h1 style={{ fontFamily: "var(--font-heading)", fontSize: "1.75rem", fontWeight: 400, color: "var(--text)" }}>
+          {t("title")}
+        </h1>
       </div>
 
-      <nav className="settings-tabs" style={{
-        display: "flex",
-        gap: 4,
-        borderBottom: "1px solid var(--border)",
-        marginBottom: 24,
-        overflowX: "auto",
-        scrollbarWidth: "none",
-      }}>
+      <nav
+        className="settings-tabs"
+        style={{
+          display: "flex",
+          gap: 4,
+          borderBottom: "1px solid var(--border)",
+          marginBottom: 24,
+          overflowX: "auto",
+          scrollbarWidth: "none",
+        }}
+      >
         {tabs.map((tab) => {
           const active = isActive(tab);
           const Icon = tab.icon;

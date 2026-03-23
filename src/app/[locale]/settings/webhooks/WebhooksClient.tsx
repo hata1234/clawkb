@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useTranslations } from 'next-intl';
+import { useTranslations } from "next-intl";
 import { Webhook, Plus, Trash2, Check, X, Loader2, Copy, ChevronDown, ChevronRight, Circle } from "lucide-react";
 
 // ─── Style constants (matching SettingsClient) ───────────────────────────
@@ -114,23 +114,25 @@ const ALL_EVENTS = [
 // ─── Toast ───────────────────────────────────────────────────────────────
 function Toast({ msg, ok }: { msg: string; ok: boolean }) {
   return (
-    <div style={{
-      position: "fixed",
-      bottom: 24,
-      right: 24,
-      zIndex: 999,
-      padding: "10px 16px",
-      borderRadius: "var(--radius-md)",
-      background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
-      border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
-      color: ok ? "var(--success)" : "var(--danger)",
-      fontSize: "0.875rem",
-      fontWeight: 500,
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      boxShadow: "var(--shadow-lg)",
-    }}>
+    <div
+      style={{
+        position: "fixed",
+        bottom: 24,
+        right: 24,
+        zIndex: 999,
+        padding: "10px 16px",
+        borderRadius: "var(--radius-md)",
+        background: ok ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)",
+        border: `1px solid ${ok ? "rgba(74,222,128,0.3)" : "rgba(248,113,113,0.3)"}`,
+        color: ok ? "var(--success)" : "var(--danger)",
+        fontSize: "0.875rem",
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        boxShadow: "var(--shadow-lg)",
+      }}
+    >
       {ok ? <Check style={{ width: 14, height: 14 }} /> : <X style={{ width: 14, height: 14 }} />}
       {msg}
     </div>
@@ -139,7 +141,7 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 
 // ─── Deliveries Panel ────────────────────────────────────────────────────
 function DeliveriesPanel({ webhookId }: { webhookId: number }) {
-  const t = useTranslations('Webhooks');
+  const t = useTranslations("Webhooks");
   const [deliveries, setDeliveries] = useState<DeliveryData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -152,28 +154,34 @@ function DeliveriesPanel({ webhookId }: { webhookId: number }) {
   }, [webhookId]);
 
   if (loading) return <Loader2 style={{ width: 14, height: 14, color: "var(--text-dim)" }} className="spin" />;
-  if (deliveries.length === 0) return <p style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>{t('noDeliveriesYet')}</p>;
+  if (deliveries.length === 0)
+    return <p style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>{t("noDeliveriesYet")}</p>;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
       {deliveries.map((d) => (
-        <div key={d.id} style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "6px 10px",
-          background: "var(--background)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--radius-md)",
-          fontSize: "0.75rem",
-        }}>
-          <Circle style={{
-            width: 8,
-            height: 8,
-            fill: d.status >= 200 && d.status < 300 ? "var(--success)" : "var(--danger)",
-            color: d.status >= 200 && d.status < 300 ? "var(--success)" : "var(--danger)",
-            flexShrink: 0,
-          }} />
+        <div
+          key={d.id}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "6px 10px",
+            background: "var(--background)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md)",
+            fontSize: "0.75rem",
+          }}
+        >
+          <Circle
+            style={{
+              width: 8,
+              height: 8,
+              fill: d.status >= 200 && d.status < 300 ? "var(--success)" : "var(--danger)",
+              color: d.status >= 200 && d.status < 300 ? "var(--success)" : "var(--danger)",
+              flexShrink: 0,
+            }}
+          />
           <span style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)", minWidth: 36 }}>
             {d.status || "ERR"}
           </span>
@@ -190,8 +198,8 @@ function DeliveriesPanel({ webhookId }: { webhookId: number }) {
 
 // ─── Main Component ──────────────────────────────────────────────────────
 export default function WebhooksClient() {
-  const t = useTranslations('Webhooks');
-  const tc = useTranslations('Common');
+  const t = useTranslations("Webhooks");
+  const tc = useTranslations("Common");
   const [webhooks, setWebhooks] = useState<WebhookData[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -219,11 +227,16 @@ export default function WebhooksClient() {
     }
   }, []);
 
-  useEffect(() => { fetchWebhooks(); }, [fetchWebhooks]);
+  useEffect(() => {
+    fetchWebhooks();
+  }, [fetchWebhooks]);
 
   async function createWebhook() {
     if (!formUrl.trim()) return;
-    if (formEvents.length === 0) { showToast(t('selectAtLeastOneEvent'), false); return; }
+    if (formEvents.length === 0) {
+      showToast(t("selectAtLeastOneEvent"), false);
+      return;
+    }
     setCreating(true);
     try {
       const res = await fetch("/api/webhooks", {
@@ -238,11 +251,11 @@ export default function WebhooksClient() {
         setFormUrl("");
         setFormEvents(["entry.created"]);
         setShowForm(false);
-        showToast(t('webhookCreated'), true);
+        showToast(t("webhookCreated"), true);
         fetchWebhooks();
       } else {
         const err = await res.json();
-        showToast(err.error || t('failedToCreateWebhook'), false);
+        showToast(err.error || t("failedToCreateWebhook"), false);
       }
     } finally {
       setCreating(false);
@@ -256,65 +269,73 @@ export default function WebhooksClient() {
       body: JSON.stringify({ active: !webhook.active }),
     });
     if (res.ok) {
-      showToast(webhook.active ? t('webhookDisabled') : t('webhookEnabled'), true);
+      showToast(webhook.active ? t("webhookDisabled") : t("webhookEnabled"), true);
       fetchWebhooks();
     }
   }
 
   async function deleteWebhook(id: number) {
-    if (!confirm(t('confirmDeleteWebhook'))) return;
+    if (!confirm(t("confirmDeleteWebhook"))) return;
     const res = await fetch(`/api/webhooks/${id}`, { method: "DELETE" });
     if (res.ok) {
-      showToast(t('webhookDeleted'), true);
+      showToast(t("webhookDeleted"), true);
       if (expandedId === id) setExpandedId(null);
       fetchWebhooks();
     } else {
-      showToast(t('failedToDeleteWebhook'), false);
+      showToast(t("failedToDeleteWebhook"), false);
     }
   }
 
   function toggleEvent(eventId: string) {
-    setFormEvents((prev) =>
-      prev.includes(eventId) ? prev.filter((e) => e !== eventId) : [...prev, eventId],
-    );
+    setFormEvents((prev) => (prev.includes(eventId) ? prev.filter((e) => e !== eventId) : [...prev, eventId]));
   }
 
   return (
     <div>
       {/* Secret reveal banner */}
       {revealedSecret && (
-        <div style={{
-          ...card,
-          background: "rgba(74,222,128,0.06)",
-          border: "1px solid rgba(74,222,128,0.25)",
-          marginBottom: 24,
-        }}>
+        <div
+          style={{
+            ...card,
+            background: "rgba(74,222,128,0.06)",
+            border: "1px solid rgba(74,222,128,0.25)",
+            marginBottom: 24,
+          }}
+        >
           <div style={{ ...sectionTitle, color: "var(--success)", marginBottom: 8 }}>
             <Webhook style={{ width: 16, height: 16 }} />
-            {t('webhookSecretCopyNow')}
+            {t("webhookSecretCopyNow")}
           </div>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: 12 }}>
-            {t('webhookSecretDescription')}
+            {t("webhookSecretDescription")}
           </p>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <code style={{
-              flex: 1,
-              padding: "10px 12px",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              fontSize: "0.75rem",
-              fontFamily: "var(--font-mono)",
-              color: "var(--text)",
-              wordBreak: "break-all",
-            }}>
+            <code
+              style={{
+                flex: 1,
+                padding: "10px 12px",
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                fontSize: "0.75rem",
+                fontFamily: "var(--font-mono)",
+                color: "var(--text)",
+                wordBreak: "break-all",
+              }}
+            >
               {revealedSecret}
             </code>
-            <button onClick={() => { navigator.clipboard.writeText(revealedSecret); showToast(tc('copiedToClipboard'), true); }} style={btnPrimary}>
-              <Copy style={{ width: 14, height: 14 }} /> {tc('copy')}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(revealedSecret);
+                showToast(tc("copiedToClipboard"), true);
+              }}
+              style={btnPrimary}
+            >
+              <Copy style={{ width: 14, height: 14 }} /> {tc("copy")}
             </button>
             <button onClick={() => setRevealedSecret(null)} style={btnGhost}>
-              <X style={{ width: 14, height: 14 }} /> {tc('dismiss')}
+              <X style={{ width: 14, height: 14 }} /> {tc("dismiss")}
             </button>
           </div>
         </div>
@@ -324,41 +345,55 @@ export default function WebhooksClient() {
       <div style={card}>
         <div style={{ ...sectionTitle, marginBottom: showForm ? 16 : 0 }}>
           <Webhook style={{ width: 16, height: 16, color: "var(--accent)" }} />
-          {t('webhooks')}
-          {loading && <Loader2 style={{ width: 14, height: 14, marginLeft: 8, color: "var(--text-dim)" }} className="spin" />}
+          {t("webhooks")}
+          {loading && (
+            <Loader2 style={{ width: 14, height: 14, marginLeft: 8, color: "var(--text-dim)" }} className="spin" />
+          )}
           {!showForm && (
             <button onClick={() => setShowForm(true)} style={{ ...btnPrimary, marginLeft: "auto" }}>
-              <Plus style={{ width: 14, height: 14 }} /> {t('addWebhook')}
+              <Plus style={{ width: 14, height: 14 }} /> {t("addWebhook")}
             </button>
           )}
         </div>
 
         <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: showForm ? 16 : 0 }}>
-          {t('webhooksDescription')}
+          {t("webhooksDescription")}
         </p>
 
         {/* Create form */}
         {showForm && (
-          <div style={{
-            padding: 16,
-            background: "var(--background)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-md)",
-            marginTop: 12,
-          }}>
+          <div
+            style={{
+              padding: 16,
+              background: "var(--background)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md)",
+              marginTop: 12,
+            }}
+          >
             <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
               <div style={{ flex: 1 }}>
-                <label style={labelStyle}>{t('nameOptional')}</label>
-                <input value={formName} onChange={(e) => setFormName(e.target.value)} style={inputStyle} placeholder={t('webhookNamePlaceholder')} />
+                <label style={labelStyle}>{t("nameOptional")}</label>
+                <input
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  style={inputStyle}
+                  placeholder={t("webhookNamePlaceholder")}
+                />
               </div>
               <div style={{ flex: 2 }}>
-                <label style={labelStyle}>{t('url')}</label>
-                <input value={formUrl} onChange={(e) => setFormUrl(e.target.value)} style={inputStyle} placeholder="https://example.com/webhook" />
+                <label style={labelStyle}>{t("url")}</label>
+                <input
+                  value={formUrl}
+                  onChange={(e) => setFormUrl(e.target.value)}
+                  style={inputStyle}
+                  placeholder="https://example.com/webhook"
+                />
               </div>
             </div>
 
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>{t('events')}</label>
+              <label style={labelStyle}>{t("events")}</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 {ALL_EVENTS.map((ev) => (
                   <button
@@ -382,12 +417,20 @@ export default function WebhooksClient() {
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={createWebhook} disabled={creating} style={{ ...btnPrimary, opacity: creating ? 0.6 : 1 }}>
-                {creating ? <Loader2 style={{ width: 14, height: 14 }} className="spin" /> : <Check style={{ width: 14, height: 14 }} />}
-                {tc('create')}
+              <button
+                onClick={createWebhook}
+                disabled={creating}
+                style={{ ...btnPrimary, opacity: creating ? 0.6 : 1 }}
+              >
+                {creating ? (
+                  <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+                ) : (
+                  <Check style={{ width: 14, height: 14 }} />
+                )}
+                {tc("create")}
               </button>
               <button onClick={() => setShowForm(false)} style={btnGhost}>
-                <X style={{ width: 14, height: 14 }} /> {tc('cancel')}
+                <X style={{ width: 14, height: 14 }} /> {tc("cancel")}
               </button>
             </div>
           </div>
@@ -397,7 +440,7 @@ export default function WebhooksClient() {
       {/* Webhook list */}
       {!loading && webhooks.length === 0 && !showForm && (
         <div style={{ ...card, textAlign: "center", color: "var(--text-dim)" }}>
-          <p style={{ fontSize: "0.875rem" }}>{t('noWebhooksYet')}</p>
+          <p style={{ fontSize: "0.875rem" }}>{t("noWebhooksYet")}</p>
         </div>
       )}
 
@@ -407,27 +450,48 @@ export default function WebhooksClient() {
             {/* Expand toggle */}
             <button
               onClick={() => setExpandedId(expandedId === w.id ? null : w.id)}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-dim)", padding: 0, display: "flex" }}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--text-dim)",
+                padding: 0,
+                display: "flex",
+              }}
             >
-              {expandedId === w.id
-                ? <ChevronDown style={{ width: 16, height: 16 }} />
-                : <ChevronRight style={{ width: 16, height: 16 }} />}
+              {expandedId === w.id ? (
+                <ChevronDown style={{ width: 16, height: 16 }} />
+              ) : (
+                <ChevronRight style={{ width: 16, height: 16 }} />
+              )}
             </button>
 
             {/* Active indicator */}
-            <Circle style={{
-              width: 8, height: 8, flexShrink: 0,
-              fill: w.active ? "var(--success)" : "var(--text-dim)",
-              color: w.active ? "var(--success)" : "var(--text-dim)",
-            }} />
+            <Circle
+              style={{
+                width: 8,
+                height: 8,
+                flexShrink: 0,
+                fill: w.active ? "var(--success)" : "var(--text-dim)",
+                color: w.active ? "var(--success)" : "var(--text-dim)",
+              }}
+            />
 
             {/* Info */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--text)" }}>
-                {w.name || w.url}
-              </div>
+              <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--text)" }}>{w.name || w.url}</div>
               {w.name && (
-                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "var(--font-mono)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div
+                  style={{
+                    fontSize: "0.75rem",
+                    color: "var(--text-dim)",
+                    fontFamily: "var(--font-mono)",
+                    marginTop: 2,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {w.url}
                 </div>
               )}
@@ -436,40 +500,60 @@ export default function WebhooksClient() {
             {/* Event badges */}
             <div style={{ display: "flex", gap: 4, flexWrap: "wrap", flexShrink: 0 }}>
               {w.events.map((ev) => (
-                <span key={ev} style={{
-                  padding: "2px 8px",
-                  background: "var(--accent-muted)",
-                  color: "var(--accent)",
-                  fontSize: "0.65rem",
-                  borderRadius: 12,
-                  fontWeight: 500,
-                }}>
+                <span
+                  key={ev}
+                  style={{
+                    padding: "2px 8px",
+                    background: "var(--accent-muted)",
+                    color: "var(--accent)",
+                    fontSize: "0.65rem",
+                    borderRadius: 12,
+                    fontWeight: 500,
+                  }}
+                >
                   {ev}
                 </span>
               ))}
             </div>
 
             {/* Toggle active */}
-            <button onClick={() => toggleActive(w)} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "4px 10px",
-              background: "none",
-              border: `1px solid ${w.active ? "rgba(74,222,128,0.3)" : "var(--border)"}`,
-              borderRadius: "var(--radius-md)",
-              color: w.active ? "var(--success)" : "var(--text-dim)",
-              fontSize: "0.75rem",
-              cursor: "pointer",
-            }}>
-              <div style={{
-                width: 28, height: 14, borderRadius: 7,
-                background: w.active ? "var(--success)" : "var(--border)",
-                position: "relative", transition: "background 0.15s",
-              }}>
-                <div style={{
-                  position: "absolute", top: 2, left: w.active ? 16 : 2,
-                  width: 10, height: 10, borderRadius: "50%",
-                  background: "var(--text)", transition: "left 0.15s",
-                }} />
+            <button
+              onClick={() => toggleActive(w)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "4px 10px",
+                background: "none",
+                border: `1px solid ${w.active ? "rgba(74,222,128,0.3)" : "var(--border)"}`,
+                borderRadius: "var(--radius-md)",
+                color: w.active ? "var(--success)" : "var(--text-dim)",
+                fontSize: "0.75rem",
+                cursor: "pointer",
+              }}
+            >
+              <div
+                style={{
+                  width: 28,
+                  height: 14,
+                  borderRadius: 7,
+                  background: w.active ? "var(--success)" : "var(--border)",
+                  position: "relative",
+                  transition: "background 0.15s",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 2,
+                    left: w.active ? 16 : 2,
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background: "var(--text)",
+                    transition: "left 0.15s",
+                  }}
+                />
               </div>
             </button>
 
@@ -483,7 +567,7 @@ export default function WebhooksClient() {
           {expandedId === w.id && (
             <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
               <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>
-                {t('recentDeliveries')}
+                {t("recentDeliveries")}
               </div>
               <DeliveriesPanel webhookId={w.id} />
             </div>

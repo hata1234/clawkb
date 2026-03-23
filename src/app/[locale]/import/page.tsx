@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
-import { redirect } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { redirect } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import ImportClient from "./ImportClient";
 
 export const dynamic = "force-dynamic";

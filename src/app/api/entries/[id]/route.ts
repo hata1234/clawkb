@@ -3,7 +3,14 @@ import type { Prisma } from "@prisma/client";
 import { getRequestPrincipal } from "@/lib/auth";
 import { canEditEntry, canDeleteEntry, getAccessibleCollectionIds } from "@/lib/permissions";
 import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
-import { getEntryRenderBlocks, resolveContentTags, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
+import {
+  getEntryRenderBlocks,
+  resolveContentTags,
+  runEntryAfterUpdateHooks,
+  runEntryBeforeDeleteHooks,
+  runEntryBeforeUpdateHooks,
+  runEntrySerializeHooks,
+} from "@/lib/plugins/manager";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
 import { logActivity } from "@/lib/activity";
@@ -86,7 +93,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const allowed = await canEditEntry(principal.id, { authorId: existing.authorId, collections: existing.collections }, principal.isAdmin);
+  const allowed = await canEditEntry(
+    principal.id,
+    { authorId: existing.authorId, collections: existing.collections },
+    principal.isAdmin,
+  );
   if (!allowed) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
@@ -109,8 +120,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
   });
 
-  const hookedBody = await runEntryBeforeUpdateHooks(body as Record<string, unknown>, existing as unknown as Record<string, unknown>, principal) as EntryUpdateInput;
-  const { type, source, title, summary, content, status, url, tags, metadata, addImages, removeImageIds, collectionIds, bpmnXml } = hookedBody;
+  const hookedBody = (await runEntryBeforeUpdateHooks(
+    body as Record<string, unknown>,
+    existing as unknown as Record<string, unknown>,
+    principal,
+  )) as EntryUpdateInput;
+  const {
+    type,
+    source,
+    title,
+    summary,
+    content,
+    status,
+    url,
+    tags,
+    metadata,
+    addImages,
+    removeImageIds,
+    collectionIds,
+    bpmnXml,
+  } = hookedBody;
 
   // Remove images if requested
   if (removeImageIds && removeImageIds.length > 0) {
@@ -121,13 +150,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   let tagConnect = undefined;
   if (tags !== undefined) {
-    const tagRecords = tags.length > 0
-      ? await Promise.all(
-          tags.map((name) =>
-            prisma.tag.upsert({ where: { name }, update: {}, create: { name } })
-          )
-        )
-      : [];
+    const tagRecords =
+      tags.length > 0
+        ? await Promise.all(tags.map((name) => prisma.tag.upsert({ where: { name }, update: {}, create: { name } })))
+        : [];
     tagConnect = { set: tagRecords.map((t: { id: number }) => ({ id: t.id })) };
   }
 
@@ -147,26 +173,27 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       ...(collectionIds !== undefined && {
         collections: { set: collectionIds.map((id) => ({ id })) },
       }),
-      ...(addImages && addImages.length > 0 && {
-        images: {
-          create: addImages.map((img, i: number) => ({
-            url: img.url,
-            key: img.key,
-            filename: img.filename,
-            mimeType: img.mimeType || "image/png",
-            size: img.size || 0,
-            caption: img.caption || null,
-            sortOrder: i,
-          })),
-        },
-      }),
+      ...(addImages &&
+        addImages.length > 0 && {
+          images: {
+            create: addImages.map((img, i: number) => ({
+              url: img.url,
+              key: img.key,
+              filename: img.filename,
+              mimeType: img.mimeType || "image/png",
+              size: img.size || 0,
+              caption: img.caption || null,
+              sortOrder: i,
+            })),
+          },
+        }),
     },
     include: entryWithAuthorInclude,
   });
 
   // Auto-manage Uncategorized collection
   if (collectionIds !== undefined) {
-    const uncategorized = await prisma.collection.findFirst({ where: { builtIn: true, name: '未歸類' } });
+    const uncategorized = await prisma.collection.findFirst({ where: { builtIn: true, name: "未歸類" } });
     if (uncategorized) {
       if (collectionIds.length === 0) {
         // No collections → assign to Uncategorized
@@ -192,7 +219,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   runEntryAfterUpdateHooks(
     entry as unknown as Record<string, unknown>,
     existing as unknown as Record<string, unknown>,
-    principal
+    principal,
   ).catch(() => {});
 
   logActivity("entry.updated", principal.id, entry.id, { title: entry.title }).catch(() => {});
@@ -215,7 +242,11 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   });
   if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const allowed = await canDeleteEntry(principal.id, { authorId: entry.authorId, collections: entry.collections }, principal.isAdmin);
+  const allowed = await canDeleteEntry(
+    principal.id,
+    { authorId: entry.authorId, collections: entry.collections },
+    principal.isAdmin,
+  );
   if (!allowed) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

@@ -20,7 +20,7 @@ interface ImageUploadProps {
 }
 
 export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageUploadProps) {
-  const t = useTranslations('ImageUpload');
+  const t = useTranslations("ImageUpload");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -37,7 +37,7 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
       }
       return await res.json();
     } catch {
-      alert(t('uploadFailed'));
+      alert(t("uploadFailed"));
       return null;
     }
   };
@@ -66,47 +66,70 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
 
   return (
     <div>
-      <label style={{
-        display: "block", fontSize: "0.85rem", color: "var(--text-secondary)",
-        fontWeight: 500, marginBottom: 8,
-      }}>
-        {t('label')}
+      <label
+        style={{
+          display: "block",
+          fontSize: "0.85rem",
+          color: "var(--text-secondary)",
+          fontWeight: 500,
+          marginBottom: 8,
+        }}
+      >
+        {t("label")}
       </label>
 
       {/* Image grid */}
       {images.length > 0 && (
         <div className="image-upload-grid" style={{ marginBottom: 12 }}>
           {images.map((img, idx) => (
-            <div key={img.key} style={{
-              position: "relative",
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              overflow: "hidden",
-            }}>
+            <div
+              key={img.key}
+              style={{
+                position: "relative",
+                background: "var(--background)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-md)",
+                overflow: "hidden",
+              }}
+            >
               <img
                 src={img.url}
                 alt={img.filename}
                 style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }}
               />
-              <button onClick={() => removeImage(idx)} style={{
-                position: "absolute", top: 6, right: 6,
-                width: 24, height: 24,
-                background: "rgba(0,0,0,0.7)", border: "none", borderRadius: "50%",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", color: "#fff",
-              }}>
+              <button
+                onClick={() => removeImage(idx)}
+                style={{
+                  position: "absolute",
+                  top: 6,
+                  right: 6,
+                  width: 24,
+                  height: 24,
+                  background: "rgba(0,0,0,0.7)",
+                  border: "none",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "#fff",
+                }}
+              >
                 <X style={{ width: 14, height: 14 }} />
               </button>
               <input
                 value={img.caption || ""}
                 onChange={(e) => updateCaption(idx, e.target.value)}
-                placeholder={t('captionPlaceholder')}
+                placeholder={t("captionPlaceholder")}
                 style={{
-                  width: "100%", boxSizing: "border-box",
-                  background: "var(--background)", border: "none",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  background: "var(--background)",
+                  border: "none",
                   borderTop: "1px solid var(--border)",
-                  padding: "6px 8px", fontSize: "0.75rem", color: "var(--text-secondary)",
+                  padding: "6px 8px",
+                  fontSize: "0.75rem",
+                  color: "var(--text-secondary)",
                   outline: "none",
                 }}
               />
@@ -118,9 +141,16 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
       {/* Drop zone */}
       {images.length < maxImages && (
         <div
-          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
           onDragLeave={() => setDragOver(false)}
-          onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            handleFiles(e.dataTransfer.files);
+          }}
           onClick={() => fileRef.current?.click()}
           style={{
             border: `2px dashed ${dragOver ? "var(--accent)" : "var(--border)"}`,
@@ -133,16 +163,20 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
           }}
         >
           {uploading ? (
-            <Loader2 style={{ width: 24, height: 24, color: "var(--accent)", margin: "0 auto", animation: "spin 1s linear infinite" }} />
+            <Loader2
+              style={{
+                width: 24,
+                height: 24,
+                color: "var(--accent)",
+                margin: "0 auto",
+                animation: "spin 1s linear infinite",
+              }}
+            />
           ) : (
             <>
               <Upload style={{ width: 20, height: 20, color: "var(--text-muted)", margin: "0 auto 8px" }} />
-              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                {t('dropOrClick')}
-              </p>
-              <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 4 }}>
-                {t('formats')}
-              </p>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>{t("dropOrClick")}</p>
+              <p style={{ fontSize: "0.7rem", color: "var(--text-dim)", marginTop: 4 }}>{t("formats")}</p>
             </>
           )}
         </div>

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
-  type CSSProperties,
-  type ChangeEvent,
-} from "react";
+import { useState, useRef, useCallback, useEffect, type CSSProperties, type ChangeEvent } from "react";
 import getCaretCoordinates from "textarea-caret";
 import EntryMentionPopup from "./EntryMentionPopup";
 
@@ -114,7 +107,7 @@ export default function MentionTextarea({
         setMentionOpen(false);
       }
     },
-    [onChange, mentionOpen, updatePopupPosition]
+    [onChange, mentionOpen, updatePopupPosition],
   );
 
   // Also check on cursor movement
@@ -167,7 +160,7 @@ export default function MentionTextarea({
         setMentionOpen(false);
       }
     },
-    [mentionOpen]
+    [mentionOpen],
   );
 
   // Handle entry selection from popup
@@ -197,7 +190,7 @@ export default function MentionTextarea({
         ta.setSelectionRange(newCursor, newCursor);
       });
     },
-    [value, mentionStart, name, onChange]
+    [value, mentionStart, name, onChange],
   );
 
   // Listen for Enter key selection via custom event
@@ -205,15 +198,12 @@ export default function MentionTextarea({
     if (!mentionOpen) return;
 
     const handler = () => {
-      const activeItem = document.querySelector(
-        `[data-index="${activeIndex}"]`
-      ) as HTMLButtonElement;
+      const activeItem = document.querySelector(`[data-index="${activeIndex}"]`) as HTMLButtonElement;
       if (activeItem) activeItem.click();
     };
 
     document.addEventListener("mention-select-active", handler);
-    return () =>
-      document.removeEventListener("mention-select-active", handler);
+    return () => document.removeEventListener("mention-select-active", handler);
   }, [mentionOpen, activeIndex]);
 
   return (

@@ -54,7 +54,7 @@ async function loadServerModule(dir: string): Promise<PluginServerModule | null>
   }
 
   // Dynamic import with cache-busting to pick up file changes
-  const mod = await import(/* webpackIgnore: true */ pathToFileURL(file).href) as PluginServerModule;
+  const mod = (await import(/* webpackIgnore: true */ pathToFileURL(file).href)) as PluginServerModule;
   return mod as PluginServerModule;
 }
 
@@ -77,10 +77,12 @@ export async function listPlugins(): Promise<PluginRecord[]> {
         } catch {
           return null;
         }
-      })
+      }),
   );
 
-  return plugins.filter((plugin): plugin is PluginRecord => plugin !== null).sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
+  return plugins
+    .filter((plugin): plugin is PluginRecord => plugin !== null)
+    .sort((a, b) => a.manifest.name.localeCompare(b.manifest.name));
 }
 
 export async function setPluginEnabled(pluginId: string, enabled: boolean) {
@@ -94,14 +96,12 @@ export async function setPluginEnabled(pluginId: string, enabled: boolean) {
   });
 }
 
-export async function installPlugin(input: {
-  id: string;
-  name: string;
-  description?: string;
-  hooks?: string[];
-}) {
+export async function installPlugin(input: { id: string; name: string; description?: string; hooks?: string[] }) {
   await ensurePluginsDir();
-  const id = input.id.trim().toLowerCase().replace(/[^a-z0-9-_]/g, "-");
+  const id = input.id
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]/g, "-");
   if (!id) {
     throw new Error("Invalid plugin id");
   }
@@ -121,7 +121,7 @@ export async function installPlugin(input: {
   await fs.writeFile(path.join(dir, "manifest.json"), JSON.stringify(manifest, null, 2));
   await fs.writeFile(
     path.join(dir, "server.mjs"),
-    `export const entry = {};\nexport const sidebar = {};\nexport const settings = {};\nexport const api = { routes: [] };\n`
+    `export const entry = {};\nexport const sidebar = {};\nexport const settings = {};\nexport const api = { routes: [] };\n`,
   );
 
   return manifest;
@@ -165,24 +165,40 @@ export async function runEntryBeforeCreateHooks(input: Record<string, unknown>, 
   return next;
 }
 
-export async function runEntryAfterCreateHooks(entry: Record<string, unknown>, originalInput: Record<string, unknown>, principal: AppPrincipal | null) {
+export async function runEntryAfterCreateHooks(
+  entry: Record<string, unknown>,
+  originalInput: Record<string, unknown>,
+  principal: AppPrincipal | null,
+) {
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
     await mod?.entry?.afterCreate?.({ entry, originalInput, context: createPluginContext(principal) });
   }
 }
 
-export async function runEntryBeforeUpdateHooks(input: Record<string, unknown>, existingEntry: Record<string, unknown>, principal: AppPrincipal | null) {
+export async function runEntryBeforeUpdateHooks(
+  input: Record<string, unknown>,
+  existingEntry: Record<string, unknown>,
+  principal: AppPrincipal | null,
+) {
   let next = input;
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
-    const updated = await mod?.entry?.beforeUpdate?.({ input: next, existingEntry, context: createPluginContext(principal) });
+    const updated = await mod?.entry?.beforeUpdate?.({
+      input: next,
+      existingEntry,
+      context: createPluginContext(principal),
+    });
     if (updated) next = updated;
   }
   return next;
 }
 
-export async function runEntryAfterUpdateHooks(entry: Record<string, unknown>, existingEntry: Record<string, unknown>, principal: AppPrincipal | null) {
+export async function runEntryAfterUpdateHooks(
+  entry: Record<string, unknown>,
+  existingEntry: Record<string, unknown>,
+  principal: AppPrincipal | null,
+) {
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
     await mod?.entry?.afterUpdate?.({ entry, existingEntry, context: createPluginContext(principal) });
@@ -196,7 +212,10 @@ export async function runEntryBeforeDeleteHooks(entry: Record<string, unknown>, 
   }
 }
 
-export async function getEntryRenderBlocks(entry: Record<string, unknown>, principal: AppPrincipal | null): Promise<PluginEntryRenderBlock[]> {
+export async function getEntryRenderBlocks(
+  entry: Record<string, unknown>,
+  principal: AppPrincipal | null,
+): Promise<PluginEntryRenderBlock[]> {
   const blocks: PluginEntryRenderBlock[] = [];
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
@@ -206,7 +225,10 @@ export async function getEntryRenderBlocks(entry: Record<string, unknown>, princ
   return blocks;
 }
 
-export async function runEntrySerializeHooks(entry: Record<string, unknown>, principal: AppPrincipal | null): Promise<Record<string, unknown>> {
+export async function runEntrySerializeHooks(
+  entry: Record<string, unknown>,
+  principal: AppPrincipal | null,
+): Promise<Record<string, unknown>> {
   let result = { ...entry };
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
@@ -216,7 +238,10 @@ export async function runEntrySerializeHooks(entry: Record<string, unknown>, pri
   return result;
 }
 
-export async function getEntryCardElements(entry: Record<string, unknown>, principal: AppPrincipal | null): Promise<PluginEntryCardElement[]> {
+export async function getEntryCardElements(
+  entry: Record<string, unknown>,
+  principal: AppPrincipal | null,
+): Promise<PluginEntryCardElement[]> {
   const elements: PluginEntryCardElement[] = [];
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
@@ -226,11 +251,18 @@ export async function getEntryCardElements(entry: Record<string, unknown>, princ
   return elements;
 }
 
-export async function runEntryAfterQueryHooks(entries: Record<string, unknown>[], principal: AppPrincipal | null): Promise<Record<string, unknown>[]> {
+export async function runEntryAfterQueryHooks(
+  entries: Record<string, unknown>[],
+  principal: AppPrincipal | null,
+): Promise<Record<string, unknown>[]> {
   let result = entries;
   for (const plugin of await getEnabledPlugins()) {
     const mod = await loadServerModule(plugin.dir);
-    const updated = await mod?.entry?.afterQuery?.({ entries: result, principal, context: createPluginContext(principal) });
+    const updated = await mod?.entry?.afterQuery?.({
+      entries: result,
+      principal,
+      context: createPluginContext(principal),
+    });
     if (updated) result = updated;
   }
   return result;
@@ -273,7 +305,7 @@ const CONTENT_TAG_RE = /\{\{(\w+):([^}]+)\}\}/g;
 export async function resolveContentTags(
   content: string | null | undefined,
   entry: Record<string, unknown>,
-  principal: AppPrincipal | null
+  principal: AppPrincipal | null,
 ): Promise<ResolvedContentTag[]> {
   if (!content) return [];
 
@@ -333,7 +365,12 @@ function matchRoute(routePath: string, pathname: string): string[] | null {
   return params;
 }
 
-export async function executePluginApi(pluginId: string, pathParts: string[], request: Request, principal: AppPrincipal | null) {
+export async function executePluginApi(
+  pluginId: string,
+  pathParts: string[],
+  request: Request,
+  principal: AppPrincipal | null,
+) {
   const plugins = await getEnabledPlugins();
   const plugin = plugins.find((item) => item.manifest.id === pluginId);
   if (!plugin) {

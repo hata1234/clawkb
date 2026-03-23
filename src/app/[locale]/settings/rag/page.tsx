@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { redirect } from "next/navigation";
+import { setRequestLocale } from "next-intl/server";
 import { getSessionPrincipal } from "@/lib/auth";
 import { getAllSettings } from "@/lib/settings";
 import SettingsLayout from "@/components/SettingsLayout";

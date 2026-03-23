@@ -5,7 +5,9 @@ import { sendPasswordResetEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const email = String(body.email || "").trim().toLowerCase();
+  const email = String(body.email || "")
+    .trim()
+    .toLowerCase();
 
   if (!email) {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -14,7 +16,10 @@ export async function POST(request: Request) {
   // Always return success to prevent email enumeration
   const user = await prisma.user.findFirst({ where: { email } });
   if (!user) {
-    return NextResponse.json({ ok: true, message: "If an account with that email exists, a reset link has been sent." });
+    return NextResponse.json({
+      ok: true,
+      message: "If an account with that email exists, a reset link has been sent.",
+    });
   }
 
   const token = crypto.randomBytes(32).toString("hex");
@@ -28,10 +33,7 @@ export async function POST(request: Request) {
     },
   });
 
-  await sendPasswordResetEmail(
-    { email: user.email!, displayName: user.displayName, username: user.username },
-    token,
-  );
+  await sendPasswordResetEmail({ email: user.email!, displayName: user.displayName, username: user.username }, token);
 
   return NextResponse.json({ ok: true, message: "If an account with that email exists, a reset link has been sent." });
 }

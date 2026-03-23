@@ -11,7 +11,7 @@ async function requireSession() {
 
 // GET /api/tokens — list all tokens (name, prefix, dates, revoked)
 export async function GET() {
-  if (!await requireSession()) {
+  if (!(await requireSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -27,19 +27,21 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(tokens.map((t) => ({
-    id: t.id,
-    name: t.name,
-    token_prefix: t.tokenPrefix,
-    created_at: t.createdAt,
-    last_used_at: t.lastUsedAt,
-    revoked: t.revoked,
-  })));
+  return NextResponse.json(
+    tokens.map((t) => ({
+      id: t.id,
+      name: t.name,
+      token_prefix: t.tokenPrefix,
+      created_at: t.createdAt,
+      last_used_at: t.lastUsedAt,
+      revoked: t.revoked,
+    })),
+  );
 }
 
 // POST /api/tokens — create new token, return full token once
 export async function POST(request: Request) {
-  if (!await requireSession()) {
+  if (!(await requireSession())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -58,11 +60,14 @@ export async function POST(request: Request) {
     },
   });
 
-  return NextResponse.json({
-    id: record.id,
-    name: record.name,
-    token_prefix: record.tokenPrefix,
-    created_at: record.createdAt,
-    token,
-  }, { status: 201 });
+  return NextResponse.json(
+    {
+      id: record.id,
+      name: record.name,
+      token_prefix: record.tokenPrefix,
+      created_at: record.createdAt,
+      token,
+    },
+    { status: 201 },
+  );
 }

@@ -54,16 +54,15 @@ Tags:`;
       if (!name) continue;
 
       // Upsert tag
-      const { rows: [tag] } = await pool.query(
+      const {
+        rows: [tag],
+      } = await pool.query(
         `INSERT INTO "Tag" (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
-        [name]
+        [name],
       );
 
       // Link to entry (ignore if already linked)
-      await pool.query(
-        `INSERT INTO "_EntryTags" ("A", "B") VALUES ($1, $2) ON CONFLICT DO NOTHING`,
-        [entryId, tag.id]
-      );
+      await pool.query(`INSERT INTO "_EntryTags" ("A", "B") VALUES ($1, $2) ON CONFLICT DO NOTHING`, [entryId, tag.id]);
     }
 
     return tags.slice(0, 5);

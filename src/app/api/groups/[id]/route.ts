@@ -26,7 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     await prisma.userGroup.deleteMany({ where: { groupId } });
     if (Array.isArray(userIds) && userIds.length > 0) {
       await prisma.userGroup.createMany({
-        data: (userIds as number[]).map(userId => ({ userId, groupId })),
+        data: (userIds as number[]).map((userId) => ({ userId, groupId })),
         skipDuplicates: true,
       });
     }
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     await prisma.groupCollectionRole.deleteMany({ where: { groupId } });
     if (Array.isArray(collectionRoles) && collectionRoles.length > 0) {
       await prisma.groupCollectionRole.createMany({
-        data: (collectionRoles as { collectionId: number; role: string }[]).map(cr => ({
+        data: (collectionRoles as { collectionId: number; role: string }[]).map((cr) => ({
           groupId,
           collectionId: cr.collectionId,
           role: cr.role || "viewer",
@@ -62,7 +62,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       description: group!.description,
       builtIn: group!.builtIn,
       memberCount: group!._count.users,
-      collectionRoles: group!.collectionRoles.map(cr => ({
+      collectionRoles: group!.collectionRoles.map((cr) => ({
         collectionId: cr.collectionId,
         collectionName: cr.collection.name,
         role: cr.role,

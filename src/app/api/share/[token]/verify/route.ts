@@ -59,10 +59,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
   const parentId = link.parentId ?? link.id;
   const siblings = await prisma.shareLink.findMany({
     where: {
-      OR: [
-        { parentId: parentId },
-        ...(link.parentId ? [{ id: link.parentId }] : []),
-      ],
+      OR: [{ parentId: parentId }, ...(link.parentId ? [{ id: link.parentId }] : [])],
       revokedAt: null,
     },
     include: { entry: { select: { id: true, title: true } } },
@@ -89,9 +86,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
       caption: img.caption,
     })),
     tags: entry.tags.map((t) => t.name),
-    author: entry.author
-      ? { displayName: entry.author.displayName, avatarUrl: entry.author.avatarUrl }
-      : null,
+    author: entry.author ? { displayName: entry.author.displayName, avatarUrl: entry.author.avatarUrl } : null,
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
     linkedShares,
