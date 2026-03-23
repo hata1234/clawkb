@@ -204,6 +204,7 @@ model Collection {
   color       String?
   parentId    Int?
   sortOrder   Int      @default(0)
+  builtIn     Boolean  @default(false) @map("built_in")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

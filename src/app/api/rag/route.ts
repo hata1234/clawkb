@@ -54,12 +54,9 @@ function buildFilterSQL(
   }
   if (accessibleCollectionIds !== null && accessibleCollectionIds !== undefined) {
     idx++;
-    conditions.push(`(
-      NOT EXISTS (SELECT 1 FROM "_EntryCollections" ec WHERE ec."B" = e.id)
-      OR EXISTS (
-        SELECT 1 FROM "_EntryCollections" ec
-        WHERE ec."B" = e.id AND ec."A" = ANY($__${idx}::int[])
-      )
+    conditions.push(`EXISTS (
+      SELECT 1 FROM "_EntryCollections" ec
+      WHERE ec."B" = e.id AND ec."A" = ANY($__${idx}::int[])
     )`);
     params.push(accessibleCollectionIds);
   }

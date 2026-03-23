@@ -550,7 +550,9 @@
     "accessRestrictions": "アクセス制限",
     "accessRestrictionsHint": "ロールが選択されていない場合、すべてのユーザーがアクセスできます。選択された場合、選択したロールのみアクセス可能です（管理者は常にアクセス可能）。",
     "loadingRoles": "ロール読み込み中...",
-    "noRolesAvailable": "利用可能なロールがありません"
+    "noRolesAvailable": "利用可能なロールがありません",
+    "uncategorized": "未分類",
+    "builtInBadge": "ビルトイン"
   },
   "Permissions": {
     "title": "権限グループ",

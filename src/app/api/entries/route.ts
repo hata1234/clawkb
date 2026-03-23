@@ -86,13 +86,10 @@ export async function GET(request: Request) {
     });
   }
 
-  // Collection access control filter (uses OR internally)
+  // Collection access control filter
   if (accessibleIds !== null) {
     andConditions.push({
-      OR: [
-        { collections: { some: { id: { in: accessibleIds } } } },
-        { collections: { none: {} } },
-      ],
+      collections: { some: { id: { in: accessibleIds } } },
     });
   }
 
@@ -206,6 +203,17 @@ export async function POST(request: Request) {
     },
     include: entryWithAuthorInclude,
   });
+
+  // Auto-assign to Uncategorized if no collections specified
+  if (!collectionIds || collectionIds.length === 0) {
+    const uncategorized = await prisma.collection.findFirst({ where: { builtIn: true, name: '未歸類' } });
+    if (uncategorized) {
+      await prisma.entry.update({
+        where: { id: entry.id },
+        data: { collections: { connect: [{ id: uncategorized.id }] } },
+      });
+    }
+  }
 
   // Generate document number if entry belongs to a collection with a prefix
   let finalEntry: typeof entry = entry;

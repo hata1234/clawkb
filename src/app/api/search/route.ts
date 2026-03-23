@@ -86,12 +86,9 @@ function buildFilterSQL(
   }
   if (accessibleCollectionIds !== null && accessibleCollectionIds !== undefined) {
     idx++;
-    conditions.push(`(
-      NOT EXISTS (SELECT 1 FROM "_EntryCollections" ec WHERE ec."B" = e.id)
-      OR EXISTS (
-        SELECT 1 FROM "_EntryCollections" ec
-        WHERE ec."B" = e.id AND ec."A" = ANY($__${idx}::int[])
-      )
+    conditions.push(`EXISTS (
+      SELECT 1 FROM "_EntryCollections" ec
+      WHERE ec."B" = e.id AND ec."A" = ANY($__${idx}::int[])
     )`);
     params.push(accessibleCollectionIds);
   }
@@ -208,10 +205,7 @@ export async function POST(request: Request) {
       ];
       if (accessibleCollectionIds !== null) {
         andConditions.push({
-          OR: [
-            { collections: { some: { id: { in: accessibleCollectionIds } } } },
-            { collections: { none: {} } },
-          ],
+          collections: { some: { id: { in: accessibleCollectionIds } } },
         });
       }
       const where: Record<string, unknown> = {

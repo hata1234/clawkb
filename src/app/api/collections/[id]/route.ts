@@ -77,6 +77,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const collection = await prisma.collection.findUnique({ where: { id: collectionId } });
   if (!collection) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  if (collection.builtIn) {
+    return NextResponse.json({ error: "Cannot delete built-in collection" }, { status: 403 });
+  }
+
   await prisma.collection.updateMany({
     where: { parentId: collectionId },
     data: { parentId: collection.parentId },

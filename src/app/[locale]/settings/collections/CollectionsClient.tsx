@@ -30,6 +30,7 @@ interface Collection {
   docPrefix: string | null;
   parentId: number | null;
   sortOrder: number;
+  builtIn?: boolean;
   _count: { entries: number; children: number };
   children: Collection[];
   groupRoles?: CollectionGroupRole[];
@@ -91,20 +92,29 @@ function CollectionRow({
               <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 2 }}>{node.description}</p>
             )}
           </div>
+          {node.builtIn && (
+            <span style={{ fontSize: "0.65rem", color: "var(--accent)", padding: "2px 6px", background: "var(--accent-dim, rgba(99,102,241,0.15))", borderRadius: 999, whiteSpace: "nowrap", fontWeight: 600 }}>
+              {t('builtInBadge')}
+            </span>
+          )}
           <span style={{ fontSize: "0.75rem", color: "var(--text-dim)", padding: "2px 8px", background: "var(--surface-hover)", borderRadius: 999, whiteSpace: "nowrap" }}>
             {t('entriesCount', { count: node._count.entries })}
           </span>
         </div>
         <div className="collection-row-actions">
-          <button onClick={() => onAddChild(node.id)} title={t('addSubCollection')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}>
-            <FolderPlus style={{ width: 14, height: 14 }} />
-          </button>
+          {!node.builtIn && (
+            <button onClick={() => onAddChild(node.id)} title={t('addSubCollection')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}>
+              <FolderPlus style={{ width: 14, height: 14 }} />
+            </button>
+          )}
           <button onClick={() => onEdit(node)} title={t('edit')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--text-dim)" }}>
             <Pencil style={{ width: 14, height: 14 }} />
           </button>
-          <button onClick={() => onDelete(node)} title={t('delete')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--danger)" }}>
-            <Trash2 style={{ width: 14, height: 14 }} />
-          </button>
+          {!node.builtIn && (
+            <button onClick={() => onDelete(node)} title={t('delete')} style={{ ...btnBase, background: "none", padding: 6, color: "var(--danger)" }}>
+              <Trash2 style={{ width: 14, height: 14 }} />
+            </button>
+          )}
         </div>
       </div>
       {expanded && hasChildren && node.children.map((child) => (

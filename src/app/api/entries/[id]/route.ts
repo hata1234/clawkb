@@ -52,13 +52,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const accessibleIds = await getAccessibleCollectionIds(principal.id, principal.isAdmin);
   if (accessibleIds !== null) {
     const entryCollectionIds = entry.collections?.map((c: { id: number }) => c.id) || [];
-    if (entryCollectionIds.length > 0) {
-      const hasAccess = entryCollectionIds.some((cid: number) => accessibleIds.includes(cid));
-      if (!hasAccess) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+    const hasAccess = entryCollectionIds.some((cid: number) => accessibleIds.includes(cid));
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    // entries with no collections are visible to all (by design)
   }
 
   let isFavorited = false;
@@ -166,6 +163,26 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     },
     include: entryWithAuthorInclude,
   });
+
+  // Auto-manage Uncategorized collection
+  if (collectionIds !== undefined) {
+    const uncategorized = await prisma.collection.findFirst({ where: { builtIn: true, name: '未歸類' } });
+    if (uncategorized) {
+      if (collectionIds.length === 0) {
+        // No collections → assign to Uncategorized
+        await prisma.entry.update({
+          where: { id: entry.id },
+          data: { collections: { connect: [{ id: uncategorized.id }] } },
+        });
+      } else if (collectionIds.includes(uncategorized.id) && collectionIds.length > 1) {
+        // Has real collections → remove from Uncategorized
+        await prisma.entry.update({
+          where: { id: entry.id },
+          data: { collections: { disconnect: [{ id: uncategorized.id }] } },
+        });
+      }
+    }
+  }
 
   // Re-chunk embeddings if content-related fields changed
   if (title !== undefined || summary !== undefined || content !== undefined) {

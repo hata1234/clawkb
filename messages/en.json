@@ -550,7 +550,9 @@
     "accessRestrictions": "Access Restrictions",
     "accessRestrictionsHint": "When no roles are selected, all users can access. When roles are selected, only those roles can access (admins always have access).",
     "loadingRoles": "Loading roles...",
-    "noRolesAvailable": "No roles available"
+    "noRolesAvailable": "No roles available",
+    "uncategorized": "Uncategorized",
+    "builtInBadge": "Built-in"
   },
   "Permissions": {
     "title": "Permission Groups",

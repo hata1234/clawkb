@@ -550,7 +550,9 @@
     "accessRestrictions": "存取限制",
     "accessRestrictionsHint": "未設定限制時，所有使用者皆可存取。設定後，僅所選角色可存取（管理員永遠可存取）。",
     "loadingRoles": "載入角色中...",
-    "noRolesAvailable": "目前沒有可用角色"
+    "noRolesAvailable": "目前沒有可用角色",
+    "uncategorized": "未歸類",
+    "builtInBadge": "內建"
   },
   "Permissions": {
     "title": "權限群組",
