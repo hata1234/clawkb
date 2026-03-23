@@ -573,9 +573,9 @@ export default function EntryDetailPage() {
               </button>
             )}
           </div>
-          {entry.bpmnXml ? (
+          {(entry.bpmnXml || bpmnEditing) ? (
             <BpmnEditor
-              xml={entry.bpmnXml}
+              xml={entry.bpmnXml || undefined}
               readOnly={!bpmnEditing}
               onSave={async (xml) => {
                 setBpmnSaving(true);
@@ -595,19 +595,8 @@ export default function EntryDetailPage() {
             />
           ) : canEdit ? (
             <button
-              onClick={async () => {
-                setBpmnSaving(true);
-                const res = await fetch(`/api/entries/${entry.id}`, {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ bpmnXml: "" }),
-                });
-                if (res.ok) {
-                  const updated = await res.json();
-                  setEntry({ ...updated, bpmnXml: "" });
-                  setBpmnEditing(true);
-                }
-                setBpmnSaving(false);
+              onClick={() => {
+                setBpmnEditing(true);
               }}
               disabled={bpmnSaving}
               style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)" }}
