@@ -504,7 +504,8 @@
     "rag": "RAG / AI",
     "smtp": "SMTP / Email",
     "roles": "Roles",
-    "groups": "Groups"
+    "groups": "Groups",
+    "notifications": "Notifications"
   },
   "AuthSettings": {
     "allowRegistration": "Allow user registration",
@@ -890,5 +891,26 @@
     "confirmDelete": "Are you sure you want to delete this group?",
     "noGroups": "No groups found",
     "noRole": "No Role Assigned"
+  },
+  "NotificationPrefs": {
+    "title": "Notification Preferences",
+    "description": "Choose how you want to be notified for each event type.",
+    "comment_on_entry": {
+      "label": "Comments on my entries",
+      "description": "When someone comments on an entry you authored."
+    },
+    "favorite_updated": {
+      "label": "Favorited entry updated",
+      "description": "When an entry you favorited is modified."
+    },
+    "webhook_failed": {
+      "label": "Webhook delivery failed",
+      "description": "When a webhook delivery fails after retries (admin only)."
+    },
+    "option": {
+      "all": "In-app + Email",
+      "inapp": "In-app only",
+      "off": "Off"
+    }
   }
 }

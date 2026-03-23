@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { sendNotificationEmail } from "./email";
 import { getSmtpConfig } from "./email";
+import { resolvePrefs, prefKeyForType } from "./notification-prefs";
 
 export async function createNotification(
   userId: number,
@@ -57,20 +58,35 @@ export async function dispatchNotification(
   data: { type: string; title: string; body?: string; link?: string },
 ) {
   try {
+    // Load user + prefs
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, displayName: true, username: true, notificationPrefs: true },
+    });
+    if (!user) return;
+
+    const prefs = resolvePrefs(user.notificationPrefs);
+    const prefKey = prefKeyForType(data.type);
+    const pref = prefKey ? prefs[prefKey] : "all"; // unknown types default to all
+
+    // If off, skip entirely
+    if (pref === "off") return;
+
+    // Create in-app notification
     const notification = await createNotification(userId, data);
 
-    // Send email if SMTP is enabled and user has email
-    const smtpCfg = await getSmtpConfig();
-    if (smtpCfg.enabled) {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true, displayName: true, username: true },
-      });
-      if (user?.email) {
+    // Send email if pref is "all", SMTP is enabled, and user has email
+    if (pref === "all") {
+      const smtpCfg = await getSmtpConfig();
+      if (smtpCfg.enabled && user.email) {
         const emailBody = data.body
           ? `<p><strong>${data.title}</strong></p><p>${data.body}</p>`
           : `<p>${data.title}</p>`;
-        const sent = await sendNotificationEmail(user as { email: string; displayName: string | null; username: string }, `[ClawKB] ${data.title}`, emailBody);
+        const sent = await sendNotificationEmail(
+          user as { email: string; displayName: string | null; username: string },
+          `[ClawKB] ${data.title}`,
+          emailBody,
+        );
         if (sent) {
           await prisma.notification.update({
             where: { id: notification.id },

@@ -504,7 +504,8 @@
     "rag": "RAG / AI",
     "smtp": "SMTP / 郵件",
     "roles": "角色",
-    "groups": "群組"
+    "groups": "群組",
+    "notifications": "通知"
   },
   "AuthSettings": {
     "allowRegistration": "允許使用者註冊",
@@ -890,5 +891,26 @@
     "confirmDelete": "確定要刪除此群組嗎？",
     "noGroups": "沒有群組",
     "noRole": "未指定角色"
+  },
+  "NotificationPrefs": {
+    "title": "通知偏好設定",
+    "description": "選擇每種事件要如何通知你。",
+    "comment_on_entry": {
+      "label": "有人在我的文章留言",
+      "description": "當有人在你撰寫的條目下方留言時。"
+    },
+    "favorite_updated": {
+      "label": "收藏的條目被更新",
+      "description": "當你收藏的條目被修改時。"
+    },
+    "webhook_failed": {
+      "label": "Webhook 投遞失敗",
+      "description": "當 Webhook 重試後仍投遞失敗時（僅限管理員）。"
+    },
+    "option": {
+      "all": "站內 + Email",
+      "inapp": "僅站內通知",
+      "off": "關閉"
+    }
   }
 }

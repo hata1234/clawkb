@@ -39,6 +39,7 @@ model User {
   notifications            Notification[]
   resetPasswordToken       String?        @unique
   resetPasswordExpires     DateTime?
+  notificationPrefs        Json?          @default("{}")
 }
 
 model Role {

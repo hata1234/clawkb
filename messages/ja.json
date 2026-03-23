@@ -504,7 +504,8 @@
     "rag": "RAG / AI",
     "smtp": "SMTP / メール",
     "roles": "ロール",
-    "groups": "グループ"
+    "groups": "グループ",
+    "notifications": "通知"
   },
   "AuthSettings": {
     "allowRegistration": "ユーザー登録を許可",
@@ -890,5 +891,26 @@
     "confirmDelete": "このグループを削除しますか？",
     "noGroups": "グループがありません",
     "noRole": "ロール未指定"
+  },
+  "NotificationPrefs": {
+    "title": "通知設定",
+    "description": "各イベントの通知方法を選択してください。",
+    "comment_on_entry": {
+      "label": "自分のエントリーへのコメント",
+      "description": "あなたが作成したエントリーに誰かがコメントした時。"
+    },
+    "favorite_updated": {
+      "label": "お気に入りエントリーの更新",
+      "description": "お気に入りに追加したエントリーが更新された時。"
+    },
+    "webhook_failed": {
+      "label": "Webhook配信失敗",
+      "description": "Webhookの配信がリトライ後も失敗した時（管理者のみ）。"
+    },
+    "option": {
+      "all": "アプリ内 + メール",
+      "inapp": "アプリ内のみ",
+      "off": "オフ"
+    }
   }
 }
