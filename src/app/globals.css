@@ -288,16 +288,57 @@ html, body {
 :root:not([data-theme="light"]) .djs-container text {
   fill: var(--text-primary, #fafafa) !important;
 }
-/* Context pad & palette backgrounds */
+/* Palette (left sidebar) */
 :root:not([data-theme="light"]) .djs-palette {
   background: var(--surface, #141416) !important;
   border-color: var(--border, #27272A) !important;
+  color: var(--text-secondary, #a1a1aa) !important;
+}
+:root:not([data-theme="light"]) .djs-palette .entry,
+:root:not([data-theme="light"]) .djs-palette .entry::before {
+  color: var(--text-secondary, #a1a1aa) !important;
 }
 :root:not([data-theme="light"]) .djs-palette .entry:hover {
   background: var(--surface-hover, #1C1C1F) !important;
+  color: var(--text-primary, #fafafa) !important;
 }
-:root:not([data-theme="light"]) .djs-context-pad .entry {
+:root:not([data-theme="light"]) .djs-palette .entry:hover::before {
+  color: var(--text-primary, #fafafa) !important;
+}
+:root:not([data-theme="light"]) .djs-palette .separator {
+  border-color: var(--border, #27272A) !important;
+}
+/* Context pad (element action popup) */
+:root:not([data-theme="light"]) .djs-context-pad {
   background: var(--surface, #141416) !important;
+  border: 1px solid var(--border, #27272A) !important;
+  border-radius: 6px !important;
+}
+:root:not([data-theme="light"]) .djs-context-pad .entry,
+:root:not([data-theme="light"]) .djs-context-pad .entry::before {
+  color: var(--text-secondary, #a1a1aa) !important;
+  background: transparent !important;
+}
+:root:not([data-theme="light"]) .djs-context-pad .entry:hover,
+:root:not([data-theme="light"]) .djs-context-pad .entry:hover::before {
+  color: var(--text-primary, #fafafa) !important;
+  background: var(--surface-hover, #1C1C1F) !important;
+}
+/* Popup menu (element type picker) */
+:root:not([data-theme="light"]) .djs-popup {
+  background: var(--surface, #141416) !important;
+  border-color: var(--border, #27272A) !important;
+  color: var(--text-primary, #fafafa) !important;
+}
+:root:not([data-theme="light"]) .djs-popup .entry {
+  color: var(--text-secondary, #a1a1aa) !important;
+}
+:root:not([data-theme="light"]) .djs-popup .entry:hover {
+  background: var(--surface-hover, #1C1C1F) !important;
+  color: var(--text-primary, #fafafa) !important;
+}
+:root:not([data-theme="light"]) .djs-popup .entry::before {
+  color: var(--text-secondary, #a1a1aa) !important;
 }
 /* Selected element highlight */
 :root:not([data-theme="light"]) .djs-container .djs-element.selected .djs-outline {
