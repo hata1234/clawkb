@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Plus, Trash2, X } from "lucide-react";
 
 interface Permission {
   id: number;
@@ -21,6 +22,23 @@ interface RoleRecord {
 }
 
 const ALL_ACTIONS = ["read", "create", "edit", "delete", "manage_settings", "manage_users"] as const;
+const ALL_SCOPES = ["global", "own", "collection", "entry"] as const;
+
+const SCOPE_LABELS: Record<string, string> = {
+  global: "Global",
+  own: "Own entries",
+  collection: "Collection",
+  entry: "Entry",
+};
+
+const ACTION_LABELS: Record<string, string> = {
+  read: "Read",
+  create: "Create",
+  edit: "Edit",
+  delete: "Delete",
+  manage_settings: "Manage Settings",
+  manage_users: "Manage Users",
+};
 
 const card: React.CSSProperties = {
   background: "var(--surface)",
@@ -40,6 +58,16 @@ const inputStyle: React.CSSProperties = {
   outline: "none",
 };
 
+const selectStyle: React.CSSProperties = {
+  background: "var(--background)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius-md)",
+  padding: "6px 10px",
+  fontSize: "0.82rem",
+  color: "var(--text)",
+  outline: "none",
+};
+
 const btnPrimary: React.CSSProperties = {
   border: "none",
   borderRadius: "var(--radius-md)",
@@ -48,6 +76,19 @@ const btnPrimary: React.CSSProperties = {
   padding: "10px 16px",
   cursor: "pointer",
   fontWeight: 600,
+};
+
+const btnSmall: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  border: "1px solid var(--border)",
+  background: "var(--surface)",
+  color: "var(--text-secondary)",
+  borderRadius: "var(--radius-md)",
+  padding: "5px 10px",
+  cursor: "pointer",
+  fontSize: "0.78rem",
 };
 
 const btnDanger: React.CSSProperties = {
@@ -60,12 +101,27 @@ const btnDanger: React.CSSProperties = {
   fontSize: "0.82rem",
 };
 
+const permBadge: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  background: "var(--background)",
+  border: "1px solid var(--border)",
+  borderRadius: "var(--radius-md)",
+  padding: "4px 10px",
+  fontSize: "0.8rem",
+  color: "var(--text)",
+};
+
 export default function RolesClient() {
   const t = useTranslations("Roles");
   const [roles, setRoles] = useState<RoleRecord[]>([]);
   const [newName, setNewName] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [message, setMessage] = useState("");
+  const [addingPermFor, setAddingPermFor] = useState<number | null>(null);
+  const [newPermAction, setNewPermAction] = useState<string>(ALL_ACTIONS[0]);
+  const [newPermScope, setNewPermScope] = useState<string>("global");
 
   async function load() {
     const res = await fetch("/api/roles");
@@ -86,10 +142,10 @@ export default function RolesClient() {
       setNewName("");
       setNewDesc("");
       load();
-      setMessage(t("createRole") + " ✓");
+      flash(t("createRole") + " ✓");
     } else {
       const data = await res.json();
-      setMessage(data.error || "Error");
+      flash(data.error || "Error");
     }
   }
 
@@ -98,28 +154,40 @@ export default function RolesClient() {
     const res = await fetch(`/api/roles/${roleId}`, { method: "DELETE" });
     if (res.ok) {
       load();
-      setMessage(t("deleteRole") + " ✓");
+      flash(t("deleteRole") + " ✓");
     } else {
       const data = await res.json();
-      setMessage(data.error || "Error");
+      flash(data.error || "Error");
     }
   }
 
-  async function togglePermission(roleId: number, action: string, has: boolean) {
-    if (has) {
-      await fetch(`/api/roles/${roleId}/permissions`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, scope: "global" }),
-      });
+  async function addPermission(roleId: number) {
+    const res = await fetch(`/api/roles/${roleId}/permissions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: newPermAction, scope: newPermScope }),
+    });
+    if (res.ok) {
+      setAddingPermFor(null);
+      load();
     } else {
-      await fetch(`/api/roles/${roleId}/permissions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, scope: "global" }),
-      });
+      const data = await res.json();
+      flash(data.error || "Error");
     }
+  }
+
+  async function removePermission(roleId: number, action: string, scope: string) {
+    await fetch(`/api/roles/${roleId}/permissions`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, scope }),
+    });
     load();
+  }
+
+  function flash(msg: string) {
+    setMessage(msg);
+    setTimeout(() => setMessage(""), 3000);
   }
 
   const actionLabel = (action: string) => {
@@ -132,6 +200,18 @@ export default function RolesClient() {
       manage_users: t("manageUsers"),
     };
     return map[action] || action;
+  };
+
+  const scopeLabel = (scope: string) => SCOPE_LABELS[scope] || scope;
+
+  const scopeColor = (scope: string) => {
+    switch (scope) {
+      case "global": return "var(--accent)";
+      case "own": return "#f59e0b";
+      case "collection": return "#8b5cf6";
+      case "entry": return "#06b6d4";
+      default: return "var(--text-secondary)";
+    }
   };
 
   return (
@@ -166,36 +246,69 @@ export default function RolesClient() {
                   )}
                 </div>
                 {role.description && <p style={{ color: "var(--text-secondary)", fontSize: "0.82rem", margin: "4px 0 0" }}>{role.description}</p>}
-                <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", margin: "4px 0 0" }}>{role.userCount} {t("usersWithRole")}</p>
+                <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", margin: "4px 0 0" }}>
+                  {role.userCount} {t("usersWithRole")} · {role.groupCount || 0} groups
+                </p>
               </div>
               {!role.builtIn && (
                 <button onClick={() => deleteRole(role.id)} style={btnDanger}>{t("deleteRole")}</button>
               )}
             </div>
 
+            {/* Permission list with scope badges */}
             <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>{t("permissions")}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-              {ALL_ACTIONS.map((action) => {
-                const has = role.permissions.some((p) => p.action === action && p.scope === "global");
-                return (
-                  <label key={action} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.85rem", color: "var(--text)" }}>
-                    <input
-                      type="checkbox"
-                      checked={has}
-                      onChange={() => togglePermission(role.id, action, has)}
-                      style={{ accentColor: "var(--accent)" }}
-                    />
-                    {actionLabel(action)}
-                  </label>
-                );
-              })}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+              {role.permissions.map((p) => (
+                <span key={p.id} style={permBadge}>
+                  <span style={{ fontWeight: 500 }}>{actionLabel(p.action)}</span>
+                  <span style={{ fontSize: "0.7rem", color: scopeColor(p.scope), fontWeight: 600 }}>
+                    {scopeLabel(p.scope)}
+                  </span>
+                  <button
+                    onClick={() => removePermission(role.id, p.action, p.scope)}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "var(--text-dim)", display: "flex" }}
+                    title="Remove"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              {role.permissions.length === 0 && (
+                <span style={{ color: "var(--text-dim)", fontSize: "0.82rem", fontStyle: "italic" }}>No permissions</span>
+              )}
             </div>
+
+            {/* Add permission row */}
+            {addingPermFor === role.id ? (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <select value={newPermAction} onChange={(e) => setNewPermAction(e.target.value)} style={selectStyle}>
+                  {ALL_ACTIONS.map((a) => (
+                    <option key={a} value={a}>{ACTION_LABELS[a]}</option>
+                  ))}
+                </select>
+                <select value={newPermScope} onChange={(e) => setNewPermScope(e.target.value)} style={selectStyle}>
+                  {ALL_SCOPES.map((s) => (
+                    <option key={s} value={s}>{SCOPE_LABELS[s]}</option>
+                  ))}
+                </select>
+                <button onClick={() => addPermission(role.id)} style={{ ...btnSmall, background: "var(--accent)", color: "var(--accent-contrast)", border: "none" }}>
+                  Add
+                </button>
+                <button onClick={() => setAddingPermFor(null)} style={btnSmall}>
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => { setAddingPermFor(role.id); setNewPermAction(ALL_ACTIONS[0]); setNewPermScope("global"); }} style={btnSmall}>
+                <Plus size={14} /> Add Permission
+              </button>
+            )}
           </div>
         ))}
         {roles.length === 0 && <p style={{ color: "var(--text-dim)" }}>{t("noRoles")}</p>}
       </div>
 
-      {message && <div style={{ color: "var(--accent)", fontSize: "0.85rem" }}>{message}</div>}
+      {message && <div style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 8 }}>{message}</div>}
     </div>
   );
 }
