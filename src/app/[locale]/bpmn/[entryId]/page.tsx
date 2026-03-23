@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
@@ -15,12 +15,21 @@ interface EntryData {
   bpmnXml?: string | null;
 }
 
+interface FlowData {
+  id: number;
+  name: string;
+  bpmnXml: string;
+}
+
 export default function BpmnEntryEditorPage() {
   const t = useTranslations("Bpmn");
   const params = useParams();
+  const searchParams = useSearchParams();
   const entryId = params.entryId as string;
+  const flowId = searchParams.get("flowId");
 
   const [entry, setEntry] = useState<EntryData | null>(null);
+  const [flow, setFlow] = useState<FlowData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "unsaved">("idle");
@@ -37,14 +46,28 @@ export default function BpmnEntryEditorPage() {
         }
         const data = await res.json();
         setEntry(data);
-        if (data.bpmnXml) currentXmlRef.current = data.bpmnXml;
+
+        if (flowId) {
+          // Load specific flow
+          const flowRes = await fetch(`/api/entries/${entryId}/flows/${flowId}`);
+          if (flowRes.ok) {
+            const flowData = await flowRes.json();
+            setFlow(flowData);
+            currentXmlRef.current = flowData.bpmnXml || "";
+          } else {
+            setError("Flow not found");
+          }
+        } else {
+          // Legacy mode: edit entry.bpmnXml directly
+          if (data.bpmnXml) currentXmlRef.current = data.bpmnXml;
+        }
       } catch {
         setError("Failed to connect");
       } finally {
         setLoading(false);
       }
     })();
-  }, [entryId]);
+  }, [entryId, flowId]);
 
   const handleChange = useCallback((xml: string) => {
     currentXmlRef.current = xml;
@@ -54,22 +77,35 @@ export default function BpmnEntryEditorPage() {
   const handleSave = useCallback(async (xml: string) => {
     setSaveState("saving");
     try {
-      const res = await fetch(`/api/entries/${entryId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bpmnXml: xml }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setEntry((prev) => prev ? { ...prev, bpmnXml: updated.bpmnXml } : prev);
-        setSaveState("saved");
+      let res: Response;
+      if (flowId && flow) {
+        // Save to flow
+        res = await fetch(`/api/entries/${entryId}/flows/${flowId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bpmnXml: xml }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setFlow(updated);
+        }
       } else {
-        setSaveState("unsaved");
+        // Legacy: save to entry.bpmnXml
+        res = await fetch(`/api/entries/${entryId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bpmnXml: xml }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setEntry((prev) => prev ? { ...prev, bpmnXml: updated.bpmnXml } : prev);
+        }
       }
+      setSaveState(res.ok ? "saved" : "unsaved");
     } catch {
       setSaveState("unsaved");
     }
-  }, [entryId]);
+  }, [entryId, flowId, flow]);
 
   if (loading) {
     return (
@@ -92,6 +128,9 @@ export default function BpmnEntryEditorPage() {
     );
   }
 
+  const initialXml = flow ? flow.bpmnXml : (entry.bpmnXml || undefined);
+  const subtitle = flow ? `${flow.name || "Flow " + flow.id}` : t("title");
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 60px)" }}>
       {/* Header */}
@@ -113,7 +152,7 @@ export default function BpmnEntryEditorPage() {
             fontSize: "0.9rem", fontWeight: 500, color: "var(--text)",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
-            {entry.title} — {t("title")}
+            {entry.title} — {subtitle}
           </span>
         </div>
 
@@ -143,7 +182,7 @@ export default function BpmnEntryEditorPage() {
       {/* Editor */}
       <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
         <BpmnEditor
-          xml={entry.bpmnXml || undefined}
+          xml={initialXml}
           onChange={handleChange}
           onSave={handleSave}
           height="100%"

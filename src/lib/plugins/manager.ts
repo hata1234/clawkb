@@ -12,6 +12,7 @@ import { DEFAULT_PLUGIN_SETTINGS, getAllSettings, getSetting, setSetting } from 
 import type { AppPrincipal } from "@/lib/auth";
 import type {
   PluginApiRoute,
+  PluginContentTagDef,
   PluginContext,
   PluginEntryCardElement,
   PluginEntryRenderBlock,
@@ -19,6 +20,7 @@ import type {
   PluginServerModule,
   PluginSettingsPanel,
   PluginSidebarItem,
+  ResolvedContentTag,
 } from "./types";
 
 const PLUGINS_DIR = path.join(process.cwd(), "plugins");
@@ -252,6 +254,66 @@ export async function getSettingsPanels(principal: AppPrincipal | null): Promise
     if (result?.length) items.push(...result);
   }
   return items;
+}
+
+/** Collect all content tag definitions from enabled plugins */
+async function collectContentTagDefs(principal: AppPrincipal | null): Promise<PluginContentTagDef[]> {
+  const defs: PluginContentTagDef[] = [];
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.content?.tags?.({ context: createPluginContext(principal) });
+    if (result?.length) defs.push(...result);
+  }
+  return defs;
+}
+
+const CONTENT_TAG_RE = /\{\{(\w+):([^}]+)\}\}/g;
+
+/** Resolve all {{tag:value}} placeholders in content using plugin tag resolvers */
+export async function resolveContentTags(
+  content: string | null | undefined,
+  entry: Record<string, unknown>,
+  principal: AppPrincipal | null
+): Promise<ResolvedContentTag[]> {
+  if (!content) return [];
+
+  const matches = [...content.matchAll(CONTENT_TAG_RE)];
+  if (matches.length === 0) return [];
+
+  const defs = await collectContentTagDefs(principal);
+  if (defs.length === 0) return [];
+
+  // Build tag → def map
+  const defMap = new Map<string, PluginContentTagDef>();
+  for (const def of defs) {
+    defMap.set(def.tag, def);
+  }
+
+  const resolved: ResolvedContentTag[] = [];
+  const ctx = createPluginContext(principal);
+
+  for (const match of matches) {
+    const [placeholder, tag, value] = match;
+    const def = defMap.get(tag);
+    if (!def) continue;
+
+    try {
+      const props = await def.resolve({ value: value.trim(), entry, context: ctx });
+      if (props) {
+        resolved.push({
+          placeholder,
+          tag,
+          value: value.trim(),
+          component: def.component,
+          props,
+        });
+      }
+    } catch (err) {
+      console.error(`[ContentTag] Failed to resolve {{${tag}:${value}}}:`, err);
+    }
+  }
+
+  return resolved;
 }
 
 function matchRoute(routePath: string, pathname: string): string[] | null {

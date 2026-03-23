@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { canDeleteEntry, canEditEntry, getRequestPrincipal } from "@/lib/auth";
 import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
-import { getEntryRenderBlocks, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
+import { getEntryRenderBlocks, resolveContentTags, runEntryAfterUpdateHooks, runEntryBeforeDeleteHooks, runEntryBeforeUpdateHooks, runEntrySerializeHooks } from "@/lib/plugins/manager";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
 import { logActivity } from "@/lib/activity";
@@ -56,7 +56,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const pluginRender = await getEntryRenderBlocks(entry as unknown as Record<string, unknown>, principal);
-  const base = { ...serializeEntry(entry), isFavorited, pluginRender } as Record<string, unknown>;
+  const resolvedTags = await resolveContentTags(entry.content, entry as unknown as Record<string, unknown>, principal);
+  const base = { ...serializeEntry(entry), isFavorited, pluginRender, resolvedTags } as Record<string, unknown>;
   const serialized = await runEntrySerializeHooks(base, principal);
   return NextResponse.json(serialized);
 }

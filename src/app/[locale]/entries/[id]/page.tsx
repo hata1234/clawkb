@@ -42,6 +42,15 @@ interface Entry {
   bpmnXml?: string | null;
   isFavorited?: boolean;
   pluginRender?: { id: string; type: string; title?: string; data?: Record<string, unknown> }[];
+  resolvedTags?: { placeholder: string; tag: string; value: string; component: string; props: Record<string, unknown> }[];
+}
+
+interface EntryFlow {
+  id: number;
+  name: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface Comment {
@@ -95,6 +104,8 @@ export default function EntryDetailPage() {
   const [showPdfPasswordDialog, setShowPdfPasswordDialog] = useState(false);
   const [pdfPassword, setPdfPassword] = useState("");
   const [pdfExporting, setPdfExporting] = useState(false);
+  const [flows, setFlows] = useState<EntryFlow[]>([]);
+  const [newFlowName, setNewFlowName] = useState("");
 
 
   const exportEntry = (format: "json" | "csv" | "markdown" | "pdf") => {
@@ -175,6 +186,9 @@ export default function EntryDetailPage() {
     fetch(`/api/entries/${params.id}/comments`)
       .then((res) => res.ok ? res.json() : { comments: [] })
       .then((data) => setComments(data.comments || []));
+    fetch(`/api/entries/${params.id}/flows`)
+      .then((res) => res.ok ? res.json() : [])
+      .then((data) => setFlows(data));
   }, [params.id]);
 
   const canEdit = session?.user?.effectiveRole === "admin" || (session?.user?.effectiveRole === "editor" && session.user.id === String(entry?.authorId ?? ""));
@@ -223,6 +237,38 @@ export default function EntryDetailPage() {
     setDeleting(true);
     await fetch(`/api/entries/${entry.id}`, { method: "DELETE" });
     router.push("/entries");
+  };
+
+  const createFlow = async () => {
+    if (!entry) return;
+    const res = await fetch(`/api/entries/${entry.id}/flows`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newFlowName.trim() || "Flow " + (flows.length + 1) }),
+    });
+    if (res.ok) {
+      const flow = await res.json();
+      setFlows([...flows, flow]);
+      setNewFlowName("");
+      // Insert tag into content at cursor or end
+      const tag = `{{flow:${flow.id}}}`;
+      setEditContent((prev) => prev ? prev + "\n\n" + tag : tag);
+    }
+  };
+
+  const deleteFlow = async (flowId: number) => {
+    if (!entry) return;
+    const res = await fetch(`/api/entries/${entry.id}/flows/${flowId}`, { method: "DELETE" });
+    if (res.ok) {
+      setFlows(flows.filter((f) => f.id !== flowId));
+      // Remove tag from content
+      setEditContent((prev) => prev.replace(new RegExp(`\\{\\{flow:${flowId}\\}\\}\\n?`, "g"), ""));
+    }
+  };
+
+  const insertFlowTag = (flowId: number) => {
+    const tag = `{{flow:${flowId}}}`;
+    setEditContent((prev) => prev ? prev + "\n\n" + tag : tag);
   };
 
   const addComment = async () => {
@@ -492,30 +538,57 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      {/* BPMN Process Flow — inline read-only viewer; edit button only in edit mode */}
-      {entry.bpmnXml && !editing && (
-        <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {tb("title")}
-            </h2>
-            <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none", fontSize: "0.75rem", padding: "5px 10px" }}>
-              <Network style={{ width: 13, height: 13 }} /> {tb("viewFlow")}
-            </Link>
-          </div>
-          <div style={{ height: 360, borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--border)" }}>
-            <BpmnEditor xml={entry.bpmnXml} readOnly />
-          </div>
-        </div>
-      )}
+      {/* Flow Attachments — edit mode: manage & insert; view mode handled by {{flow:ID}} in content */}
       {editing && (
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", marginBottom: 16 }}>
           <h2 style={{ fontSize: "0.7rem", fontWeight: 600, color: "var(--text-dim)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>
+            <Network style={{ width: 13, height: 13, display: "inline", verticalAlign: "-2px", marginRight: 6 }} />
             {tb("title")}
           </h2>
-          <Link href={`/bpmn/${entry.id}`} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", textDecoration: "none" }}>
-            <Network style={{ width: 14, height: 14 }} /> {entry.bpmnXml ? tb("viewFlow") : tb("addFlow")}
-          </Link>
+
+          {/* Existing flows */}
+          {flows.length > 0 && (
+            <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+              {flows.map((flow) => (
+                <div key={flow.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "var(--background)", border: "1px solid var(--border)", borderRadius: "var(--radius-md)" }}>
+                  <Network style={{ width: 14, height: 14, color: "var(--accent)", flexShrink: 0 }} />
+                  <span style={{ flex: 1, fontSize: "0.85rem", color: "var(--text)" }}>{flow.name || `Flow ${flow.id}`}</span>
+                  <code style={{ fontSize: "0.72rem", color: "var(--text-dim)", background: "var(--surface-hover)", padding: "2px 6px", borderRadius: 4 }}>
+                    {"{{flow:" + flow.id + "}}"}
+                  </code>
+                  <button onClick={() => insertFlowTag(flow.id)} title="Insert tag" style={{ ...btnBase, padding: "4px 8px", fontSize: "0.72rem", background: "var(--accent-muted)", color: "var(--accent)" }}>
+                    Insert
+                  </button>
+                  <Link href={`/bpmn/${entry.id}?flowId=${flow.id}`} style={{ ...btnBase, padding: "4px 8px", fontSize: "0.72rem", background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-secondary)", textDecoration: "none" }}>
+                    Edit
+                  </Link>
+                  <button onClick={() => deleteFlow(flow.id)} title="Delete" style={{ ...btnBase, padding: "4px 8px", fontSize: "0.72rem", background: "transparent", color: "var(--danger, #e53e3e)" }}>
+                    <X style={{ width: 12, height: 12 }} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new flow */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              value={newFlowName}
+              onChange={(e) => setNewFlowName(e.target.value)}
+              placeholder="Flow name (optional)"
+              style={{ ...inputStyle, flex: 1 }}
+            />
+            <button onClick={createFlow} style={{ ...btnBase, background: "var(--accent)", color: "var(--accent-contrast)", whiteSpace: "nowrap" }}>
+              + {tb("addFlow")}
+            </button>
+          </div>
+
+          {/* Legacy bpmnXml migration hint */}
+          {entry.bpmnXml && flows.length === 0 && (
+            <p style={{ fontSize: "0.78rem", color: "var(--text-dim)", marginTop: 10, fontStyle: "italic" }}>
+              This entry has a legacy flow diagram. Create a new flow to migrate it.
+            </p>
+          )}
         </div>
       )}
 
@@ -541,7 +614,7 @@ export default function EntryDetailPage() {
               style={{ ...inputStyle, resize: "vertical", fontFamily: "var(--font-mono)", fontSize: "0.8rem", minHeight: 300 }} />
           ) : (
             <div className="prose-kb">
-              <MarkdownRenderer content={entry.content || ""} />
+              <MarkdownRenderer content={entry.content || ""} resolvedTags={entry.resolvedTags} />
             </div>
           )}
         </div>

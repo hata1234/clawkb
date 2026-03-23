@@ -9,6 +9,7 @@ export type PluginHookName =
   | "entry.render"
   | "entry.serialize"
   | "entry.afterQuery"
+  | "content.tags"
   | "entryCard.render"
   | "sidebar.register"
   | "api.register"
@@ -86,6 +87,34 @@ export interface PluginContext {
   };
 }
 
+/** Resolved content tag — returned by plugin tag resolvers, consumed by MarkdownRenderer */
+export interface ResolvedContentTag {
+  /** The original placeholder, e.g. "{{flow:3}}" */
+  placeholder: string;
+  /** Tag name, e.g. "flow" */
+  tag: string;
+  /** Raw value after the colon, e.g. "3" */
+  value: string;
+  /** Client component name in the tag registry */
+  component: string;
+  /** Props passed to the client component */
+  props: Record<string, unknown>;
+}
+
+/** Plugin content tag registration */
+export interface PluginContentTagDef {
+  /** Tag name — matches {{name:value}} */
+  tag: string;
+  /** Client component name in tag registry */
+  component: string;
+  /** Server resolver — fetches data for rendering */
+  resolve: (input: {
+    value: string;
+    entry: Record<string, unknown>;
+    context: PluginContext;
+  }) => Promise<Record<string, unknown> | null>;
+}
+
 export interface PluginServerModule {
   entry?: {
     beforeCreate?: (input: { input: Record<string, unknown>; context: PluginContext }) => Promise<Record<string, unknown> | void>;
@@ -102,6 +131,9 @@ export interface PluginServerModule {
   };
   sidebar?: {
     register?: (input: { context: PluginContext }) => Promise<PluginSidebarItem[] | void>;
+  };
+  content?: {
+    tags?: (input: { context: PluginContext }) => Promise<PluginContentTagDef[] | void>;
   };
   settings?: {
     register?: (input: { context: PluginContext }) => Promise<PluginSettingsPanel[] | void>;

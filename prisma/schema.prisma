@@ -105,10 +105,11 @@ model Entry {
   revisions EntryRevision[]
   favorites UserFavorite[]
   shareLinks ShareLink[]
-  bpmnXml   String?  @map("bpmn_xml") @db.Text
+  bpmnXml   String?  @map("bpmn_xml") @db.Text  // @deprecated — use EntryFlow for multi-flow support
   // Vector search columns (managed via raw SQL for indexing, declared here to prevent db push from dropping them)
   embedding Unsupported("vector(1024)")?
   chunks    EntryChunk[]
+  flows     EntryFlow[]
 }
 
 model EntryImage {
@@ -289,6 +290,21 @@ model EntryChunk {
 
   @@index([entryId], map: "idx_entry_chunks_entry_id")
   @@map("entry_chunks")
+}
+
+model EntryFlow {
+  id        Int      @id @default(autoincrement())
+  entryId   Int      @map("entry_id")
+  name      String   @default("") @db.VarChar(200)
+  bpmnXml   String   @map("bpmn_xml") @db.Text
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  entry Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
+  @@map("entry_flows")
 }
 
 model Webhook {

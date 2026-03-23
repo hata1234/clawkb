@@ -4,6 +4,6 @@
   "version": "1.0.0",
   "description": "Attach BPMN process flow diagrams to entries. Visual editor powered by bpmn.io.",
   "builtIn": false,
-  "hooks": ["entry.render"],
+  "hooks": ["entry.render", "content.tags"],
   "permissions": ["entries.read"]
 }
