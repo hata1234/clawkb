@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   let success = 0;
   let failed = 0;
   let totalChunks = 0;
-  const errors: { id: number; title: string }[] = [];
+  const errors: { id: number; title: string; error?: string }[] = [];
 
   for (const entry of entries.rows) {
     try {
@@ -45,9 +45,13 @@ export async function POST(request: Request) {
           errors.push({ id: entry.id, title: entry.title.slice(0, 60) });
         }
       }
-    } catch {
+    } catch (err) {
       failed++;
-      errors.push({ id: entry.id, title: entry.title.slice(0, 60) });
+      errors.push({
+        id: entry.id,
+        title: entry.title.slice(0, 60),
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 

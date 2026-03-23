@@ -18,7 +18,7 @@ export async function logActivity(
         metadata: metadata as Prisma.InputJsonValue,
       },
     });
-  } catch {
-    // Fire-and-forget: don't let activity logging break main flows
+  } catch (err) {
+    console.error("[activity] logActivity failed:", err);
   }
 }

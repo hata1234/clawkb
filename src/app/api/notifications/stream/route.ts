@@ -20,7 +20,8 @@ export async function GET(request: Request) {
       function send(data: string) {
         try {
           controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-        } catch {
+        } catch (err) {
+          console.error("[notifications/stream] enqueue error:", err);
           closed = true;
         }
       }
@@ -53,8 +54,8 @@ export async function GET(request: Request) {
 
             send(JSON.stringify({ type: "count", count, latest }));
           }
-        } catch {
-          // Silently continue
+        } catch (err) {
+          console.error("[notifications/stream] poll error:", err);
         }
       }, 5000);
 

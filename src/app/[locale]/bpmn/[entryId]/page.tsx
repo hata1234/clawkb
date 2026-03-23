@@ -40,7 +40,7 @@ export default function BpmnEntryEditorPage() {
       try {
         const res = await fetch(`/api/entries/${entryId}`);
         if (!res.ok) {
-          setError(res.status === 404 ? "Entry not found" : "Failed to load entry");
+          setError(res.status === 404 ? t("entryNotFound") : t("failedToLoadEntry"));
           setLoading(false);
           return;
         }
@@ -62,7 +62,7 @@ export default function BpmnEntryEditorPage() {
           if (data.bpmnXml) currentXmlRef.current = data.bpmnXml;
         }
       } catch {
-        setError("Failed to connect");
+        setError(t("failedToConnect"));
       } finally {
         setLoading(false);
       }
@@ -132,7 +132,7 @@ export default function BpmnEntryEditorPage() {
         }}
       >
         <AlertCircle style={{ width: 32, height: 32, color: "var(--danger)" }} />
-        <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>{error || "Entry not found"}</p>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>{error || t("entryNotFound")}</p>
         <Link href="/entries" style={{ fontSize: "0.85rem", color: "var(--accent)", textDecoration: "none" }}>
           <ArrowLeft style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle" }} /> Back to entries
         </Link>

@@ -254,7 +254,8 @@
     "similarityThreshold": "Similarity threshold:",
     "legend": "Legend",
     "connections": "{count} {count, plural, one {connection} other {connections}}",
-    "viewEntry": "View Entry →"
+    "viewEntry": "View Entry →",
+    "fetchError": "Failed to fetch graph data"
   },
   "Trash": {
     "label": "Admin",
@@ -882,7 +883,8 @@
     "confirmDelete": "Are you sure you want to delete this group?",
     "noGroups": "No groups found",
     "builtIn": "Built-in",
-    "collectionAccess": "Collection Access"
+    "collectionAccess": "Collection Access",
+    "error": "Error"
   },
   "NotificationPrefs": {
     "title": "Notification Preferences",
@@ -936,6 +938,9 @@
     "backToEntry": "Back to Entry",
     "unsaved": "Unsaved changes",
     "saved": "Saved",
-    "hasFlow": "This entry has a process flow diagram."
+    "hasFlow": "This entry has a process flow diagram.",
+    "entryNotFound": "Entry not found",
+    "failedToLoadEntry": "Failed to load entry",
+    "failedToConnect": "Failed to connect"
   }
 }

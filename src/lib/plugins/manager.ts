@@ -49,7 +49,8 @@ async function loadServerModule(dir: string): Promise<PluginServerModule | null>
   const file = path.join(dir, "server.mjs");
   try {
     await fs.access(file);
-  } catch {
+  } catch (err) {
+    console.error("[plugins]", err);
     return null;
   }
 
@@ -74,7 +75,8 @@ export async function listPlugins(): Promise<PluginRecord[]> {
             dir,
             enabled: isEnabled(manifest, pluginSettings.states),
           } satisfies PluginRecord;
-        } catch {
+        } catch (err) {
+          console.error("[plugins]", err);
           return null;
         }
       }),

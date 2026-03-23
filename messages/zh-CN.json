@@ -254,7 +254,8 @@
     "similarityThreshold": "相似度阈值：",
     "legend": "图例",
     "connections": "{count} 个{count, plural, one {连接} other {连接}}",
-    "viewEntry": "查看条目 →"
+    "viewEntry": "查看条目 →",
+    "fetchError": "获取图谱数据失败"
   },
   "Trash": {
     "label": "管理",
@@ -882,7 +883,8 @@
     "confirmDelete": "确定要删除此分组吗？",
     "noGroups": "没有分组",
     "builtIn": "内置",
-    "collectionAccess": "集合访问"
+    "collectionAccess": "集合访问",
+    "error": "错误"
   },
   "NotificationPrefs": {
     "title": "通知偏好设置",
@@ -936,6 +938,9 @@
     "backToEntry": "返回条目",
     "unsaved": "未保存的更改",
     "saved": "已保存",
-    "hasFlow": "此条目包含流程图。"
+    "hasFlow": "此条目包含流程图。",
+    "entryNotFound": "找不到条目",
+    "failedToLoadEntry": "加载条目失败",
+    "failedToConnect": "连接失败"
   }
 }

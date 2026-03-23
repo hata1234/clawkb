@@ -116,7 +116,7 @@ export default function KnowledgeGraph() {
         params.set("types", Array.from(activeTypes).join(","));
       }
       const res = await fetch(`/api/graph?${params}`);
-      if (!res.ok) throw new Error("Failed to fetch graph data");
+      if (!res.ok) throw new Error(t("fetchError"));
       const data: GraphData = await res.json();
 
       // Compute degree

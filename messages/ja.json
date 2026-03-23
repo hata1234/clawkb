@@ -254,7 +254,8 @@
     "similarityThreshold": "類似度しきい値:",
     "legend": "凡例",
     "connections": "{count} {count, plural, one {件の接続} other {件の接続}}",
-    "viewEntry": "エントリーを表示 →"
+    "viewEntry": "エントリーを表示 →",
+    "fetchError": "グラフデータの取得に失敗しました"
   },
   "Trash": {
     "label": "管理",
@@ -882,7 +883,8 @@
     "confirmDelete": "このグループを削除しますか？",
     "noGroups": "グループがありません",
     "builtIn": "ビルトイン",
-    "collectionAccess": "コレクションアクセス"
+    "collectionAccess": "コレクションアクセス",
+    "error": "エラー"
   },
   "NotificationPrefs": {
     "title": "通知設定",
@@ -936,6 +938,9 @@
     "backToEntry": "エントリに戻る",
     "unsaved": "未保存の変更",
     "saved": "保存済み",
-    "hasFlow": "このエントリにはプロセスフロー図があります。"
+    "hasFlow": "このエントリにはプロセスフロー図があります。",
+    "entryNotFound": "エントリーが見つかりません",
+    "failedToLoadEntry": "エントリーの読み込みに失敗しました",
+    "failedToConnect": "接続に失敗しました"
   }
 }

@@ -125,7 +125,7 @@ export default function GroupsClient() {
       setMessage(t("createGroup") + " ✓");
     } else {
       const data = await res.json();
-      setMessage(data.error || "Error");
+      setMessage(data.error || t("error"));
     }
   }
 
@@ -154,7 +154,7 @@ export default function GroupsClient() {
       setMessage(t("editGroup") + " ✓");
     } else {
       const data = await res.json();
-      setMessage(data.error || "Error");
+      setMessage(data.error || t("error"));
     }
   }
 
@@ -166,7 +166,7 @@ export default function GroupsClient() {
       setMessage(t("deleteGroup") + " ✓");
     } else {
       const data = await res.json();
-      setMessage(data.error || "Error");
+      setMessage(data.error || t("error"));
     }
   }
 

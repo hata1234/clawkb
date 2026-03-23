@@ -75,8 +75,8 @@ export function dispatchWebhookEvent(event: WebhookEvent, data: Record<string, u
       });
 
       await Promise.allSettled(matching.map((w) => deliverWebhook(w.id, w.url, w.secret, event, body)));
-    } catch {
-      // Silently fail — webhook errors must never affect main flows
+    } catch (err) {
+      console.error("[webhooks] dispatchWebhookEvent failed:", err);
     }
   })();
 }
@@ -95,8 +95,8 @@ async function notifyAdminsWebhookFailure(webhookId: number, url: string, event:
         link: "/settings/webhooks",
       }).catch(() => {});
     }
-  } catch {
-    /* silently fail */
+  } catch (err) {
+    console.error("[webhooks] deliverWebhook failed:", err);
   }
 }
 

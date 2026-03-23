@@ -254,7 +254,8 @@
     "similarityThreshold": "相似度門檻：",
     "legend": "圖例",
     "connections": "{count} 個{count, plural, one {連結} other {連結}}",
-    "viewEntry": "查看條目 →"
+    "viewEntry": "查看條目 →",
+    "fetchError": "無法取得圖譜資料"
   },
   "Trash": {
     "label": "管理",
@@ -882,7 +883,8 @@
     "confirmDelete": "確定要刪除此群組嗎？",
     "noGroups": "沒有群組",
     "builtIn": "內建",
-    "collectionAccess": "集合存取"
+    "collectionAccess": "集合存取",
+    "error": "錯誤"
   },
   "NotificationPrefs": {
     "title": "通知偏好設定",
@@ -936,6 +938,9 @@
     "backToEntry": "返回條目",
     "unsaved": "未儲存的變更",
     "saved": "已儲存",
-    "hasFlow": "此條目包含流程圖。"
+    "hasFlow": "此條目包含流程圖。",
+    "entryNotFound": "找不到條目",
+    "failedToLoadEntry": "載入條目失敗",
+    "failedToConnect": "連線失敗"
   }
 }
