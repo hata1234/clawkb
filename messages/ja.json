@@ -692,7 +692,8 @@
     "cannotDeleteSelf": "自分自身は削除できません",
     "userDeleted": "ユーザーを削除しました",
     "userDeleteFailed": "ユーザーの削除に失敗しました",
-    "noEntries": "このユーザーには記事がありません。"
+    "noEntries": "このユーザーには記事がありません。",
+    "cancel": "キャンセル"
   },
   "Webhooks": {
     "title": "Webhooks",

@@ -692,7 +692,8 @@
     "cannotDeleteSelf": "无法删除自己",
     "userDeleted": "用户已删除",
     "userDeleteFailed": "删除用户失败",
-    "noEntries": "此用户没有文章。"
+    "noEntries": "此用户没有文章。",
+    "cancel": "取消"
   },
   "Webhooks": {
     "title": "Webhooks",

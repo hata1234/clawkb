@@ -527,7 +527,7 @@ export default function UsersAdminClient() {
                   cursor: "pointer",
                 }}
               >
-                {t("cancel") || "Cancel"}
+                {t("cancel")}
               </button>
               <button
                 onClick={confirmDelete}

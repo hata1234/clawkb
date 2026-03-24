@@ -692,7 +692,8 @@
     "cannotDeleteSelf": "You cannot delete yourself",
     "userDeleted": "User deleted successfully",
     "userDeleteFailed": "Failed to delete user",
-    "noEntries": "This user has no entries."
+    "noEntries": "This user has no entries.",
+    "cancel": "Cancel"
   },
   "Webhooks": {
     "title": "Webhooks",
