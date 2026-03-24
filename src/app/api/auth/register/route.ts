@@ -68,7 +68,6 @@ export async function POST(request: Request) {
       user: serializeUser(user),
       requiresEmailVerification: settings.requireEmailVerification,
       requiresAdminApproval: settings.requireAdminApproval,
-      verificationToken,
     },
     { status: 201 },
   );

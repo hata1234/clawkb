@@ -50,8 +50,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (data.requiresEmailVerification && data.verificationToken) {
-      setMessage(t("registeredWithToken", { token: data.verificationToken }));
+    if (data.requiresEmailVerification) {
+      setMessage(t("registeredCheckEmail"));
       return;
     }
 

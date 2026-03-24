@@ -291,7 +291,8 @@
     "registeredPending": "登録完了。管理者の承認をお待ちください。",
     "register": "登録",
     "alreadyHaveAccount": "すでにアカウントをお持ちですか？",
-    "signIn": "サインイン"
+    "signIn": "サインイン",
+    "registeredCheckEmail": "登録完了！メールを確認してアカウントを認証してください。"
   },
   "Profile": {
     "label": "アカウント",

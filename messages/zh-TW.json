@@ -291,7 +291,8 @@
     "registeredPending": "註冊成功。你的帳號正在等待管理員核准。",
     "register": "註冊",
     "alreadyHaveAccount": "已經有帳號了？",
-    "signIn": "登入"
+    "signIn": "登入",
+    "registeredCheckEmail": "註冊成功！請檢查您的電子郵件以驗證帳號。"
   },
   "Profile": {
     "label": "帳號",

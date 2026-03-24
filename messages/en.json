@@ -291,7 +291,8 @@
     "registeredPending": "Registered. Your account is pending admin approval.",
     "register": "Register",
     "alreadyHaveAccount": "Already have an account?",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "registeredCheckEmail": "Registration successful! Please check your email to verify your account."
   },
   "Profile": {
     "label": "Account",

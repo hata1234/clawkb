@@ -291,7 +291,8 @@
     "registeredPending": "已注册。你的账户正在等待管理员审批。",
     "register": "注册",
     "alreadyHaveAccount": "已有账户？",
-    "signIn": "登录"
+    "signIn": "登录",
+    "registeredCheckEmail": "注册成功！请检查您的邮箱以验证账号。"
   },
   "Profile": {
     "label": "账户",
