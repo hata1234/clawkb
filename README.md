@@ -120,7 +120,7 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) 
 ### Install
 
 ```bash
-git clone https://github.com/openclaw/clawkb.git
+git clone https://github.com/hata1234/clawkb.git
 cd clawkb
 
 npm install
@@ -143,7 +143,7 @@ npm start
 ### Docker
 
 ```bash
-git clone https://github.com/openclaw/clawkb.git
+git clone https://github.com/hata1234/clawkb.git
 cd clawkb
 
 # (Optional) set secrets in .env — docker-compose reads from it

@@ -120,7 +120,7 @@ ClawKB は人間と AI エージェントがナレッジエントリーを共同
 ### インストール
 
 ```bash
-git clone https://github.com/openclaw/clawkb.git
+git clone https://github.com/hata1234/clawkb.git
 cd clawkb
 
 npm install
@@ -143,7 +143,7 @@ npm start
 ### Docker
 
 ```bash
-git clone https://github.com/openclaw/clawkb.git
+git clone https://github.com/hata1234/clawkb.git
 cd clawkb
 
 # （オプション）.env にシークレットを設定 — docker-compose が読み取ります
