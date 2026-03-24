@@ -32,6 +32,9 @@ export async function POST(request: Request) {
     username = `${usernameBase}-${suffix}`;
   }
 
+  const requireApproval = settings.requireAdminApproval !== false;
+  const approvalStatus = requireApproval ? "pending_approval" : "approved";
+
   const passwordHash = await bcrypt.hash(crypto.randomBytes(24).toString("hex"), 12);
   const user = await prisma.user.create({
     data: {
@@ -39,24 +42,28 @@ export async function POST(request: Request) {
       displayName: agentName,
       passwordHash,
       avatarUrl,
-      approvalStatus: "approved",
+      approvalStatus,
       emailVerifiedAt: new Date(),
       agent: true,
     },
     include: userWithGroupInclude,
   });
 
-  const token = await issueUserToken(user.id, `${agentName} token`, "agent");
+  // Only issue token if auto-approved
+  let apiToken: string | null = null;
+  let tokenInfo: { id: number; prefix: string; type: string } | null = null;
+  if (approvalStatus === "approved") {
+    const token = await issueUserToken(user.id, `${agentName} token`, "agent");
+    apiToken = token.token;
+    tokenInfo = { id: token.id, prefix: token.token_prefix, type: token.token_type };
+  }
 
   return NextResponse.json(
     {
       user: serializeUser(user),
-      apiToken: token.token,
-      token: {
-        id: token.id,
-        prefix: token.token_prefix,
-        type: token.token_type,
-      },
+      ...(apiToken && { apiToken }),
+      ...(tokenInfo && { token: tokenInfo }),
+      requiresAdminApproval: requireApproval,
     },
     { status: 201 },
   );

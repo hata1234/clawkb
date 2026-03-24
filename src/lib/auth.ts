@@ -149,21 +149,8 @@ export async function getRequestPrincipal(request: Request): Promise<AppPrincipa
     return await principalFromUser(user, "token", { id: token.id, tokenType: token.token_type });
   }
 
-  // Legacy tokens get full admin permissions
-  return {
-    id: null,
-    username: token.name || "legacy-token",
-    email: null,
-    displayName: token.name || "Legacy Token",
-    avatarUrl: null,
-    isAdmin: true,
-    groupIds: [],
-    approvalStatus: "approved",
-    agent: false,
-    authMethod: "token",
-    tokenType: "legacy",
-    tokenId: token.id,
-  };
+  // Legacy tokens (no user_id) — reject; must be migrated to user-bound tokens
+  return null;
 }
 
 export async function authenticateApi(request: Request): Promise<boolean> {

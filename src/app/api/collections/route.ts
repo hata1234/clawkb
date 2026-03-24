@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getRequestPrincipal, canCreateEntries } from "@/lib/auth";
-import { getAccessibleCollectionIds } from "@/lib/permissions";
+import { getRequestPrincipal, jsonError } from "@/lib/auth";
+import { getAccessibleCollectionIds, getUserFeaturePermissions } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -53,8 +53,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const principal = await getRequestPrincipal(request);
-  if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  if (!canCreateEntries(principal)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!principal) return jsonError("Unauthorized", 401);
+
+  const featurePerms = await getUserFeaturePermissions(principal.id, principal.isAdmin);
+  if (!featurePerms.canCreateCollections) return jsonError("Forbidden: no permission to create collections", 403);
 
   const { name, description, icon, color, parentId, sortOrder, groupRoles } = await request.json();
   if (!name?.trim()) return NextResponse.json({ error: "name is required" }, { status: 400 });

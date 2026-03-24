@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return jsonError("Unauthorized", 401);
+  if (!canManageUsers(principal)) return jsonError("Forbidden: admin only", 403);
 
   const groups = await prisma.group.findMany({
     include: {

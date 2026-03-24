@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { authenticateApi } from "@/lib/auth";
+import { getRequestPrincipal, canManageSettings, jsonError } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
-  const authed = await authenticateApi(request);
-  if (!authed) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const principal = await getRequestPrincipal(request);
+  if (!principal) return jsonError("Unauthorized", 401);
+  if (!canManageSettings(principal)) return jsonError("Forbidden: admin only", 403);
 
   const { provider, ollamaUrl, ollamaModel, openaiApiKey, openaiModel } = await request.json();
 
