@@ -287,6 +287,15 @@ export default function ExportClient() {
   const [options, setOptions] = useState<FilterOptions | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [canExport, setCanExport] = useState<boolean | null>(null);
+
+  // Check feature permissions
+  useEffect(() => {
+    fetch("/api/permissions")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((perms: Record<string, unknown>) => setCanExport(perms.canExport === true))
+      .catch(() => setCanExport(false));
+  }, []);
 
   // Load filter options once
   useEffect(() => {
@@ -377,6 +386,14 @@ export default function ExportClient() {
     outline: "none",
     boxSizing: "border-box",
   };
+
+  if (canExport === false) {
+    return (
+      <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)" }}>
+        <p style={{ fontSize: "0.9rem" }}>{t("noAccess") || "You don't have access to the Export feature."}</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 720 }}>

@@ -236,7 +236,9 @@
     "updated": "updated an entry",
     "deleted": "deleted an entry",
     "restored": "restored an entry",
-    "commented": "commented on an entry"
+    "commented": "commented on an entry",
+    "deletedByUserRemoval": "Entries deleted (user {user} removed)",
+    "authorTransferred": "Author transferred from {from} to {to}"
   },
   "Timeline": {
     "label": "Library",
@@ -323,7 +325,8 @@
     "placeholder": "Ask a question...",
     "networkError": "Network error. Please try again.",
     "somethingWrong": "Something went wrong.",
-    "requestFailed": "Request failed"
+    "requestFailed": "Request failed",
+    "noAccess": "You don't have access to the AI Chat feature."
   },
   "Share": {
     "title": "Share Entry",
@@ -775,7 +778,8 @@
     "noDataAvailable": "No data available.",
     "noMatches": "No matches found.",
     "search": "Search",
-    "tools": "Tools"
+    "tools": "Tools",
+    "noAccess": "You don't have access to the Export feature."
   },
   "Import": {
     "title": "Import Entries",
@@ -900,7 +904,16 @@
     "noGroups": "No groups found",
     "builtIn": "Built-in",
     "collectionAccess": "Collection Access",
-    "error": "Error"
+    "error": "Error",
+    "featurePermissions": "Feature Permissions",
+    "canCreateCollections": "Create Collections",
+    "canUseRag": "AI Chat (RAG)",
+    "canExport": "Export Entries",
+    "canManageWebhooks": "Manage Webhooks",
+    "canCreateCollectionsDesc": "Allow creating new collections",
+    "canUseRagDesc": "Allow using AI chat and RAG search",
+    "canExportDesc": "Allow exporting entries",
+    "canManageWebhooksDesc": "Allow managing webhooks"
   },
   "NotificationPrefs": {
     "title": "Notification Preferences",

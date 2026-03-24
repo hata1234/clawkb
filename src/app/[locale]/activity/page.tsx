@@ -36,13 +36,25 @@ export default function ActivityPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const ACTION_LABELS: Record<string, string> = {
-    "entry.created": t("created"),
-    "entry.updated": t("updated"),
-    "entry.deleted": t("deleted"),
-    "entry.restored": t("restored"),
-    "comment.created": t("commented"),
-  };
+  function getActionLabel(action: string, metadata: Record<string, unknown>): string {
+    if (action === "entry.deleted" && metadata.reason === "user_deleted") {
+      const user = (metadata.deletedUser as string) || "";
+      return t("deletedByUserRemoval", { user }) || `Entries deleted (user ${user} removed)`;
+    }
+    if (action === "entry.updated" && metadata.action === "author_transferred") {
+      const from = (metadata.fromUser as string) || "";
+      const to = (metadata.toUser as string) || "";
+      return t("authorTransferred", { from, to }) || `Author transferred from ${from} to ${to}`;
+    }
+    const labels: Record<string, string> = {
+      "entry.created": t("created"),
+      "entry.updated": t("updated"),
+      "entry.deleted": t("deleted"),
+      "entry.restored": t("restored"),
+      "comment.created": t("commented"),
+    };
+    return labels[action] || action;
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -90,7 +102,7 @@ export default function ActivityPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {items.map((item) => {
             const icon = ACTION_ICONS[item.action] || "\u2022";
-            const label = ACTION_LABELS[item.action] || item.action;
+            const label = getActionLabel(item.action, item.metadata);
             const title =
               ((item.metadata as Record<string, unknown>)?.title as string) ||
               ((item.metadata as Record<string, unknown>)?.entryTitle as string) ||

@@ -236,7 +236,9 @@
     "updated": "エントリーを更新しました",
     "deleted": "エントリーを削除しました",
     "restored": "エントリーを復元しました",
-    "commented": "エントリーにコメントしました"
+    "commented": "エントリーにコメントしました",
+    "deletedByUserRemoval": "エントリが削除されました（ユーザー {user} が削除）",
+    "authorTransferred": "著者が {from} から {to} に移転されました"
   },
   "Timeline": {
     "label": "ライブラリ",
@@ -323,7 +325,8 @@
     "placeholder": "質問を入力...",
     "networkError": "ネットワークエラーです。もう一度お試しください。",
     "somethingWrong": "問題が発生しました。",
-    "requestFailed": "リクエストに失敗しました"
+    "requestFailed": "リクエストに失敗しました",
+    "noAccess": "AI チャット機能へのアクセス権限がありません。"
   },
   "Share": {
     "title": "エントリーを共有",
@@ -775,7 +778,8 @@
     "noDataAvailable": "データがありません。",
     "noMatches": "一致する項目が見つかりません。",
     "search": "検索",
-    "tools": "ツール"
+    "tools": "ツール",
+    "noAccess": "エクスポート機能へのアクセス権限がありません。"
   },
   "Import": {
     "title": "エントリーをインポート",
@@ -900,7 +904,16 @@
     "noGroups": "グループがありません",
     "builtIn": "ビルトイン",
     "collectionAccess": "コレクションアクセス",
-    "error": "エラー"
+    "error": "エラー",
+    "featurePermissions": "機能権限",
+    "canCreateCollections": "コレクション作成",
+    "canUseRag": "AI チャット (RAG)",
+    "canExport": "エントリのエクスポート",
+    "canManageWebhooks": "Webhook 管理",
+    "canCreateCollectionsDesc": "新しいコレクションの作成を許可",
+    "canUseRagDesc": "AI チャットと RAG 検索の使用を許可",
+    "canExportDesc": "エントリのエクスポートを許可",
+    "canManageWebhooksDesc": "Webhook の管理を許可"
   },
   "NotificationPrefs": {
     "title": "通知設定",

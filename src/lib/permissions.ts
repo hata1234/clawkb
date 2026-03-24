@@ -91,3 +91,55 @@ export async function canDeleteEntry(
 ): Promise<boolean> {
   return canEditEntry(userId, entry, isAdmin);
 }
+
+export interface FeaturePermissions {
+  canCreateCollections: boolean;
+  canUseRag: boolean;
+  canExport: boolean;
+  canManageWebhooks: boolean;
+}
+
+/**
+ * Get user's feature permissions (merged across all groups).
+ * If ANY group has true for a permission, user has it.
+ * Admin gets all permissions.
+ */
+export async function getUserFeaturePermissions(
+  userId: number | null,
+  isAdmin: boolean,
+): Promise<FeaturePermissions> {
+  if (isAdmin) {
+    return { canCreateCollections: true, canUseRag: true, canExport: true, canManageWebhooks: true };
+  }
+
+  // Get all groups user belongs to
+  const groupIds = userId
+    ? (await prisma.userGroup.findMany({ where: { userId }, select: { groupId: true } })).map((g) => g.groupId)
+    : [];
+
+  // Always include Everyone group
+  const everyoneGroup = await prisma.group.findUnique({ where: { name: "Everyone" }, select: { id: true } });
+  if (everyoneGroup && !groupIds.includes(everyoneGroup.id)) groupIds.push(everyoneGroup.id);
+
+  if (groupIds.length === 0) {
+    return { canCreateCollections: false, canUseRag: false, canExport: false, canManageWebhooks: false };
+  }
+
+  const groups = await prisma.group.findMany({
+    where: { id: { in: groupIds } },
+    select: {
+      canCreateCollections: true,
+      canUseRag: true,
+      canExport: true,
+      canManageWebhooks: true,
+    },
+  });
+
+  // Merge: any group with true grants the permission
+  return {
+    canCreateCollections: groups.some((g) => g.canCreateCollections),
+    canUseRag: groups.some((g) => g.canUseRag),
+    canExport: groups.some((g) => g.canExport),
+    canManageWebhooks: groups.some((g) => g.canManageWebhooks),
+  };
+}

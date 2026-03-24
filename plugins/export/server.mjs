@@ -31,6 +31,27 @@ function applyAclFilter(where, accessibleIds) {
   };
 }
 
+// ── Feature permission: canExport ─────────────────────────────────
+async function checkCanExport(prisma, principal) {
+  if (!principal) return false;
+  if (principal.isAdmin) return true;
+
+  const groupIds = (
+    await prisma.userGroup.findMany({ where: { userId: principal.id }, select: { groupId: true } })
+  ).map((g) => g.groupId);
+
+  const everyoneGroup = await prisma.group.findUnique({ where: { name: "Everyone" }, select: { id: true } });
+  if (everyoneGroup && !groupIds.includes(everyoneGroup.id)) groupIds.push(everyoneGroup.id);
+
+  if (groupIds.length === 0) return false;
+
+  const groups = await prisma.group.findMany({
+    where: { id: { in: groupIds } },
+    select: { canExport: true },
+  });
+  return groups.some((g) => g.canExport);
+}
+
 function buildWhere(searchParams) {
   const type = searchParams.get("type") || undefined;
   const status = searchParams.get("status") || undefined;
@@ -629,6 +650,9 @@ export const api = {
       /** @param {object} input @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
+        if (!(await checkCanExport(context.prisma, context.principal))) {
+          return { status: 403, body: { error: "Forbidden: Export access not granted" } };
+        }
         const { searchParams } = new URL(request.url);
         const format = searchParams.get("format") || "json";
         const options = parseOptions(searchParams);
@@ -665,6 +689,9 @@ export const api = {
       /** @param {object} input @param {string[]} input.params @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ params, request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
+        if (!(await checkCanExport(context.prisma, context.principal))) {
+          return { status: 403, body: { error: "Forbidden: Export access not granted" } };
+        }
         const entryId = parseInt(params[0], 10);
         if (isNaN(entryId)) {
           return { status: 400, body: { error: "Invalid entry ID" } };
@@ -718,6 +745,9 @@ export const api = {
       /** @param {object} input @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
+        if (!(await checkCanExport(context.prisma, context.principal))) {
+          return { status: 403, body: { error: "Forbidden: Export access not granted" } };
+        }
         const { searchParams } = new URL(request.url);
         const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
         const where = applyAclFilter(buildWhere(searchParams), accessibleIds);
@@ -746,6 +776,9 @@ export const api = {
       /** @param {object} input @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
+        if (!(await checkCanExport(context.prisma, context.principal))) {
+          return { status: 403, body: { error: "Forbidden: Export access not granted" } };
+        }
         const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
         const where = applyAclFilter({ deletedAt: null }, accessibleIds);
 

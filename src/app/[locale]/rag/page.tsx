@@ -25,8 +25,16 @@ export default function RagPage() {
   const [loading, setLoading] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [streamingSources, setStreamingSources] = useState<Source[]>([]);
+  const [canUseRag, setCanUseRag] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    fetch("/api/permissions")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((perms: Record<string, unknown>) => setCanUseRag(perms.canUseRag === true))
+      .catch(() => setCanUseRag(false));
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -128,6 +136,14 @@ export default function RagPage() {
       submit();
     }
   };
+
+  if (canUseRag === false) {
+    return (
+      <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)" }}>
+        <p style={{ fontSize: "0.9rem" }}>{t("noAccess") || "You don't have access to the AI Chat feature."}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="rag-page">

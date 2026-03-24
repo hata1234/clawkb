@@ -137,6 +137,7 @@ export default function WebhooksClient() {
   const [showForm, setShowForm] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
+  const [canManageWebhooks, setCanManageWebhooks] = useState<boolean | null>(null);
 
   // Form state
   const [formName, setFormName] = useState("");
@@ -159,6 +160,10 @@ export default function WebhooksClient() {
   }, []);
 
   useEffect(() => {
+    fetch("/api/permissions")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((perms: Record<string, unknown>) => setCanManageWebhooks(perms.canManageWebhooks === true))
+      .catch(() => setCanManageWebhooks(false));
     fetchWebhooks();
   }, [fetchWebhooks]);
 
@@ -219,6 +224,14 @@ export default function WebhooksClient() {
 
   function toggleEvent(eventId: string) {
     setFormEvents((prev) => (prev.includes(eventId) ? prev.filter((e) => e !== eventId) : [...prev, eventId]));
+  }
+
+  if (canManageWebhooks === false) {
+    return (
+      <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
+        <p style={{ fontSize: "0.9rem" }}>You don&apos;t have access to manage webhooks.</p>
+      </div>
+    );
   }
 
   return (

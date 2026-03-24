@@ -236,7 +236,9 @@
     "updated": "更新了一个条目",
     "deleted": "删除了一个条目",
     "restored": "恢复了一个条目",
-    "commented": "评论了一个条目"
+    "commented": "评论了一个条目",
+    "deletedByUserRemoval": "条目已删除（用户 {user} 已移除）",
+    "authorTransferred": "作者从 {from} 转移至 {to}"
   },
   "Timeline": {
     "label": "资料库",
@@ -323,7 +325,8 @@
     "placeholder": "提出问题...",
     "networkError": "网络错误，请重试。",
     "somethingWrong": "出现了问题。",
-    "requestFailed": "请求失败"
+    "requestFailed": "请求失败",
+    "noAccess": "您没有 AI 对话功能的访问权限。"
   },
   "Share": {
     "title": "分享条目",
@@ -775,7 +778,8 @@
     "noDataAvailable": "没有可用数据。",
     "noMatches": "未找到匹配项。",
     "search": "搜索",
-    "tools": "工具"
+    "tools": "工具",
+    "noAccess": "您没有导出功能的访问权限。"
   },
   "Import": {
     "title": "导入条目",
@@ -900,7 +904,16 @@
     "noGroups": "没有分组",
     "builtIn": "内置",
     "collectionAccess": "集合访问",
-    "error": "错误"
+    "error": "错误",
+    "featurePermissions": "功能权限",
+    "canCreateCollections": "创建集合",
+    "canUseRag": "AI 对话 (RAG)",
+    "canExport": "导出条目",
+    "canManageWebhooks": "管理 Webhooks",
+    "canCreateCollectionsDesc": "允许创建新集合",
+    "canUseRagDesc": "允许使用 AI 对话和 RAG 搜索",
+    "canExportDesc": "允许导出条目",
+    "canManageWebhooksDesc": "允许管理 Webhooks"
   },
   "NotificationPrefs": {
     "title": "通知偏好设置",

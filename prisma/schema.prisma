@@ -47,6 +47,11 @@ model Group {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  canCreateCollections  Boolean  @default(false) @map("can_create_collections")
+  canUseRag            Boolean  @default(false) @map("can_use_rag")
+  canExport            Boolean  @default(false) @map("can_export")
+  canManageWebhooks    Boolean  @default(false) @map("can_manage_webhooks")
+
   users           UserGroup[]
   collectionRoles GroupCollectionRole[]
 

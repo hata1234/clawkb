@@ -3,7 +3,7 @@ import { getRequestPrincipal } from "@/lib/auth";
 import { pool } from "@/lib/prisma";
 import { generateEmbedding } from "@/lib/embedding";
 import { getSetting, DEFAULT_RAG, type RagConfig } from "@/lib/settings";
-import { getAccessibleCollectionIds } from "@/lib/permissions";
+import { getAccessibleCollectionIds, getUserFeaturePermissions } from "@/lib/permissions";
 
 interface RagSource {
   entryId: number;
@@ -136,6 +136,12 @@ function buildLLMMessages(
 export async function POST(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Check feature permission
+  const featurePerms = await getUserFeaturePermissions(principal.id, principal.isAdmin);
+  if (!featurePerms.canUseRag) {
+    return NextResponse.json({ error: "Forbidden: RAG access not granted" }, { status: 403 });
+  }
 
   const ragConfig = await getSetting<RagConfig>("rag", DEFAULT_RAG);
 

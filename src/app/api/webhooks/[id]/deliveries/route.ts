@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { canManageSettings, getRequestPrincipal, jsonError } from "@/lib/auth";
+import { getRequestPrincipal, jsonError } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getUserFeaturePermissions } from "@/lib/permissions";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return jsonError("Unauthorized", 401);
-  if (!canManageSettings(principal)) return jsonError("Forbidden", 403);
+  const featurePerms = await getUserFeaturePermissions(principal.id, principal.isAdmin);
+  if (!featurePerms.canManageWebhooks) return jsonError("Forbidden", 403);
 
   const { id } = await params;
   const webhookId = parseInt(id);

@@ -23,6 +23,10 @@ interface GroupRecord {
   memberCount: number;
   users: GroupUser[];
   collectionRoles: GroupCollectionRole[];
+  canCreateCollections: boolean;
+  canUseRag: boolean;
+  canExport: boolean;
+  canManageWebhooks: boolean;
 }
 
 interface CollectionOption {
@@ -89,6 +93,10 @@ export default function GroupsClient() {
   const [editDesc, setEditDesc] = useState("");
   const [editUserIds, setEditUserIds] = useState<number[]>([]);
   const [editCollectionRoles, setEditCollectionRoles] = useState<{ collectionId: number; role: string }[]>([]);
+  const [editCanCreateCollections, setEditCanCreateCollections] = useState(false);
+  const [editCanUseRag, setEditCanUseRag] = useState(false);
+  const [editCanExport, setEditCanExport] = useState(false);
+  const [editCanManageWebhooks, setEditCanManageWebhooks] = useState(false);
 
   async function load() {
     const [gRes, uRes, cRes] = await Promise.all([
@@ -135,6 +143,10 @@ export default function GroupsClient() {
     setEditDesc(group.description || "");
     setEditUserIds(group.users.map((u) => u.id));
     setEditCollectionRoles(group.collectionRoles.map((cr) => ({ collectionId: cr.collectionId, role: cr.role })));
+    setEditCanCreateCollections(group.canCreateCollections);
+    setEditCanUseRag(group.canUseRag);
+    setEditCanExport(group.canExport);
+    setEditCanManageWebhooks(group.canManageWebhooks);
   }
 
   async function saveEdit(group: GroupRecord) {
@@ -146,6 +158,10 @@ export default function GroupsClient() {
         description: editDesc || null,
         userIds: group.name === "Everyone" ? undefined : editUserIds,
         collectionRoles: editCollectionRoles,
+        canCreateCollections: editCanCreateCollections,
+        canUseRag: editCanUseRag,
+        canExport: editCanExport,
+        canManageWebhooks: editCanManageWebhooks,
       }),
     });
     if (res.ok) {
@@ -342,6 +358,33 @@ export default function GroupsClient() {
                   </div>
                 )}
 
+                {/* Feature Permissions */}
+                <div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginBottom: 8 }}>
+                    {t("featurePermissions") || "Feature Permissions"}
+                  </div>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {(
+                      [
+                        { key: "canCreateCollections" as const, label: t("canCreateCollections") || "Create Collections", value: editCanCreateCollections, setter: setEditCanCreateCollections },
+                        { key: "canUseRag" as const, label: t("canUseRag") || "AI Chat (RAG)", value: editCanUseRag, setter: setEditCanUseRag },
+                        { key: "canExport" as const, label: t("canExport") || "Export Entries", value: editCanExport, setter: setEditCanExport },
+                        { key: "canManageWebhooks" as const, label: t("canManageWebhooks") || "Manage Webhooks", value: editCanManageWebhooks, setter: setEditCanManageWebhooks },
+                      ] as Array<{ key: string; label: string; value: boolean; setter: (v: boolean) => void }>
+                    ).map((perm) => (
+                      <label key={perm.key} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                        <input
+                          type="checkbox"
+                          checked={perm.value}
+                          onChange={(e) => perm.setter(e.target.checked)}
+                          style={{ width: 16, height: 16, cursor: "pointer" }}
+                        />
+                        {perm.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Collection Roles */}
                 <div>
                   <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginBottom: 8 }}>
@@ -379,7 +422,7 @@ export default function GroupsClient() {
             )}
 
             {/* Summary view (not editing) */}
-            {editingGroupId !== group.id && group.collectionRoles.length > 0 && (
+            {editingGroupId !== group.id && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
                 {group.collectionRoles.map((cr) => (
                   <span
@@ -396,6 +439,26 @@ export default function GroupsClient() {
                     {cr.collectionName}: <strong>{cr.role}</strong>
                   </span>
                 ))}
+                {group.canCreateCollections && (
+                  <span style={{ fontSize: "0.72rem", background: "var(--accent-muted)", color: "var(--accent)", border: "1px solid var(--accent-muted)", padding: "2px 8px", borderRadius: 999 }}>
+                    {t("canCreateCollections") || "Create Collections"}
+                  </span>
+                )}
+                {group.canUseRag && (
+                  <span style={{ fontSize: "0.72rem", background: "var(--accent-muted)", color: "var(--accent)", border: "1px solid var(--accent-muted)", padding: "2px 8px", borderRadius: 999 }}>
+                    {t("canUseRag") || "AI Chat"}
+                  </span>
+                )}
+                {group.canExport && (
+                  <span style={{ fontSize: "0.72rem", background: "var(--accent-muted)", color: "var(--accent)", border: "1px solid var(--accent-muted)", padding: "2px 8px", borderRadius: 999 }}>
+                    {t("canExport") || "Export"}
+                  </span>
+                )}
+                {group.canManageWebhooks && (
+                  <span style={{ fontSize: "0.72rem", background: "var(--accent-muted)", color: "var(--accent)", border: "1px solid var(--accent-muted)", padding: "2px 8px", borderRadius: 999 }}>
+                    {t("canManageWebhooks") || "Webhooks"}
+                  </span>
+                )}
               </div>
             )}
           </div>

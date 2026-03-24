@@ -236,7 +236,9 @@
     "updated": "更新了一個條目",
     "deleted": "刪除了一個條目",
     "restored": "還原了一個條目",
-    "commented": "在條目中留言"
+    "commented": "在條目中留言",
+    "deletedByUserRemoval": "條目已刪除（使用者 {user} 已移除）",
+    "authorTransferred": "作者從 {from} 轉移至 {to}"
   },
   "Timeline": {
     "label": "資料庫",
@@ -323,7 +325,8 @@
     "placeholder": "輸入問題...",
     "networkError": "網路錯誤，請再試一次。",
     "somethingWrong": "發生了一些問題。",
-    "requestFailed": "請求失敗"
+    "requestFailed": "請求失敗",
+    "noAccess": "您沒有 AI 對話功能的存取權限。"
   },
   "Share": {
     "title": "分享條目",
@@ -775,7 +778,8 @@
     "noDataAvailable": "沒有可用資料。",
     "noMatches": "找不到符合項目。",
     "search": "搜尋",
-    "tools": "工具"
+    "tools": "工具",
+    "noAccess": "您沒有匯出功能的存取權限。"
   },
   "Import": {
     "title": "匯入條目",
@@ -900,7 +904,16 @@
     "noGroups": "沒有群組",
     "builtIn": "內建",
     "collectionAccess": "集合存取",
-    "error": "錯誤"
+    "error": "錯誤",
+    "featurePermissions": "功能權限",
+    "canCreateCollections": "建立集合",
+    "canUseRag": "AI 對話 (RAG)",
+    "canExport": "匯出條目",
+    "canManageWebhooks": "管理 Webhooks",
+    "canCreateCollectionsDesc": "允許建立新集合",
+    "canUseRagDesc": "允許使用 AI 對話和 RAG 搜尋",
+    "canExportDesc": "允許匯出條目",
+    "canManageWebhooksDesc": "允許管理 Webhooks"
   },
   "NotificationPrefs": {
     "title": "通知偏好設定",

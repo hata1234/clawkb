@@ -165,6 +165,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [treeOpen, setTreeOpen] = useState(true);
+  const [canCreateCollections, setCanCreateCollections] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -180,6 +181,10 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
 
   useEffect(() => {
     fetchCollections();
+    fetch("/api/permissions")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((perms: Record<string, unknown>) => setCanCreateCollections(perms.canCreateCollections === true))
+      .catch(() => {});
   }, []);
 
   const handleSelect = (id: number) => {
@@ -250,18 +255,20 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
       >
         <Folder className="sidebar-link-icon" />
         <span className="sidebar-link-label">{t("title")}</span>
-        <button
-          className="collection-tree-add"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowCreate(!showCreate);
-            setCreateParentId(null);
-            if (!treeOpen) setTreeOpen(true);
-          }}
-          title={t("newCollection")}
-        >
-          <Plus style={{ width: 14, height: 14 }} />
-        </button>
+        {canCreateCollections && (
+          <button
+            className="collection-tree-add"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowCreate(!showCreate);
+              setCreateParentId(null);
+              if (!treeOpen) setTreeOpen(true);
+            }}
+            title={t("newCollection")}
+          >
+            <Plus style={{ width: 14, height: 14 }} />
+          </button>
+        )}
         <ChevronDown
           className="sidebar-group-chevron"
           style={{ transform: treeOpen ? "rotate(0deg)" : "rotate(-90deg)" }}

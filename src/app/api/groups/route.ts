@@ -30,6 +30,10 @@ export async function GET(request: Request) {
         collectionName: cr.collection.name,
         role: cr.role,
       })),
+      canCreateCollections: g.canCreateCollections,
+      canUseRag: g.canUseRag,
+      canExport: g.canExport,
+      canManageWebhooks: g.canManageWebhooks,
     })),
   });
 }

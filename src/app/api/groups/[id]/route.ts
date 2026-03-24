@@ -9,7 +9,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const { id } = await params;
   const groupId = Number(id);
-  const { name, description, userIds, collectionRoles } = await request.json();
+  const { name, description, userIds, collectionRoles, canCreateCollections, canUseRag, canExport, canManageWebhooks } = await request.json();
 
   const existing = await prisma.group.findUnique({ where: { id: groupId } });
   if (!existing) return jsonError("Group not found", 404);
@@ -18,6 +18,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const data: Record<string, unknown> = {};
   if (name && !existing.builtIn) data.name = name.trim();
   if (description !== undefined) data.description = description || null;
+  if (canCreateCollections !== undefined) data.canCreateCollections = Boolean(canCreateCollections);
+  if (canUseRag !== undefined) data.canUseRag = Boolean(canUseRag);
+  if (canExport !== undefined) data.canExport = Boolean(canExport);
+  if (canManageWebhooks !== undefined) data.canManageWebhooks = Boolean(canManageWebhooks);
 
   await prisma.group.update({ where: { id: groupId }, data });
 
@@ -67,6 +71,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         collectionName: cr.collection.name,
         role: cr.role,
       })),
+      canCreateCollections: group!.canCreateCollections,
+      canUseRag: group!.canUseRag,
+      canExport: group!.canExport,
+      canManageWebhooks: group!.canManageWebhooks,
     },
   });
 }

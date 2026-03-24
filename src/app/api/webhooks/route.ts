@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
-import { canManageSettings, getRequestPrincipal, jsonError } from "@/lib/auth";
+import { getRequestPrincipal, jsonError } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { generateWebhookSecret } from "@/lib/webhooks";
+import { getUserFeaturePermissions } from "@/lib/permissions";
 
 const VALID_EVENTS = ["entry.created", "entry.updated", "entry.deleted", "entry.restored", "comment.created"];
 
 export async function GET(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return jsonError("Unauthorized", 401);
-  if (!canManageSettings(principal)) return jsonError("Forbidden", 403);
+  const featurePerms = await getUserFeaturePermissions(principal.id, principal.isAdmin);
+  if (!featurePerms.canManageWebhooks) return jsonError("Forbidden", 403);
 
   const webhooks = await prisma.webhook.findMany({ orderBy: { createdAt: "desc" } });
   return NextResponse.json(
@@ -27,7 +29,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const principal = await getRequestPrincipal(request);
   if (!principal) return jsonError("Unauthorized", 401);
-  if (!canManageSettings(principal)) return jsonError("Forbidden", 403);
+  const featurePerms2 = await getUserFeaturePermissions(principal.id, principal.isAdmin);
+  if (!featurePerms2.canManageWebhooks) return jsonError("Forbidden", 403);
 
   const body = await request.json();
   const { name, url, secret, events } = body as {

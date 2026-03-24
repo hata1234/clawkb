@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { canManageUsers, getRequestPrincipal } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializeUser, userWithGroupInclude } from "@/lib/users";
+import { logActivity } from "@/lib/activity";
 
 /** GET /api/users/:id — fetch user stats (entry count etc.) for delete confirmation */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -58,16 +59,43 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
   if (entryCount > 0) {
     if (action === "delete") {
+      // Fetch entries before deleting for activity logging
+      const entriesToDelete = await prisma.entry.findMany({
+        where: { authorId: userId },
+        select: { id: true, title: true },
+      });
       // Hard-delete all entries by this user (cascades chunks, comments, revisions, etc.)
       await prisma.entry.deleteMany({ where: { authorId: userId } });
+      // Log activity for each deleted entry
+      for (const entry of entriesToDelete) {
+        await logActivity("entry.deleted", principal.id, entry.id, {
+          title: entry.title,
+          reason: "user_deleted",
+          deletedUser: user.username || user.displayName,
+        });
+      }
     } else if (action === "transfer" && transferToId) {
       // Verify target user exists
-      const target = await prisma.user.findUnique({ where: { id: transferToId } });
-      if (!target) {
+      const targetUser = await prisma.user.findUnique({ where: { id: transferToId } });
+      if (!targetUser) {
         return NextResponse.json({ error: "Transfer target user not found" }, { status: 400 });
       }
+      // Fetch entries before updating for activity logging
+      const entriesToTransfer = await prisma.entry.findMany({
+        where: { authorId: userId },
+        select: { id: true, title: true },
+      });
       await prisma.entry.updateMany({ where: { authorId: userId }, data: { authorId: transferToId } });
       await prisma.entryRevision.updateMany({ where: { authorId: userId }, data: { authorId: transferToId } });
+      // Log activity for each transferred entry
+      for (const entry of entriesToTransfer) {
+        await logActivity("entry.updated", principal.id, entry.id, {
+          title: entry.title,
+          action: "author_transferred",
+          fromUser: user.username || user.displayName,
+          toUser: targetUser.username || targetUser.displayName,
+        });
+      }
     } else if (entryCount > 0) {
       return NextResponse.json(
         { error: "User has entries. Specify entryAction: 'transfer' with transferToId, or 'delete'" },

@@ -26,9 +26,18 @@ export default function FloatingChat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
+  const [canUseRag, setCanUseRag] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Fetch feature permissions
+  useEffect(() => {
+    fetch("/api/permissions")
+      .then((r) => (r.ok ? r.json() : {}))
+      .then((perms: Record<string, unknown>) => setCanUseRag(perms.canUseRag === true))
+      .catch(() => setCanUseRag(false));
+  }, []);
 
   // Stop pulse after first open
   useEffect(() => {
@@ -148,6 +157,9 @@ export default function FloatingChat() {
       handleSend();
     }
   };
+
+  // Don't render until we know whether user can use RAG
+  if (canUseRag === false) return null;
 
   return (
     <>
