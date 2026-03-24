@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         const data = await res.json();
         setError(data.error || t("failed"));
       }
-    } catch {
+    } catch (err) {
       setError(t("networkError"));
     } finally {
       setLoading(false);

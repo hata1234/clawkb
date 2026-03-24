@@ -3,6 +3,7 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getRequestPrincipal, jsonError } from "@/lib/auth";
+import { APP_BASE_URL } from "@/lib/constants";
 
 // POST - Create a share link (optionally with linked entries)
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -66,7 +67,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3500";
+  const baseUrl = APP_BASE_URL;
 
   return NextResponse.json({
     id: shareLink.id,
@@ -104,7 +105,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     orderBy: { createdAt: "desc" },
   });
 
-  const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3500";
+  const baseUrl = APP_BASE_URL;
 
   return NextResponse.json(
     links.map((link) => ({

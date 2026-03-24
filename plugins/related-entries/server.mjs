@@ -1,4 +1,9 @@
 export const entry = {
+  /**
+   * @param {object} input
+   * @param {Record<string, unknown>} input.entry
+   * @param {import('../../src/lib/plugins/types').PluginContext} input.context
+   */
   async render({ entry }) {
     return [
       {

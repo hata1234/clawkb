@@ -92,7 +92,7 @@ export default function CommandSearch() {
         setResults(data.results);
         setSearchMode(data.mode);
         setSelectedIdx(0);
-      } catch {
+      } catch (err) {
         setResults([]);
       } finally {
         setLoading(false);

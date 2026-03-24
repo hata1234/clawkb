@@ -846,7 +846,8 @@
     "sentMessage": "如果该邮箱存在账户，重置链接已发送。请检查您的收件箱。",
     "backToLogin": "返回登录",
     "failed": "发送重置链接失败",
-    "networkError": "网络错误，请重试。"
+    "networkError": "网络错误，请重试。",
+    "rateLimited": "请求次数过多，请稍后再试。"
   },
   "ResetPassword": {
     "title": "重置密码",

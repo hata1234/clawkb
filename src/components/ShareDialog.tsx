@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { icon12, icon14, icon14Muted, icon18, flexCenterGap8, flexGap6, accentCheckbox } from "@/styles/common";
 import { X, Copy, Link2, Trash2, Lock, Check, Loader2, Eye, Clock, Shield, FileText } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -202,7 +203,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
             onClick={onClose}
             style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4 }}
           >
-            <X style={{ width: 18, height: 18 }} />
+            <X style={icon18} />
           </button>
         </div>
 
@@ -232,9 +233,9 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                 type="checkbox"
                 checked={usePassword}
                 onChange={(e) => setUsePassword(e.target.checked)}
-                style={{ accentColor: "var(--accent)" }}
+                style={accentCheckbox}
               />
-              <Shield style={{ width: 14, height: 14 }} />
+              <Shield style={icon14} />
               {t("passwordProtect")}
             </label>
             {usePassword && (
@@ -248,8 +249,8 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
             )}
 
             {/* Expiry */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Clock style={{ width: 14, height: 14, color: "var(--text-muted)", flexShrink: 0 }} />
+            <div style={flexCenterGap8}>
+              <Clock style={icon14Muted} />
               <select
                 value={expiryHours}
                 onChange={(e) => setExpiryHours(Number(e.target.value))}
@@ -264,8 +265,8 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
             </div>
 
             {/* Max views */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Eye style={{ width: 14, height: 14, color: "var(--text-muted)", flexShrink: 0 }} />
+            <div style={flexCenterGap8}>
+              <Eye style={icon14Muted} />
               <input
                 type="number"
                 value={maxViews}
@@ -299,10 +300,10 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                       gap: 6,
                     }}
                   >
-                    <FileText style={{ width: 14, height: 14 }} />
+                    <FileText style={icon14} />
                     {t("linkedEntries", { count: internalLinks.length })}
                   </span>
-                  <div style={{ display: "flex", gap: 6 }}>
+                  <div style={flexGap6}>
                     <button
                       onClick={selectAllLinked}
                       style={{
@@ -352,7 +353,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                         type="checkbox"
                         checked={selectedLinkedIds.has(le.id)}
                         onChange={() => toggleLinked(le.id)}
-                        style={{ accentColor: "var(--accent)" }}
+                        style={accentCheckbox}
                       />
                       <span style={{ opacity: selectedLinkedIds.has(le.id) ? 1 : 0.5 }}>
                         #{le.id} — {le.title}
@@ -380,7 +381,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
               {creating ? (
                 <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} />
               ) : (
-                <Link2 style={{ width: 14, height: 14 }} />
+                <Link2 style={icon14} />
               )}
               {t("createShareLink")}
             </button>
@@ -466,7 +467,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                       {t("includesLinked", { count: link.linkedShares.length })}
                     </div>
                   )}
-                  <div style={{ display: "flex", gap: 6 }}>
+                  <div style={flexGap6}>
                     <button
                       onClick={() => copyUrl(link)}
                       style={{
@@ -478,11 +479,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                         padding: "5px 10px",
                       }}
                     >
-                      {copiedId === link.id ? (
-                        <Check style={{ width: 12, height: 12 }} />
-                      ) : (
-                        <Copy style={{ width: 12, height: 12 }} />
-                      )}
+                      {copiedId === link.id ? <Check style={icon12} /> : <Copy style={icon12} />}
                       {copiedId === link.id ? tc("copied") : tc("copyUrl")}
                     </button>
                     {confirmRevoke === link.id ? (
@@ -525,7 +522,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                           padding: "5px 10px",
                         }}
                       >
-                        <Trash2 style={{ width: 12, height: 12 }} /> {tc("revoke")}
+                        <Trash2 style={icon12} /> {tc("revoke")}
                       </button>
                     )}
                   </div>

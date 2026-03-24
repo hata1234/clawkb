@@ -49,10 +49,7 @@ async function updateBacklinks(entryId, content, prisma) {
   const linkedIds = extractLinkedIds(content);
 
   // Remove old backlinks from this source
-  await prisma.$executeRawUnsafe(
-    `DELETE FROM "entry_backlinks" WHERE "source_entry_id" = $1`,
-    entryId
-  );
+  await prisma.$executeRawUnsafe(`DELETE FROM "entry_backlinks" WHERE "source_entry_id" = $1`, entryId);
 
   // Insert new backlinks (skip self-references)
   for (const targetId of linkedIds) {
@@ -62,22 +59,37 @@ async function updateBacklinks(entryId, content, prisma) {
        VALUES ($1, $2)
        ON CONFLICT ("source_entry_id", "target_entry_id") DO NOTHING`,
       entryId,
-      targetId
+      targetId,
     );
   }
 }
 
 export const entry = {
+  /**
+   * @param {object} input
+   * @param {Record<string, unknown>} input.entry
+   * @param {import('../../src/lib/plugins/types').PluginContext} input.context
+   */
   async afterCreate({ entry, context }) {
     const content = [entry.title, entry.summary, entry.content].filter(Boolean).join(" ");
     await updateBacklinks(entry.id, content, context.prisma);
   },
 
+  /**
+   * @param {object} input
+   * @param {Record<string, unknown>} input.entry
+   * @param {import('../../src/lib/plugins/types').PluginContext} input.context
+   */
   async afterUpdate({ entry, context }) {
     const content = [entry.title, entry.summary, entry.content].filter(Boolean).join(" ");
     await updateBacklinks(entry.id, content, context.prisma);
   },
 
+  /**
+   * @param {object} input
+   * @param {Record<string, unknown>} input.entry
+   * @param {import('../../src/lib/plugins/types').PluginContext} input.context
+   */
   async render({ entry, context }) {
     await ensureTable(context.prisma);
 
@@ -88,7 +100,7 @@ export const entry = {
        WHERE b."target_entry_id" = $1
        AND e."deletedAt" IS NULL
        ORDER BY e."title"`,
-      entry.id
+      entry.id,
     );
 
     if (!rows || rows.length === 0) return;

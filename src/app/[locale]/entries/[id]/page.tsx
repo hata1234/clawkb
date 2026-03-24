@@ -3,6 +3,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
+import {
+  icon12,
+  icon14,
+  icon14Dim,
+  flexCenterGap8,
+  flexWrapGap6,
+  flexGap8,
+  posRelative,
+  caption,
+  coverImage,
+} from "@/styles/common";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
@@ -218,7 +229,7 @@ export default function EntryDetailPage() {
       const data = await res.json();
       setEntry(data);
       setLoading(false);
-    } catch {
+    } catch (err) {
       setError({ status: 0, message: t("failedToConnect") });
       setLoading(false);
     }
@@ -422,7 +433,7 @@ export default function EntryDetailPage() {
               textDecoration: "none",
             }}
           >
-            <ArrowLeft style={{ width: 14, height: 14 }} /> {t("backToEntries")}
+            <ArrowLeft style={icon14} /> {t("backToEntries")}
           </Link>
         </div>
       </div>
@@ -456,7 +467,7 @@ export default function EntryDetailPage() {
         >
           <ArrowLeft style={{ width: 16, height: 16 }} /> {t("backToEntries")}
         </Link>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={flexGap8}>
           {!editing ? (
             <>
               <Link
@@ -469,9 +480,9 @@ export default function EntryDetailPage() {
                   textDecoration: "none",
                 }}
               >
-                <Network style={{ width: 14, height: 14 }} /> {t("graph")}
+                <Network style={icon14} /> {t("graph")}
               </Link>
-              <div style={{ position: "relative" }}>
+              <div style={posRelative}>
                 <button
                   onClick={() => setShowExportMenu((v) => !v)}
                   style={{
@@ -481,7 +492,7 @@ export default function EntryDetailPage() {
                     color: "var(--text-secondary)",
                   }}
                 >
-                  <Download style={{ width: 14, height: 14 }} /> {t("export")}
+                  <Download style={icon14} /> {t("export")}
                 </button>
                 {showExportMenu && (
                   <div
@@ -543,7 +554,7 @@ export default function EntryDetailPage() {
                   color: "var(--text-secondary)",
                 }}
               >
-                <Share2 style={{ width: 14, height: 14 }} /> {t("share")}
+                <Share2 style={icon14} /> {t("share")}
               </button>
               {canEdit ? (
                 <button
@@ -555,7 +566,7 @@ export default function EntryDetailPage() {
                     color: "var(--text-secondary)",
                   }}
                 >
-                  <Edit2 style={{ width: 14, height: 14 }} /> {t("edit")}
+                  <Edit2 style={icon14} /> {t("edit")}
                 </button>
               ) : null}
               {canDelete ? (
@@ -568,7 +579,7 @@ export default function EntryDetailPage() {
                     color: "var(--danger)",
                   }}
                 >
-                  <Trash2 style={{ width: 14, height: 14 }} /> {t("delete")}
+                  <Trash2 style={icon14} /> {t("delete")}
                 </button>
               ) : null}
             </>
@@ -583,7 +594,7 @@ export default function EntryDetailPage() {
                   color: "var(--text-secondary)",
                 }}
               >
-                <X style={{ width: 14, height: 14 }} /> {tc("cancel")}
+                <X style={icon14} /> {tc("cancel")}
               </button>
               <button
                 onClick={saveEdit}
@@ -595,8 +606,7 @@ export default function EntryDetailPage() {
                   opacity: saving ? 0.6 : 1,
                 }}
               >
-                {saving ? <Loader2 style={{ width: 14, height: 14 }} /> : <Check style={{ width: 14, height: 14 }} />}{" "}
-                {tc("save")}
+                {saving ? <Loader2 style={icon14} /> : <Check style={icon14} />} {tc("save")}
               </button>
             </>
           )}
@@ -620,7 +630,7 @@ export default function EntryDetailPage() {
           }}
         >
           <p style={{ fontSize: "0.875rem", color: "var(--danger)" }}>{t("moveToTrashConfirm")}</p>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={flexGap8}>
             <button
               onClick={() => setShowDeleteConfirm(false)}
               style={{
@@ -637,7 +647,7 @@ export default function EntryDetailPage() {
               disabled={deleting}
               style={{ ...btnBase, background: "var(--danger)", color: "#fff" }}
             >
-              {deleting && <Loader2 style={{ width: 12, height: 12 }} />} {t("moveToTrash")}
+              {deleting && <Loader2 style={icon12} />} {t("moveToTrash")}
             </button>
           </div>
         </div>
@@ -668,7 +678,7 @@ export default function EntryDetailPage() {
               ))}
             </select>
           ) : canEdit ? (
-            <div style={{ position: "relative" }}>
+            <div style={posRelative}>
               <StatusBadge status={entry.status} />
               <select
                 value={entry.status}
@@ -746,7 +756,7 @@ export default function EntryDetailPage() {
           }}
         >
           {entry.author ? (
-            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={flexCenterGap8}>
               <span
                 style={{
                   width: 24,
@@ -763,11 +773,7 @@ export default function EntryDetailPage() {
                 }}
               >
                 {entry.author.avatarUrl ? (
-                  <img
-                    src={entry.author.avatarUrl}
-                    alt=""
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
+                  <img src={entry.author.avatarUrl} alt="" style={coverImage} />
                 ) : (
                   entry.author.displayName.charAt(0).toUpperCase()
                 )}
@@ -776,10 +782,10 @@ export default function EntryDetailPage() {
             </span>
           ) : null}
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <Globe style={{ width: 14, height: 14 }} /> {entry.source}
+            <Globe style={icon14} /> {entry.source}
           </span>
           <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <Clock style={{ width: 14, height: 14 }} /> {formatDate(entry.createdAt)}
+            <Clock style={icon14} /> {formatDate(entry.createdAt)}
           </span>
           {entry.url && !editing && (
             <a
@@ -788,7 +794,7 @@ export default function EntryDetailPage() {
               rel="noopener noreferrer"
               style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--accent)", textDecoration: "none" }}
             >
-              <ExternalLink style={{ width: 14, height: 14 }} /> {t("source")}
+              <ExternalLink style={icon14} /> {t("source")}
             </a>
           )}
           <button
@@ -821,8 +827,8 @@ export default function EntryDetailPage() {
         )}
 
         {/* Tags */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Tag style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+        <div style={flexCenterGap8}>
+          <Tag style={icon14Dim} />
           {editing ? (
             <input
               value={editTags}
@@ -831,7 +837,7 @@ export default function EntryDetailPage() {
               style={{ ...inputStyle, fontSize: "0.8rem", padding: "6px 10px" }}
             />
           ) : entry.tags.length > 0 ? (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div style={flexWrapGap6}>
               {entry.tags.map((tg) => (
                 <span
                   key={tg.id}
@@ -848,14 +854,14 @@ export default function EntryDetailPage() {
               ))}
             </div>
           ) : (
-            <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>{t("noTags")}</span>
+            <span style={caption}>{t("noTags")}</span>
           )}
         </div>
 
         {/* Collections */}
         {editing ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-            <FolderOpen style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+            <FolderOpen style={icon14Dim} />
             <div
               style={{
                 display: "flex",
@@ -933,8 +939,8 @@ export default function EntryDetailPage() {
           </div>
         ) : entry.collections && entry.collections.length > 0 ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-            <FolderOpen style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <FolderOpen style={icon14Dim} />
+            <div style={flexWrapGap6}>
               {entry.collections.map((col) => (
                 <Link
                   key={col.id}
@@ -989,7 +995,7 @@ export default function EntryDetailPage() {
           </h2>
           <div className="entry-image-grid">
             {entry.images.map((img) => (
-              <div key={img.id} style={{ position: "relative" }}>
+              <div key={img.id} style={posRelative}>
                 <a href={img.url} target="_blank" rel="noopener noreferrer">
                   <img
                     src={img.url}
@@ -1119,7 +1125,7 @@ export default function EntryDetailPage() {
                       color: "var(--danger, #e53e3e)",
                     }}
                   >
-                    <X style={{ width: 12, height: 12 }} />
+                    <X style={icon12} />
                   </button>
                 </div>
               ))}
@@ -1326,11 +1332,7 @@ export default function EntryDetailPage() {
                     }}
                   >
                     {comment.author?.avatarUrl ? (
-                      <img
-                        src={comment.author.avatarUrl}
-                        alt=""
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
+                      <img src={comment.author.avatarUrl} alt="" style={coverImage} />
                     ) : (
                       comment.author?.displayName?.charAt(0).toUpperCase() || "?"
                     )}
@@ -1338,7 +1340,7 @@ export default function EntryDetailPage() {
                   <span style={{ fontSize: "0.82rem", color: "var(--text)" }}>
                     {comment.author?.displayName || tc("unknown")}
                   </span>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>{formatDate(comment.createdAt)}</span>
+                  <span style={caption}>{formatDate(comment.createdAt)}</span>
                 </div>
                 <p
                   style={{
@@ -1443,7 +1445,7 @@ export default function EntryDetailPage() {
                 {pdfExporting ? (
                   <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} />
                 ) : (
-                  <Download style={{ width: 14, height: 14 }} />
+                  <Download style={icon14} />
                 )}
                 {pdfExporting ? t("exporting") : t("exportPdf")}
               </button>

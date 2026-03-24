@@ -339,7 +339,7 @@ function EmbeddingTab({ settings, onToast }: { settings: AllSettings; onToast: (
       });
       const data = await res.json();
       setTestResult(data);
-    } catch {
+    } catch (err) {
       setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);
@@ -363,7 +363,7 @@ function EmbeddingTab({ settings, onToast }: { settings: AllSettings; onToast: (
       } else {
         onToast(t("rebuildFailed"), false);
       }
-    } catch {
+    } catch (err) {
       onToast(t("rebuildFailedNetwork"), false);
     } finally {
       setRebuilding(false);
@@ -654,7 +654,7 @@ function StorageTab({ settings, onToast }: { settings: AllSettings; onToast: (ms
       });
       const data = await res.json();
       setTestResult(data);
-    } catch {
+    } catch (err) {
       setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);

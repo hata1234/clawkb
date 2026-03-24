@@ -40,7 +40,7 @@ export default function EntryMentionPopup({ query, position, onSelect, onClose, 
           type: e.type,
         })),
       );
-    } catch {
+    } catch (err) {
       // ignore
     } finally {
       setLoading(false);

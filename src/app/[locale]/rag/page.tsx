@@ -88,7 +88,7 @@ export default function RagPage() {
                 try {
                   sources = JSON.parse(data);
                   setStreamingSources(sources);
-                } catch {
+                } catch (err) {
                   /* skip */
                 }
               } else if (eventType === "delta") {
@@ -96,7 +96,7 @@ export default function RagPage() {
                   const token = JSON.parse(data);
                   fullContent += token;
                   setStreamingContent(fullContent);
-                } catch {
+                } catch (err) {
                   /* skip */
                 }
               } else if (eventType === "done") {
@@ -115,7 +115,7 @@ export default function RagPage() {
         const data = await res.json();
         setMessages((prev) => [...prev, { role: "assistant", content: data.answer, sources: data.sources }]);
       }
-    } catch {
+    } catch (err) {
       setMessages((prev) => [...prev, { role: "assistant", content: t("networkError") }]);
     } finally {
       setLoading(false);

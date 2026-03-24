@@ -165,7 +165,7 @@ function SearchPageInner() {
         setResults(data.results);
         setSearchMode(data.mode);
         setTotal(data.total);
-      } catch {
+      } catch (err) {
         setResults([]);
         setSearchMode("none");
         setTotal(0);

@@ -106,7 +106,7 @@ export default function FloatingChat() {
                   if (last.role === "assistant") last.sources = sources;
                   return updated;
                 });
-              } catch {
+              } catch (err) {
                 /* ignore parse errors */
               }
             } else if (currentEvent === "delta") {
@@ -118,7 +118,7 @@ export default function FloatingChat() {
                   if (last.role === "assistant") last.content += token;
                   return updated;
                 });
-              } catch {
+              } catch (err) {
                 /* ignore */
               }
             }

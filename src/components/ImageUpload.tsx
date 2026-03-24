@@ -36,7 +36,7 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
         return null;
       }
       return await res.json();
-    } catch {
+    } catch (err) {
       alert(t("uploadFailed"));
       return null;
     }

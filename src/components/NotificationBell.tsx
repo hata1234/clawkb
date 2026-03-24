@@ -45,7 +45,7 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
         if (data.type === "count") {
           setCount(data.count);
         }
-      } catch {
+      } catch (err) {
         /* ignore parse errors */
       }
     };
@@ -66,7 +66,7 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
         const data = await res.json();
         setNotifications(data.notifications);
       }
-    } catch {
+    } catch (err) {
       /* ignore */
     }
     setLoading(false);

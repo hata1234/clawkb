@@ -81,7 +81,7 @@ export default function SmtpSettingsClient({ initialSettings }: { initialSetting
       });
       const data = await res.json();
       setTestResult({ ok: res.ok, message: data.message || (res.ok ? t("testSuccess") : t("testFailed")) });
-    } catch {
+    } catch (err) {
       setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { icon14, thCell, tdCell, captionSecondary } from "@/styles/common";
 import {
   Upload,
   FileText,
@@ -404,7 +405,7 @@ export default function ImportClient() {
                   color: "var(--text-secondary)",
                 }}
               >
-                <Icon style={{ width: 14, height: 14 }} />
+                <Icon style={icon14} />
                 {f.name}
               </span>
             );
@@ -490,26 +491,10 @@ export default function ImportClient() {
                   >
                     #
                   </th>
-                  <th
-                    style={{ padding: "10px 16px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 500 }}
-                  >
-                    {t("title")}
-                  </th>
-                  <th
-                    style={{ padding: "10px 16px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 500 }}
-                  >
-                    {t("type")}
-                  </th>
-                  <th
-                    style={{ padding: "10px 16px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 500 }}
-                  >
-                    {t("tags")}
-                  </th>
-                  <th
-                    style={{ padding: "10px 16px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 500 }}
-                  >
-                    {t("contentColumn")}
-                  </th>
+                  <th style={thCell}>{t("title")}</th>
+                  <th style={thCell}>{t("type")}</th>
+                  <th style={thCell}>{t("tags")}</th>
+                  <th style={thCell}>{t("contentColumn")}</th>
                   <th style={{ padding: "10px 8px", width: 40 }}></th>
                 </tr>
               </thead>
@@ -530,10 +515,8 @@ export default function ImportClient() {
                     >
                       {entry.title}
                     </td>
-                    <td style={{ padding: "10px 16px", color: "var(--text-secondary)" }}>{entry.type || "entry"}</td>
-                    <td style={{ padding: "10px 16px", color: "var(--text-secondary)" }}>
-                      {entry.tags?.join(", ") || "—"}
-                    </td>
+                    <td style={tdCell}>{entry.type || "entry"}</td>
+                    <td style={tdCell}>{entry.tags?.join(", ") || "—"}</td>
                     <td
                       style={{
                         padding: "10px 16px",
@@ -558,7 +541,7 @@ export default function ImportClient() {
                         }}
                         title={tc("remove")}
                       >
-                        <X style={{ width: 14, height: 14 }} />
+                        <X style={icon14} />
                       </button>
                     </td>
                   </tr>
@@ -627,7 +610,7 @@ export default function ImportClient() {
               }}
             >
               <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--success)" }}>{results.created}</div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: 4 }}>{t("created")}</div>
+              <div style={captionSecondary}>{t("created")}</div>
             </div>
             <div
               style={{
@@ -640,7 +623,7 @@ export default function ImportClient() {
               <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--warning)" }}>
                 {results.skipped + results.overwritten}
               </div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: 4 }}>
+              <div style={captionSecondary}>
                 {results.overwritten > 0
                   ? t("skippedAndOverwritten", { skipped: results.skipped, overwritten: results.overwritten })
                   : t("skipped")}
@@ -663,7 +646,7 @@ export default function ImportClient() {
               >
                 {results.errors.length}
               </div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: 4 }}>{t("errors")}</div>
+              <div style={captionSecondary}>{t("errors")}</div>
             </div>
           </div>
           {results.errors.length > 0 && (

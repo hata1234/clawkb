@@ -1,4 +1,10 @@
 export const entry = {
+  /**
+   * @param {object} input
+   * @param {Record<string, unknown>} input.entry
+   * @param {Record<string, unknown>} input.originalInput
+   * @param {import('../../src/lib/plugins/types').PluginContext} input.context
+   */
   async afterCreate({ entry, originalInput, context }) {
     const tags = Array.isArray(originalInput.tags) ? originalInput.tags : [];
     if (tags.length > 0) return;

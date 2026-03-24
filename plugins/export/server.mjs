@@ -83,9 +83,20 @@ function pickFields(entry, fields, options) {
 }
 
 const ALL_FIELDS = [
-  "id", "type", "source", "title", "summary", "content",
-  "status", "url", "metadata", "tags", "images", "comments",
-  "createdAt", "updatedAt",
+  "id",
+  "type",
+  "source",
+  "title",
+  "summary",
+  "content",
+  "status",
+  "url",
+  "metadata",
+  "tags",
+  "images",
+  "comments",
+  "createdAt",
+  "updatedAt",
 ];
 
 function parseOptions(searchParams) {
@@ -100,7 +111,10 @@ function parseOptions(searchParams) {
 function parseFields(searchParams) {
   const raw = searchParams.get("fields");
   if (!raw) return ALL_FIELDS;
-  return raw.split(",").map((f) => f.trim()).filter((f) => ALL_FIELDS.includes(f));
+  return raw
+    .split(",")
+    .map((f) => f.trim())
+    .filter((f) => ALL_FIELDS.includes(f));
 }
 
 function getIncludes(options) {
@@ -123,53 +137,58 @@ function escCsv(val) {
 function toCsv(entries, fields) {
   const header = fields.join(",");
   const rows = entries.map((e) =>
-    fields.map((f) => {
-      const v = e[f];
-      if (Array.isArray(v)) return escCsv(v.join("|"));
-      if (v instanceof Date) return v.toISOString();
-      if (typeof v === "object" && v !== null) return escCsv(JSON.stringify(v));
-      return escCsv(v);
-    }).join(",")
+    fields
+      .map((f) => {
+        const v = e[f];
+        if (Array.isArray(v)) return escCsv(v.join("|"));
+        if (v instanceof Date) return v.toISOString();
+        if (typeof v === "object" && v !== null) return escCsv(JSON.stringify(v));
+        return escCsv(v);
+      })
+      .join(","),
   );
   return [header, ...rows].join("\n");
 }
 
 function toMarkdown(entries) {
-  return entries.map((e) => {
-    const lines = [`# ${e.title || "(untitled)"}`];
-    lines.push("");
-    if (e.type) lines.push(`- **Type:** ${e.type}`);
-    if (e.source) lines.push(`- **Source:** ${e.source}`);
-    if (e.status) lines.push(`- **Status:** ${e.status}`);
-    if (e.tags && e.tags.length) lines.push(`- **Tags:** ${e.tags.join(", ")}`);
-    if (e.url) lines.push(`- **URL:** ${e.url}`);
-    if (e.createdAt) lines.push(`- **Created:** ${e.createdAt instanceof Date ? e.createdAt.toISOString() : e.createdAt}`);
-    if (e.images && e.images.length) {
+  return entries
+    .map((e) => {
+      const lines = [`# ${e.title || "(untitled)"}`];
       lines.push("");
-      for (const img of e.images) lines.push(`![](${img})`);
-    }
-    if (e.summary) {
-      lines.push("");
-      lines.push(e.summary);
-    }
-    if (e.content) {
-      lines.push("");
-      lines.push("---");
-      lines.push("");
-      lines.push(e.content);
-    }
-    if (e.comments && e.comments.length) {
-      lines.push("");
-      lines.push("## Comments");
-      lines.push("");
-      for (const c of e.comments) {
-        lines.push(`**${c.author}** (${c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt}):`);
-        lines.push(c.body);
+      if (e.type) lines.push(`- **Type:** ${e.type}`);
+      if (e.source) lines.push(`- **Source:** ${e.source}`);
+      if (e.status) lines.push(`- **Status:** ${e.status}`);
+      if (e.tags && e.tags.length) lines.push(`- **Tags:** ${e.tags.join(", ")}`);
+      if (e.url) lines.push(`- **URL:** ${e.url}`);
+      if (e.createdAt)
+        lines.push(`- **Created:** ${e.createdAt instanceof Date ? e.createdAt.toISOString() : e.createdAt}`);
+      if (e.images && e.images.length) {
         lines.push("");
+        for (const img of e.images) lines.push(`![](${img})`);
       }
-    }
-    return lines.join("\n");
-  }).join("\n\n---\n\n");
+      if (e.summary) {
+        lines.push("");
+        lines.push(e.summary);
+      }
+      if (e.content) {
+        lines.push("");
+        lines.push("---");
+        lines.push("");
+        lines.push(e.content);
+      }
+      if (e.comments && e.comments.length) {
+        lines.push("");
+        lines.push("## Comments");
+        lines.push("");
+        for (const c of e.comments) {
+          lines.push(`**${c.author}** (${c.createdAt instanceof Date ? c.createdAt.toISOString() : c.createdAt}):`);
+          lines.push(c.body);
+          lines.push("");
+        }
+      }
+      return lines.join("\n");
+    })
+    .join("\n\n---\n\n");
 }
 
 function datestamp() {
@@ -178,8 +197,7 @@ function datestamp() {
 
 // ── CJK font auto-download + cache ──────────────────────────────────
 
-const FONT_CDN_URL =
-  "https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/SubsetOTF/TC/NotoSansCJKtc-Regular.otf";
+const FONT_CDN_URL = "https://cdn.jsdelivr.net/gh/notofonts/noto-cjk@main/Sans/SubsetOTF/TC/NotoSansCJKtc-Regular.otf";
 
 async function resolveFontPath() {
   const fs = await import("fs");
@@ -598,9 +616,7 @@ function makeResponse(mapped, format, filenameBase, fields) {
 
 export const sidebar = {
   async register() {
-    return [
-      { id: "export", label: "Export", href: "/export" },
-    ];
+    return [{ id: "export", label: "Export", href: "/export" }];
   },
 };
 
@@ -610,6 +626,7 @@ export const api = {
       method: "GET",
       path: "/export",
       description: "Export entries in JSON, CSV, or Markdown",
+      /** @param {object} input @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const { searchParams } = new URL(request.url);
@@ -645,6 +662,7 @@ export const api = {
       method: "GET",
       path: "/export/:id",
       description: "Export a single entry by ID",
+      /** @param {object} input @param {string[]} input.params @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ params, request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const entryId = parseInt(params[0], 10);
@@ -658,9 +676,10 @@ export const api = {
         const fields = parseFields(searchParams);
 
         const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
-        const aclWhere = accessibleIds !== null
-          ? { id: entryId, deletedAt: null, collections: { some: { id: { in: accessibleIds } } } }
-          : { id: entryId, deletedAt: null };
+        const aclWhere =
+          accessibleIds !== null
+            ? { id: entryId, deletedAt: null, collections: { some: { id: { in: accessibleIds } } } }
+            : { id: entryId, deletedAt: null };
 
         const entry = await context.prisma.entry.findFirst({
           where: aclWhere,
@@ -672,7 +691,10 @@ export const api = {
         }
 
         const mapped = [pickFields(entry, fields, options)];
-        const slug = (entry.title || "entry").toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50);
+        const slug = (entry.title || "entry")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .slice(0, 50);
         const baseName = `clawkb-${entryId}-${slug}`;
 
         if (format === "pdf") {
@@ -693,6 +715,7 @@ export const api = {
       method: "GET",
       path: "/stats",
       description: "Preview stats for export filters",
+      /** @param {object} input @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const { searchParams } = new URL(request.url);
@@ -720,16 +743,36 @@ export const api = {
       method: "GET",
       path: "/options",
       description: "Get distinct filter values for combobox dropdowns",
+      /** @param {object} input @param {Request} input.request @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ request, context }) {
         if (!context.principal) return { status: 401, body: { error: "Unauthorized" } };
         const accessibleIds = await getAccessibleCollectionIds(context.prisma, context.principal);
         const where = applyAclFilter({ deletedAt: null }, accessibleIds);
 
         const [byType, bySource, byStatus, tags] = await Promise.all([
-          context.prisma.entry.groupBy({ by: ["type"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
-          context.prisma.entry.groupBy({ by: ["source"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
-          context.prisma.entry.groupBy({ by: ["status"], where, _count: { id: true }, orderBy: { _count: { id: "desc" } } }),
-          context.prisma.tag.findMany({ select: { name: true, _count: { select: { entries: true } } }, orderBy: { entries: { _count: "desc" } }, take: 100 }),
+          context.prisma.entry.groupBy({
+            by: ["type"],
+            where,
+            _count: { id: true },
+            orderBy: { _count: { id: "desc" } },
+          }),
+          context.prisma.entry.groupBy({
+            by: ["source"],
+            where,
+            _count: { id: true },
+            orderBy: { _count: { id: "desc" } },
+          }),
+          context.prisma.entry.groupBy({
+            by: ["status"],
+            where,
+            _count: { id: true },
+            orderBy: { _count: { id: "desc" } },
+          }),
+          context.prisma.tag.findMany({
+            select: { name: true, _count: { select: { entries: true } } },
+            orderBy: { entries: { _count: "desc" } },
+            take: 100,
+          }),
         ]);
 
         return {

@@ -61,7 +61,7 @@ export default function BpmnEntryEditorPage() {
           // Legacy mode: edit entry.bpmnXml directly
           if (data.bpmnXml) currentXmlRef.current = data.bpmnXml;
         }
-      } catch {
+      } catch (err) {
         setError(t("failedToConnect"));
       } finally {
         setLoading(false);
@@ -103,7 +103,7 @@ export default function BpmnEntryEditorPage() {
           }
         }
         setSaveState(res.ok ? "saved" : "unsaved");
-      } catch {
+      } catch (err) {
         setSaveState("unsaved");
       }
     },

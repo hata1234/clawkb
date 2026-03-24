@@ -84,7 +84,7 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
           ? { ok: true, message: t("connectedTo", { provider: cfg.provider, status: res.status }) }
           : { ok: false, message: t("connectionFailed", { status: res.status, statusText: res.statusText }) },
       );
-    } catch {
+    } catch (err) {
       setTestResult({ ok: false, message: t("networkError") });
     } finally {
       setTesting(false);

@@ -47,7 +47,7 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
     try {
       const result = await instanceRef.current.saveXML({ format: true });
       return result.xml;
-    } catch {
+    } catch (err) {
       return null;
     }
   }, []);
@@ -157,7 +157,7 @@ export default function BpmnEditor({ xml, readOnly = false, onChange, onSave, he
           try {
             const result = await bpmnInstance.saveXML({ format: true });
             onChangeRef.current?.(result.xml);
-          } catch {
+          } catch (err) {
             // ignore
           }
         });

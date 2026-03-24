@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { textDim, textSecondary, flexCenterGap6, icon14 } from "@/styles/common";
 import { History, ChevronDown, ChevronUp, GitCompareArrows } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { diffLines, diffWords } from "diff";
@@ -117,7 +118,7 @@ function DiffBlock({
             );
           }
           return (
-            <span key={i} style={{ color: "var(--text-secondary)" }}>
+            <span key={i} style={textSecondary}>
               {part.value}
             </span>
           );
@@ -185,7 +186,7 @@ function FieldDiff({ label, oldVal, newVal }: { label: string; oldVal: string; n
   if (oldVal === newVal) return null;
   return (
     <div style={{ marginBottom: 8, fontSize: "0.82rem" }}>
-      <span style={{ color: "var(--text-dim)" }}>{label}: </span>
+      <span style={textDim}>{label}: </span>
       <span
         style={{
           background: "rgba(248,113,113,0.12)",
@@ -389,7 +390,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
         <div style={{ marginTop: 16 }}>
           {/* Selectors */}
           <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={flexCenterGap6}>
               <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontWeight: 600 }}>{t("from")}</span>
               <select
                 value={diffA ?? ""}
@@ -413,7 +414,7 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
               </select>
             </div>
             <span style={{ fontSize: "0.8rem", color: "var(--text-dim)" }}>→</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={flexCenterGap6}>
               <span style={{ fontSize: "0.72rem", color: "var(--text-dim)", fontWeight: 600 }}>{t("to")}</span>
               <select
                 value={diffB ?? ""}
@@ -565,25 +566,23 @@ export default function RevisionHistory({ entryId, currentTitle, currentEntry }:
                     ) : (
                       <div style={{ display: "grid", gap: 8, fontSize: "0.82rem" }}>
                         <div>
-                          <span style={{ color: "var(--text-dim)" }}>Title: </span>
+                          <span style={textDim}>Title: </span>
                           <span style={{ color: titleChanged ? "var(--accent)" : "var(--text-secondary)" }}>
                             {rev.title}
                           </span>
                         </div>
                         <div>
-                          <span style={{ color: "var(--text-dim)" }}>Status: </span>
-                          <span style={{ color: "var(--text-secondary)" }}>{rev.status}</span>
+                          <span style={textDim}>Status: </span>
+                          <span style={textSecondary}>{rev.status}</span>
                         </div>
                         <div>
-                          <span style={{ color: "var(--text-dim)" }}>Tags: </span>
-                          <span style={{ color: "var(--text-secondary)" }}>
-                            {rev.tags.length > 0 ? rev.tags.join(", ") : "—"}
-                          </span>
+                          <span style={textDim}>Tags: </span>
+                          <span style={textSecondary}>{rev.tags.length > 0 ? rev.tags.join(", ") : "—"}</span>
                         </div>
                         {rev.summary && (
                           <div>
-                            <span style={{ color: "var(--text-dim)" }}>Summary: </span>
-                            <span style={{ color: "var(--text-secondary)" }}>{rev.summary}</span>
+                            <span style={textDim}>Summary: </span>
+                            <span style={textSecondary}>{rev.summary}</span>
                           </div>
                         )}
                         {rev.content && (

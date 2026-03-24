@@ -69,7 +69,7 @@ export default function TimelineFeed() {
           setEntries(data.entries);
         }
         setHasMore(pageNum < data.totalPages);
-      } catch {
+      } catch (err) {
         // silently fail
       } finally {
         setLoading(false);

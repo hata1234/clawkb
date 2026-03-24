@@ -3,10 +3,15 @@
 
 const SETTING_KEY = "plugin:entry-templates:list";
 
+/** @param {import('../../src/lib/plugins/types').PluginContext} context */
 async function getTemplates(context) {
   return await context.settings.getSetting(SETTING_KEY, []);
 }
 
+/**
+ * @param {import('../../src/lib/plugins/types').PluginContext} context
+ * @param {unknown[]} templates
+ */
 async function saveTemplates(context, templates) {
   await context.settings.setSetting(SETTING_KEY, templates);
 }
@@ -29,6 +34,7 @@ export const api = {
       method: "GET",
       path: "/templates",
       description: "List all entry templates",
+      /** @param {object} input @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ context }) {
         const templates = await getTemplates(context);
         return { body: { templates } };
@@ -38,6 +44,7 @@ export const api = {
       method: "POST",
       path: "/templates",
       description: "Create a new entry template",
+      /** @param {object} input @param {unknown} input.body @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ body, context }) {
         if (!context.principal || !context.principal.isAdmin) {
           return { status: 403, body: { error: "Admin only" } };
@@ -57,6 +64,7 @@ export const api = {
       method: "PATCH",
       path: "/templates/:id",
       description: "Update an entry template",
+      /** @param {object} input @param {string[]} input.params @param {unknown} input.body @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ params, body, context }) {
         if (!context.principal || !context.principal.isAdmin) {
           return { status: 403, body: { error: "Admin only" } };
@@ -83,6 +91,7 @@ export const api = {
       method: "DELETE",
       path: "/templates/:id",
       description: "Delete an entry template",
+      /** @param {object} input @param {string[]} input.params @param {import('../../src/lib/plugins/types').PluginContext} input.context */
       async handler({ params, context }) {
         if (!context.principal || !context.principal.isAdmin) {
           return { status: 403, body: { error: "Admin only" } };

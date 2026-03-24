@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { icon14Dim, icon18, flexWrapGap6, textMuted, sectionHeading, posRelative } from "@/styles/common";
 import { Download, FileText, FileSpreadsheet, FileCode, Loader2, ChevronDown, X, Search } from "lucide-react";
 
 /* ─── types ─── */
@@ -74,7 +75,7 @@ function Combobox({
   const filtered = options.filter((o) => o.value.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <div ref={ref} style={posRelative}>
       {/* trigger */}
       <button
         type="button"
@@ -164,7 +165,7 @@ function Combobox({
                 padding: "6px 10px",
               }}
             >
-              <Search style={{ width: 14, height: 14, color: "var(--text-dim)", flexShrink: 0 }} />
+              <Search style={icon14Dim} />
               <input
                 ref={inputRef}
                 value={search}
@@ -314,7 +315,7 @@ export default function ExportClient() {
         const data = await res.json();
         setStats(data);
       }
-    } catch {
+    } catch (err) {
       // ignore
     }
     setLoading(false);
@@ -353,7 +354,7 @@ export default function ExportClient() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (err) {
       // ignore
     }
     setExporting(false);
@@ -402,9 +403,7 @@ export default function ExportClient() {
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {/* Filters */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t("filters")}
-          </h2>
+          <h2 style={sectionHeading}>{t("filters")}</h2>
           <div className="export-filter-grid">
             <div>
               <label style={labelStyle}>{t("type")}</label>
@@ -445,9 +444,7 @@ export default function ExportClient() {
 
         {/* Options */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t("options")}
-          </h2>
+          <h2 style={sectionHeading}>{t("options")}</h2>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
             {[
               { label: t("content"), checked: includeContent, set: setIncludeContent },
@@ -480,7 +477,7 @@ export default function ExportClient() {
 
         {/* Format */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>{t("format")}</h2>
+          <h2 style={sectionHeading}>{t("format")}</h2>
           <div style={{ display: "flex", gap: 8 }}>
             {formats.map((f) => {
               const Icon = f.icon;
@@ -516,9 +513,7 @@ export default function ExportClient() {
 
         {/* Preview */}
         <div style={sectionStyle}>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 600, color: "var(--text)", marginBottom: 16 }}>
-            {t("preview")}
-          </h2>
+          <h2 style={sectionHeading}>{t("preview")}</h2>
           {loading ? (
             <div
               style={{
@@ -554,7 +549,7 @@ export default function ExportClient() {
                   >
                     {t("byType")}
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <div style={flexWrapGap6}>
                     {Object.entries(stats.types).map(([k, v]) => (
                       <span
                         key={k}
@@ -567,7 +562,7 @@ export default function ExportClient() {
                           padding: "4px 10px",
                         }}
                       >
-                        {k} <span style={{ color: "var(--text-muted)" }}>{v}</span>
+                        {k} <span style={textMuted}>{v}</span>
                       </span>
                     ))}
                   </div>
@@ -587,7 +582,7 @@ export default function ExportClient() {
                   >
                     {t("byStatus")}
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <div style={flexWrapGap6}>
                     {Object.entries(stats.statuses).map(([k, v]) => (
                       <span
                         key={k}
@@ -600,7 +595,7 @@ export default function ExportClient() {
                           padding: "4px 10px",
                         }}
                       >
-                        {k} <span style={{ color: "var(--text-muted)" }}>{v}</span>
+                        {k} <span style={textMuted}>{v}</span>
                       </span>
                     ))}
                   </div>
@@ -620,7 +615,7 @@ export default function ExportClient() {
                   >
                     {t("bySource")}
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <div style={flexWrapGap6}>
                     {Object.entries(stats.sources).map(([k, v]) => (
                       <span
                         key={k}
@@ -633,7 +628,7 @@ export default function ExportClient() {
                           padding: "4px 10px",
                         }}
                       >
-                        {k} <span style={{ color: "var(--text-muted)" }}>{v}</span>
+                        {k} <span style={textMuted}>{v}</span>
                       </span>
                     ))}
                   </div>
@@ -668,7 +663,7 @@ export default function ExportClient() {
           {exporting ? (
             <Loader2 style={{ width: 18, height: 18, animation: "spin 1s linear infinite" }} />
           ) : (
-            <Download style={{ width: 18, height: 18 }} />
+            <Download style={icon18} />
           )}
           {exporting ? t("exporting") : t("exportButton", { count: stats?.count || 0, format: format.toUpperCase() })}
         </button>

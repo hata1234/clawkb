@@ -846,7 +846,8 @@
     "sentMessage": "If an account with that email exists, a reset link has been sent. Check your inbox.",
     "backToLogin": "Back to login",
     "failed": "Failed to send reset link",
-    "networkError": "Network error. Please try again."
+    "networkError": "Network error. Please try again.",
+    "rateLimited": "Too many requests. Please try again later."
   },
   "ResetPassword": {
     "title": "Reset Password",

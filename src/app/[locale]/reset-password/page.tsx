@@ -59,7 +59,7 @@ function ResetPasswordForm() {
       } else {
         setError(data.error || t("failed"));
       }
-    } catch {
+    } catch (err) {
       setError(t("networkError"));
     } finally {
       setLoading(false);

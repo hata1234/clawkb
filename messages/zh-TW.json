@@ -846,7 +846,8 @@
     "sentMessage": "如果該電子郵件存在帳號，重設連結已發送。請檢查您的收件匣。",
     "backToLogin": "返回登入",
     "failed": "發送重設連結失敗",
-    "networkError": "網路錯誤，請重試。"
+    "networkError": "網路錯誤，請重試。",
+    "rateLimited": "請求次數過多，請稍後再試。"
   },
   "ResetPassword": {
     "title": "重設密碼",
