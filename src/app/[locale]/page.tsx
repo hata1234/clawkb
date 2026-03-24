@@ -119,7 +119,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     ...c,
     entry_count: Number(c.entry_count),
   }));
-  const collections = allCollections.slice(0, 10);
+  const collections = allCollections.slice(0, 8);
   const topSources = bySource.slice(0, 10);
   const maxCollectionCount = Math.max(...collections.map((c) => c.entry_count), 1);
   const maxSourceCount = Math.max(...topSources.map((s) => s._count.id), 1);
