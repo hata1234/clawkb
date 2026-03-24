@@ -16,6 +16,9 @@ import {
   FolderPlus,
 } from "lucide-react";
 
+// Note: This component uses sidebar-link, sidebar-group-toggle, sidebar-group-chevron
+// classes from the parent Sidebar component's styles.
+
 interface Collection {
   id: number;
   name: string;
@@ -161,6 +164,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
   const [createParentId, setCreateParentId] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
+  const [treeOpen, setTreeOpen] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -239,75 +243,89 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="collection-tree">
-      <div className="collection-tree-header">
-        <span className="collection-tree-label">{t("title")}</span>
+    <div className="collection-tree sidebar-group">
+      <button
+        className={`sidebar-link sidebar-group-toggle ${activeCollectionId ? "active" : ""}`}
+        onClick={() => setTreeOpen(!treeOpen)}
+      >
+        <Folder className="sidebar-link-icon" />
+        <span className="sidebar-link-label">{t("title")}</span>
         <button
           className="collection-tree-add"
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             setShowCreate(!showCreate);
             setCreateParentId(null);
+            if (!treeOpen) setTreeOpen(true);
           }}
           title={t("newCollection")}
         >
           <Plus style={{ width: 14, height: 14 }} />
         </button>
-      </div>
+        <ChevronDown
+          className="sidebar-group-chevron"
+          style={{ transform: treeOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
+        />
+      </button>
 
-      {/* Rename modal */}
-      {editingId !== null && (
-        <div className="collection-inline-form">
-          <input
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleRename();
-              if (e.key === "Escape") setEditingId(null);
-            }}
-            className="collection-inline-input"
-            autoFocus
-            placeholder={t("collectionName")}
-          />
-          <button onClick={handleRename} className="collection-inline-btn">
-            {tc("save")}
-          </button>
+      {treeOpen && (
+        <div className="collection-tree-content">
+          {/* Rename modal */}
+          {editingId !== null && (
+            <div className="collection-inline-form">
+              <input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleRename();
+                  if (e.key === "Escape") setEditingId(null);
+                }}
+                className="collection-inline-input"
+                autoFocus
+                placeholder={t("collectionName")}
+              />
+              <button onClick={handleRename} className="collection-inline-btn">
+                {tc("save")}
+              </button>
+            </div>
+          )}
+
+          {/* Create form */}
+          {showCreate && (
+            <div className="collection-inline-form">
+              <input
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreate();
+                  if (e.key === "Escape") setShowCreate(false);
+                }}
+                className="collection-inline-input"
+                autoFocus
+                placeholder={createParentId ? t("subCollectionName") : t("collectionName")}
+              />
+              <button onClick={handleCreate} className="collection-inline-btn">
+                {tc("add")}
+              </button>
+            </div>
+          )}
+
+          <div className="collection-tree-list">
+            {collections.map((node) => (
+              <CollectionNode
+                key={node.id}
+                node={node}
+                depth={0}
+                collapsed={collapsed}
+                activeCollectionId={activeCollectionId}
+                onSelect={handleSelect}
+                onAction={handleAction}
+              />
+            ))}
+            {collections.length === 0 && <p className="collection-empty">{t("noCollections")}</p>}
+          </div>
         </div>
       )}
-
-      {/* Create form */}
-      {showCreate && (
-        <div className="collection-inline-form">
-          <input
-            value={createName}
-            onChange={(e) => setCreateName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreate();
-              if (e.key === "Escape") setShowCreate(false);
-            }}
-            className="collection-inline-input"
-            autoFocus
-            placeholder={createParentId ? t("subCollectionName") : t("collectionName")}
-          />
-          <button onClick={handleCreate} className="collection-inline-btn">
-            {tc("add")}
-          </button>
-        </div>
-      )}
-
-      <div className="collection-tree-list">
-        {collections.map((node) => (
-          <CollectionNode
-            key={node.id}
-            node={node}
-            depth={0}
-            collapsed={collapsed}
-            activeCollectionId={activeCollectionId}
-            onSelect={handleSelect}
-            onAction={handleAction}
-          />
-        ))}
-        {collections.length === 0 && <p className="collection-empty">{t("noCollections")}</p>}
-      </div>
 
       <style>{collectionStyles}</style>
     </div>
@@ -316,30 +334,22 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
 
 const collectionStyles = `
   .collection-tree {
-    padding: 0 8px 8px;
+    padding: 0;
   }
   .collection-tree-collapsed {
     display: flex;
     justify-content: center;
     padding: 8px 0;
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
   }
-  .collection-tree-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px 4px;
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
+  .collection-tree-content {
+    max-height: 240px;
+    overflow-y: auto;
+    padding-left: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
-  .collection-tree-label {
-    font-size: 0.65rem;
-    font-weight: 600;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
+  .collection-tree-content::-webkit-scrollbar { width: 4px; }
+  .collection-tree-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
   .collection-tree-add {
     background: none;
     border: none;

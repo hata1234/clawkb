@@ -234,6 +234,11 @@ export default function Sidebar({
           <span className="sidebar-link-label">{t("import")}</span>
         </Link>
 
+        {/* Collection tree — inside nav so it scrolls together */}
+        <Suspense fallback={null}>
+          <CollectionTree collapsed={collapsed} />
+        </Suspense>
+
         {/* Settings */}
         <Link
           href="/settings"
@@ -289,11 +294,6 @@ export default function Sidebar({
           </Link>
         ))}
       </nav>
-
-      {/* Collection tree */}
-      <Suspense fallback={null}>
-        <CollectionTree collapsed={collapsed} />
-      </Suspense>
 
       {/* Notifications + Theme toggle + Collapse toggle */}
       <div className="sidebar-bottom-actions">
