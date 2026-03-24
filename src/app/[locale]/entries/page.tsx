@@ -287,7 +287,7 @@ function EntriesPageInner() {
         </div>
         {canCreate && (
           <Link
-            href="/entries/new"
+            href={collectionId ? `/entries/new?collectionId=${collectionId}` : "/entries/new"}
             style={{
               display: "inline-flex",
               alignItems: "center",

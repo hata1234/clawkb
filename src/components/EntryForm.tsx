@@ -135,10 +135,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
           }
         }
 
-        // Auto-select first writable collection if none selected
-        if (mode === "create" && selectedCollectionIds.length === 0 && collections.length > 0) {
-          setSelectedCollectionIds([collections[0].id]);
-        }
+        // No auto-select — let user choose explicitly
       })
       .catch(() => {});
   }, [searchParams, mode]);
