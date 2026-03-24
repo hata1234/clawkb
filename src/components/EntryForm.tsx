@@ -284,68 +284,14 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       <div className="form-row-2col">
         <div>
           <label style={labelStyle}>{t("collections")}</label>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 6,
-              minHeight: 38,
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius-md)",
-              padding: "6px 10px",
-              alignItems: "center",
-            }}
-          >
-            {selectedCollectionIds.map((cid) => {
-              const col = writableCollections.find((c) => c.id === cid);
-              return col ? (
-                <span
-                  key={cid}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    fontSize: "0.75rem",
-                    background: "var(--surface-hover)",
-                    color: "var(--text-secondary)",
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                  }}
-                >
-                  {col.icon || "📁"} {col.name}
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCollectionIds((prev) => prev.filter((id) => id !== cid))}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      padding: 0,
-                      display: "flex",
-                      color: "var(--text-dim)",
-                    }}
-                  >
-                    &times;
-                  </button>
-                </span>
-              ) : null;
-            })}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <select
               value=""
               onChange={(e) => {
                 const id = parseInt(e.target.value);
                 if (id && !selectedCollectionIds.includes(id)) setSelectedCollectionIds((prev) => [...prev, id]);
               }}
-              style={{
-                ...selectStyle,
-                width: "auto",
-                minWidth: 120,
-                padding: "4px 8px",
-                fontSize: "0.75rem",
-                border: "none",
-                background: "transparent",
-              }}
+              style={selectStyle}
             >
               <option value="">{t("addCollection")}</option>
               {writableCollections
@@ -356,6 +302,46 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
                   </option>
                 ))}
             </select>
+            {selectedCollectionIds.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {selectedCollectionIds.map((cid) => {
+                  const col = writableCollections.find((c) => c.id === cid);
+                  return col ? (
+                    <span
+                      key={cid}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: "0.75rem",
+                        background: "var(--surface-hover)",
+                        color: "var(--text-secondary)",
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        border: "1px solid var(--border)",
+                      }}
+                    >
+                      {col.icon || "📁"} {col.name}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCollectionIds((prev) => prev.filter((id) => id !== cid))}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                          display: "flex",
+                          color: "var(--text-dim)",
+                          marginLeft: 2,
+                        }}
+                      >
+                        &times;
+                      </button>
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
           </div>
         </div>
         <div>
