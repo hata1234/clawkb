@@ -49,7 +49,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
   const tCommon = await getTranslations("Common");
 
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
   // ACL: get accessible collection IDs for current user
   const userId = parseInt(session.user.id);

@@ -12,7 +12,7 @@ export default async function NotificationPrefsPage({ params }: { params: Promis
   setRequestLocale(locale);
 
   const session = await auth();
-  if (!session) redirect("/login");
+  if (!session?.user?.id) redirect("/login");
 
   const user = await prisma.user.findUnique({ where: { id: parseInt(session.user.id) }, select: { isAdmin: true } });
   const isAdmin = user?.isAdmin ?? false;
