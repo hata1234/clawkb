@@ -10,6 +10,38 @@ import { setRequestLocale } from "next-intl/server";
 
 export const dynamic = "force-dynamic";
 
+async function canCreateEntries(userId: number, isAdmin: boolean): Promise<boolean> {
+  if (isAdmin) return true;
+
+  const groupIds = (
+    await prisma.userGroup.findMany({
+      where: { userId },
+      select: { groupId: true },
+    })
+  ).map((g) => g.groupId);
+
+  const everyoneGroup = await prisma.group.findUnique({
+    where: { name: "Everyone" },
+    select: { id: true },
+  });
+  if (everyoneGroup && !groupIds.includes(everyoneGroup.id)) {
+    groupIds.push(everyoneGroup.id);
+  }
+
+  if (groupIds.length === 0) return false;
+
+  const writableRoles = await prisma.groupCollectionRole.findMany({
+    where: {
+      groupId: { in: groupIds },
+      role: { in: ["admin", "editor"] },
+    },
+    select: { collectionId: true },
+    distinct: ["collectionId"],
+  });
+
+  return writableRoles.length > 0;
+}
+
 export default async function DashboardPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -58,7 +90,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
     }
   }
 
-  const [total, byStatus, bySource, byCollection, thisWeek, recent] = await Promise.all([
+  const [total, byStatus, bySource, byCollection, thisWeek, recent, userCanCreate] = await Promise.all([
     prisma.entry.count({ where: aclWhere }),
     prisma.entry.groupBy({ by: ["status"], _count: { id: true }, where: aclWhere }),
     prisma.entry.groupBy({
@@ -77,6 +109,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
       where: aclWhere,
       include: { tags: true },
     }),
+    canCreateEntries(userId, isAdmin),
   ]);
 
   const newCount = byStatus.find((s) => s.status === "new")?._count.id || 0;
@@ -133,9 +166,11 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
           <p className="dash-label">{t("label")}</p>
           <h1 className="dash-title">{t("title")}</h1>
         </div>
-        <Link href="/entries/new" className="dash-new-btn">
-          {t("newEntry")}
-        </Link>
+        {userCanCreate && (
+          <Link href="/entries/new" className="dash-new-btn">
+            {t("newEntry")}
+          </Link>
+        )}
       </div>
 
       {/* Stats */}
@@ -255,9 +290,11 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
             <div className="dash-empty-icon">📭</div>
             <p className="dash-empty-title">{t("noEntriesYet")}</p>
             <p className="dash-empty-sub">{t("startBuilding")}</p>
-            <Link href="/entries/new" className="dash-empty-link">
-              {t("createFirstEntry")}
-            </Link>
+            {userCanCreate && (
+              <Link href="/entries/new" className="dash-empty-link">
+                {t("createFirstEntry")}
+              </Link>
+            )}
           </div>
         ) : (
           <div className="dash-entries-list">

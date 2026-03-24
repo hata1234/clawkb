@@ -60,6 +60,7 @@ function EntriesPageInner() {
   const [showFilters, setShowFilters] = useState(false);
   const [allTags, setAllTags] = useState<{ id: number; name: string }[]>([]);
   const [allCollections, setAllCollections] = useState<{ id: number; name: string }[]>([]);
+  const [canCreate, setCanCreate] = useState(false);
 
   // Sync state to URL params
   useEffect(() => {
@@ -89,6 +90,11 @@ function EntriesPageInner() {
       .then((r) => r.json())
       .then((data) => setAllCollections(data.flat || []))
       .catch(() => {});
+    // Check if user can create entries
+    fetch("/api/collections/writable")
+      .then((r) => r.json())
+      .then((data) => setCanCreate(data.canCreate || false))
+      .catch(() => setCanCreate(false));
   }, []);
 
   const fetchEntries = useCallback(async () => {
@@ -279,24 +285,26 @@ function EntriesPageInner() {
             {t("json")}
           </button>
         </div>
-        <Link
-          href="/entries/new"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: "var(--accent)",
-            color: "var(--accent-contrast)",
-            borderRadius: "var(--radius-md)",
-            padding: "10px 16px",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {t("newEntry")}
-        </Link>
+        {canCreate && (
+          <Link
+            href="/entries/new"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "var(--accent)",
+              color: "var(--accent-contrast)",
+              borderRadius: "var(--radius-md)",
+              padding: "10px 16px",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {t("newEntry")}
+          </Link>
+        )}
       </div>
 
       {/* Search + Filter bar */}

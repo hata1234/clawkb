@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { canCreateEntries, getRequestPrincipal } from "@/lib/auth";
-import { getAccessibleCollectionIds } from "@/lib/permissions";
+import { getAccessibleCollectionIds, getCollectionRole } from "@/lib/permissions";
 import { serializeEntry, entryWithAuthorInclude } from "@/lib/entries";
 import { prisma } from "@/lib/prisma";
 import { generateAndStoreChunks } from "@/lib/embedding";
@@ -171,6 +171,48 @@ export async function POST(request: Request) {
 
   if (!source || !title) {
     return NextResponse.json({ error: "source and title are required" }, { status: 400 });
+  }
+
+  // Verify user has write permission on at least one of the submitted collectionIds
+  if (collectionIds && collectionIds.length > 0) {
+    let hasWritePermission = false;
+    for (const cid of collectionIds) {
+      const role = await getCollectionRole(principal.id, cid, principal.isAdmin);
+      if (role === "admin" || role === "editor") {
+        hasWritePermission = true;
+        break;
+      }
+    }
+    if (!hasWritePermission) {
+      return NextResponse.json({ error: "Forbidden: no write permission on any specified collection" }, { status: 403 });
+    }
+  } else {
+    // If no collectionIds specified, user must have write permission on at least one collection
+    // (or be admin, which is already checked above)
+    if (!principal.isAdmin) {
+      const groupIds = principal.groupIds || [];
+      const everyoneGroup = await prisma.group.findUnique({ where: { name: "Everyone" }, select: { id: true } });
+      const allGroupIds = everyoneGroup && !groupIds.includes(everyoneGroup.id) 
+        ? [...groupIds, everyoneGroup.id] 
+        : groupIds;
+      
+      if (allGroupIds.length === 0) {
+        return NextResponse.json({ error: "Forbidden: no write permission" }, { status: 403 });
+      }
+
+      const writableRoles = await prisma.groupCollectionRole.findMany({
+        where: {
+          groupId: { in: allGroupIds },
+          role: { in: ["admin", "editor"] },
+        },
+        select: { collectionId: true },
+        distinct: ["collectionId"],
+      });
+
+      if (writableRoles.length === 0) {
+        return NextResponse.json({ error: "Forbidden: no write permission on any collection" }, { status: 403 });
+      }
+    }
   }
 
   // Upsert tags

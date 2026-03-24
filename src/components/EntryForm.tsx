@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { SOURCE_OPTIONS, STATUS_OPTIONS } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
@@ -55,6 +55,12 @@ interface EntryFormProps {
   mode: "create" | "edit";
 }
 
+interface WritableCollection {
+  id: number;
+  name: string;
+  icon?: string | null;
+}
+
 const selectStyle: React.CSSProperties = {
   width: "100%",
   background: "var(--background)",
@@ -89,6 +95,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations("EntryForm");
   const tc = useTranslations("Common");
   const settings = useSettings();
@@ -98,7 +105,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
   const [images, setImages] = useState<UploadedImage[]>(initialData?.images || []);
   const [templates, setTemplates] = useState<EntryTemplate[]>([]);
 
-  const [allCollections, setAllCollections] = useState<CollectionOption[]>([]);
+  const [writableCollections, setWritableCollections] = useState<WritableCollection[]>([]);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<number[]>(initialData?.collectionIds || []);
 
   // Load templates for create mode
@@ -110,13 +117,31 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
       .catch(() => {});
   }, [mode]);
 
-  // Load collections for selector
+  // Load writable collections and handle pre-selection
   useEffect(() => {
-    fetch("/api/collections")
+    fetch("/api/collections/writable")
       .then((r) => r.json())
-      .then((data) => setAllCollections(data.flat || []))
+      .then((data) => {
+        const collections = data.collections || [];
+        setWritableCollections(collections);
+
+        // Handle pre-selection from URL query param
+        const urlCollectionId = searchParams.get("collectionId");
+        if (mode === "create" && urlCollectionId) {
+          const id = parseInt(urlCollectionId, 10);
+          if (!isNaN(id) && collections.some((c: WritableCollection) => c.id === id)) {
+            setSelectedCollectionIds([id]);
+            return;
+          }
+        }
+
+        // Auto-select first writable collection if none selected
+        if (mode === "create" && selectedCollectionIds.length === 0 && collections.length > 0) {
+          setSelectedCollectionIds([collections[0].id]);
+        }
+      })
       .catch(() => {});
-  }, []);
+  }, [searchParams, mode]);
 
   // Dynamic options from DB settings, with hardcoded fallback
   const sourceOptions = settings?.source_options ?? [...SOURCE_OPTIONS];
@@ -276,7 +301,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
             }}
           >
             {selectedCollectionIds.map((cid) => {
-              const col = allCollections.find((c) => c.id === cid);
+              const col = writableCollections.find((c) => c.id === cid);
               return col ? (
                 <span
                   key={cid}
@@ -326,7 +351,7 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
               }}
             >
               <option value="">{t("addCollection")}</option>
-              {allCollections
+              {writableCollections
                 .filter((c) => !selectedCollectionIds.includes(c.id))
                 .map((c) => (
                   <option key={c.id} value={c.id}>
