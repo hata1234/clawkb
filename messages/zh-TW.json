@@ -277,7 +277,10 @@
     "signIn": "登入",
     "tagline": "為人類與 AI Agent 協作打造的知識庫",
     "createAccount": "建立帳號",
-    "forgotPassword": "忘記密碼？"
+    "forgotPassword": "忘記密碼？",
+    "pendingVerification": "請先驗證您的電子郵件。請檢查收件匣中的驗證連結。",
+    "pendingApproval": "您的帳號正在等待管理員審核。請等待管理員核准您的註冊。",
+    "accountRejected": "您的帳號註冊已被拒絕。請聯繫管理員。"
   },
   "Register": {
     "title": "建立帳號",

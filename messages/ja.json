@@ -277,7 +277,10 @@
     "signIn": "サインイン",
     "tagline": "人間とAIエージェントの協働のためのナレッジベース",
     "createAccount": "アカウントを作成",
-    "forgotPassword": "パスワードをお忘れですか？"
+    "forgotPassword": "パスワードをお忘れですか？",
+    "pendingVerification": "ログインする前にメールを確認してください。受信トレイの確認リンクをご確認ください。",
+    "pendingApproval": "アカウントは管理者の承認待ちです。管理者が登録を承認するまでお待ちください。",
+    "accountRejected": "アカウント登録が拒否されました。管理者にお問い合わせください。"
   },
   "Register": {
     "title": "アカウント作成",

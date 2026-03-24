@@ -23,6 +23,32 @@ function LoginForm() {
     setError("");
     setLoading(true);
 
+    // Pre-check credentials and account status for specific error messages
+    try {
+      const check = await fetch("/api/auth/login-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      if (!check.ok) {
+        const data = await check.json();
+        setLoading(false);
+        const code = data.code as string;
+        if (code === "pending_verification") {
+          setError(t("pendingVerification"));
+        } else if (code === "pending_approval") {
+          setError(t("pendingApproval"));
+        } else if (code === "rejected") {
+          setError(t("accountRejected"));
+        } else {
+          setError(t("invalidCredentials"));
+        }
+        return;
+      }
+    } catch {
+      // If login-check fails, fall through to normal signIn
+    }
+
     const res = await signIn("credentials", {
       username,
       password,

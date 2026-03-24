@@ -277,7 +277,10 @@
     "signIn": "Sign in",
     "tagline": "Knowledge base for Human–AI Agent collaboration",
     "createAccount": "Create an account",
-    "forgotPassword": "Forgot password?"
+    "forgotPassword": "Forgot password?",
+    "pendingVerification": "Please verify your email before logging in. Check your inbox for the verification link.",
+    "pendingApproval": "Your account is pending admin approval. Please wait for an administrator to approve your registration.",
+    "accountRejected": "Your account registration has been rejected. Please contact an administrator."
   },
   "Register": {
     "title": "Create Account",

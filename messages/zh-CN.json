@@ -277,7 +277,10 @@
     "signIn": "登录",
     "tagline": "面向人机协作的知识库",
     "createAccount": "创建账户",
-    "forgotPassword": "忘记密码？"
+    "forgotPassword": "忘记密码？",
+    "pendingVerification": "请先验证您的邮箱。请检查收件箱中的验证链接。",
+    "pendingApproval": "您的账号正在等待管理员审核。请等待管理员批准您的注册。",
+    "accountRejected": "您的账号注册已被拒绝。请联系管理员。"
   },
   "Register": {
     "title": "创建账户",
