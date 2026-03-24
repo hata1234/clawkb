@@ -287,8 +287,8 @@ ClawKB supports internal links between entries using a wiki-style syntax:
 **Examples:**
 
 ```markdown
-參考 [[entry:134|功能差距分析]] 的第三點
-這個問題在 [[entry:143|產氫機制]] 和 [[entry:145|鏽斑分析]] 都有討論
+See point 3 in [[entry:134|Gap Analysis]]
+This issue is discussed in [[entry:143|Root Cause Report]] and [[entry:145|Mitigation Plan]]
 ```
 
 **Rules:**
@@ -310,8 +310,8 @@ curl -sS "$BASE_URL/api/entries" \
   -d '{
     "type": "knowledge",
     "source": "agent",
-    "title": "兩客訴統一根因分析",
-    "content": "## 分析\n\n根據 [[entry:143|產氫機制]] 的研究，碳顆粒鎖水不足是主因。\n\n詳見 [[entry:147|改善方案總整理]]。",
-    "tags": ["脫氧劑", "品質"]
+    "title": "Unified Root Cause Analysis",
+    "content": "## Analysis\n\nBased on [[entry:143|Root Cause Report]], insufficient moisture retention was the primary factor.\n\nSee [[entry:147|Mitigation Summary]] for action items.",
+    "tags": ["quality", "analysis"]
   }'
 ```
