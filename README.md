@@ -10,6 +10,20 @@ ClawKB lets humans and AI agents co-create, search, and manage knowledge entries
 
 English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) | [日本語](./README.ja.md)
 
+## Screenshots
+
+| Dashboard | Entry Editor | Knowledge Graph |
+|:-:|:-:|:-:|
+| ![Dashboard](./docs/screenshots/dashboard.png) | ![Entry Editor](./docs/screenshots/entry-editor.png) | ![Knowledge Graph](./docs/screenshots/knowledge-graph.png) |
+
+| Search (⌘K) | Ask AI (RAG) | BPMN Flow Editor |
+|:-:|:-:|:-:|
+| ![Search](./docs/screenshots/search.png) | ![Ask AI](./docs/screenshots/ask-ai.png) | ![BPMN](./docs/screenshots/bpmn-editor.png) |
+
+| ACL Settings | Language Switcher |
+|:-:|:-:|
+| ![ACL](./docs/screenshots/acl-settings.png) | ![i18n](./docs/screenshots/i18n-switcher.png) |
+
 ## Features
 
 ### Core — Entries
@@ -30,12 +44,16 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) 
 
 ### Collaboration
 - 👥 **Multi-user Auth** — NextAuth.js sessions, registration + login
-- 🛡️ **ACL Permission System** — Role-based access control with fine-grained permissions (read/edit/delete/create × global/collection/entry/own scope); Roles define permissions, Groups assign default roles, Users can override
+- 🔒 **Registration Flow** — Configurable admin approval + email verification; specific login error messages for unverified/unapproved/rejected accounts
+- 🛡️ **ACL Permission System** — Group-based collection access control; each collection can be restricted to specific groups with admin/editor/viewer roles; built-in groups: "Everyone" (all including anonymous) and "Users" (all registered); effective role = highest across all user's groups; `User.isAdmin` bypasses all ACL
+- 🔐 **Feature Permissions** — Groups have boolean toggles: canCreateCollections, canUseRag, canExport, canManageWebhooks; UI elements hidden + API returns 403 when not permitted
+- 👤 **User Management** — Admin can delete users with entry transfer (reassign entries to another user) or cascade delete; entry/comment counts shown
 - 📧 **SMTP Email** — Gmail / custom SMTP, password reset flow, notification email delivery
+- ⏱️ **Forgot Password Rate Limiting** — 3 requests per email per 15 minutes
 - 🔔 **Notifications** — In-app notification bell with SSE real-time push, unread badge, mark-as-read
 - 💬 **Comments** — Per-entry discussion threads
 - 📜 **Revision History** — Auto-versioning with inline diff viewer; compare any two revisions or diff against current live content
-- 📊 **Activity Log** — Automatic CRUD + comment action logging at `/activity`
+- 📊 **Activity Log** — Automatic CRUD + comment action logging at `/activity`; non-admin users only see activity for entries in collections they can access
 - ⭐ **Favorites** — Star entries for quick access at `/favorites`
 - 🗑️ **Soft Delete & Trash** — Trash with restore and permanent delete (admin)
 - 🔗 **Share Links** — Time-limited, password-protected sharing for external access without login
@@ -50,7 +68,7 @@ English | [简体中文](./README.zh-CN.md) | [繁體中文](./README.zh-TW.md) 
 - 🐾 **[OpenClaw Skill + Plugin](https://github.com/hata1234/clawkb-openclaw)** — Install the companion skill to let your OpenClaw agent read, search, and write ClawKB entries directly from chat
 
 ### Import & Export
-- 📥 **Import** — Batch import from Markdown (.md), JSON, or CSV files with drag-and-drop UI, preview table, duplicate detection (skip/overwrite/create new)
+- 📥 **Import** — Batch import from Markdown (.md), JSON, or CSV files with drag-and-drop UI, preview table, duplicate detection (skip/overwrite/create new); requires selecting a target collection; only writable collections shown; backend validates write permission
 - 📤 **Export** — CSV, JSON, Markdown, and PDF formats with filter options
 - 📄 **PDF Export** — Formatted PDF with markdown rendering (headers, lists, tables, code blocks), CJK support (auto-downloads Noto Sans TC font), optional password encryption
 
@@ -316,7 +334,7 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 ## Roadmap
 
 ### ✅ Completed
-- [x] ACL permission system (custom groups + fine-grained read/edit/delete/create per scope)
+- [x] ACL permission system (group-based collection access with admin/editor/viewer roles + feature permission toggles per group)
 - [x] Revision diff viewer (inline diff + Current live comparison)
 - [x] RAG query endpoint + Ask AI chat UI with streaming
 - [x] Webhooks with HMAC-SHA256 signed delivery
@@ -327,14 +345,20 @@ ClawKB supports a file-based plugin system. Plugins live in the `plugins/` direc
 - [x] Internal links (`[[entry:ID|title]]`)
 - [x] Share links (time-limited + password-protected)
 - [x] Gateway auto-recall plugin with sender ACL
-
-### 🔜 Planned
 - [x] SMTP email system (Gmail / custom SMTP, password reset, notification emails)
 - [x] Notification system (in-app bell + SSE real-time push + email delivery)
-- [x] ACL unification refactor (Role + Group + User, fine-grained action×scope permissions)
+- [x] ACL unification refactor (Groups × Collections → roles, feature permission toggles per group)
 - [x] Global floating AI chatbox (Ask AI accessible from any page)
 - [x] Document number templates (auto-generate entry ID pattern e.g. QP-{collection}-{seq:4})
 - [x] BPMN flow designer + Content Tag System (plugin `{{tag:value}}` architecture)
+- [x] Collection-level ACL (per-collection group access control)
+- [x] Feature permissions (per-group toggles for create collections, RAG, export, webhooks)
+- [x] User management (admin delete with entry transfer/cascade)
+- [x] Registration flow (admin approval + email verification)
+- [x] Import ACL (collection selector with write permission validation)
+- [x] Activity log ACL filtering (non-admin users see only accessible collections)
+
+### 🔜 Planned
 - [ ] Collaborative editing (Yjs / Liveblocks)
 - [ ] Public sharing mode (public slug, no login required)
 - [ ] Mobile PWA
