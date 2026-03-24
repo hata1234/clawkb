@@ -682,7 +682,17 @@
     "roleOverride": "Role Override",
     "inheritFromGroup": "Inherit from Group",
     "effectiveRole": "Effective Role",
-    "approvalStatus": "Approval Status"
+    "approvalStatus": "Approval Status",
+    "deleteUser": "Delete User",
+    "deleteUserConfirm": "Are you sure you want to delete {name}?",
+    "userHasEntries": "This user has {count} entries and {comments} comments.",
+    "transferEntries": "Transfer entries to another user",
+    "deleteEntries": "Delete all entries",
+    "selectTransferTarget": "Select user to transfer entries to...",
+    "cannotDeleteSelf": "You cannot delete yourself",
+    "userDeleted": "User deleted successfully",
+    "userDeleteFailed": "Failed to delete user",
+    "noEntries": "This user has no entries."
   },
   "Webhooks": {
     "title": "Webhooks",

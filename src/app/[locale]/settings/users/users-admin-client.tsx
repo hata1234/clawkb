@@ -41,12 +41,31 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+interface DeleteDialogState {
+  open: boolean;
+  user: UserRecord | null;
+  entryCount: number;
+  commentCount: number;
+  action: "transfer" | "delete";
+  transferToId: number | null;
+  loading: boolean;
+}
+
 export default function UsersAdminClient() {
   const t = useTranslations("Users");
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [groups, setGroups] = useState<GroupOption[]>([]);
   const [message, setMessage] = useState("");
   const [newUser, setNewUser] = useState({ username: "", email: "", displayName: "", password: "", isAdmin: false });
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogState>({
+    open: false,
+    user: null,
+    entryCount: 0,
+    commentCount: 0,
+    action: "transfer",
+    transferToId: null,
+    loading: false,
+  });
 
   async function load() {
     const [usersRes, groupsRes] = await Promise.all([fetch("/api/users"), fetch("/api/groups")]);
@@ -91,6 +110,55 @@ export default function UsersAdminClient() {
       setMessage(t("userCreated"));
     } else {
       setMessage(data.error || t("userCreateFailed"));
+    }
+  }
+
+  async function openDeleteDialog(user: UserRecord) {
+    try {
+      const res = await fetch(`/api/users/${user.id}`);
+      const data = await res.json();
+      setDeleteDialog({
+        open: true,
+        user,
+        entryCount: data.stats?.entryCount || 0,
+        commentCount: data.stats?.commentCount || 0,
+        action: "transfer",
+        transferToId: null,
+        loading: false,
+      });
+    } catch (err) {
+      setMessage(t("userDeleteFailed"));
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteDialog.user) return;
+    const { user, action, transferToId, entryCount } = deleteDialog;
+
+    if (entryCount > 0 && action === "transfer" && !transferToId) {
+      setMessage(t("selectTransferTarget"));
+      return;
+    }
+
+    setDeleteDialog((d) => ({ ...d, loading: true }));
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryAction: entryCount > 0 ? action : "transfer", transferToId }),
+      });
+      if (res.ok) {
+        setUsers((current) => current.filter((u) => u.id !== user.id));
+        setMessage(t("userDeleted"));
+        setDeleteDialog((d) => ({ ...d, open: false, user: null }));
+      } else {
+        const data = await res.json();
+        setMessage(data.error || t("userDeleteFailed"));
+      }
+    } catch (err) {
+      setMessage(t("userDeleteFailed"));
+    } finally {
+      setDeleteDialog((d) => ({ ...d, loading: false }));
     }
   }
 
@@ -189,9 +257,30 @@ export default function UsersAdminClient() {
                     {user.agent ? ` · ${t("agent")}` : ""}
                   </div>
                 </div>
-                <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", textAlign: "right" }}>
-                  <div>{user.approvalStatus}</div>
-                  {user.isAdmin && <div style={{ marginTop: 2, color: "var(--accent)", fontWeight: 600 }}>Admin</div>}
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div style={{ color: "var(--text-dim)", fontSize: "0.8rem", textAlign: "right" }}>
+                    <div>{user.approvalStatus}</div>
+                    {user.isAdmin && (
+                      <div style={{ marginTop: 2, color: "var(--accent)", fontWeight: 600 }}>Admin</div>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openDeleteDialog(user)}
+                    title={t("deleteUser")}
+                    style={{
+                      background: "none",
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius-md)",
+                      color: "var(--danger, #ef4444)",
+                      cursor: "pointer",
+                      padding: "4px 10px",
+                      fontSize: "0.75rem",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {t("deleteUser")}
+                  </button>
                 </div>
               </div>
 
@@ -308,6 +397,162 @@ export default function UsersAdminClient() {
       </div>
 
       {message && <div style={{ color: "var(--accent)", fontSize: "0.85rem" }}>{message}</div>}
+
+      {/* Delete User Dialog */}
+      {deleteDialog.open && deleteDialog.user && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+          }}
+          onClick={() => setDeleteDialog((d) => ({ ...d, open: false }))}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-xl)",
+              padding: 28,
+              width: "100%",
+              maxWidth: 460,
+              margin: 16,
+            }}
+          >
+            <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 16, color: "var(--text)" }}>
+              {t("deleteUser")}
+            </h3>
+            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: 12 }}>
+              {t("deleteUserConfirm", { name: deleteDialog.user.displayName || deleteDialog.user.username })}
+            </p>
+
+            {deleteDialog.entryCount > 0 ? (
+              <div style={{ marginBottom: 16 }}>
+                <p
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--warning, #f59e0b)",
+                    marginBottom: 12,
+                    padding: "8px 12px",
+                    background: "rgba(245,158,11,0.08)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid rgba(245,158,11,0.15)",
+                  }}
+                >
+                  {t("userHasEntries", {
+                    count: deleteDialog.entryCount,
+                    comments: deleteDialog.commentCount,
+                  })}
+                </p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: "0.85rem",
+                      color: "var(--text)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="deleteAction"
+                      checked={deleteDialog.action === "transfer"}
+                      onChange={() => setDeleteDialog((d) => ({ ...d, action: "transfer" }))}
+                    />
+                    {t("transferEntries")}
+                  </label>
+
+                  {deleteDialog.action === "transfer" && (
+                    <select
+                      value={deleteDialog.transferToId || ""}
+                      onChange={(e) =>
+                        setDeleteDialog((d) => ({ ...d, transferToId: e.target.value ? Number(e.target.value) : null }))
+                      }
+                      style={{ ...inputStyle, marginLeft: 24, width: "calc(100% - 24px)" }}
+                    >
+                      <option value="">{t("selectTransferTarget")}</option>
+                      {users
+                        .filter((u) => u.id !== deleteDialog.user!.id)
+                        .map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.displayName || u.username} (@{u.username})
+                          </option>
+                        ))}
+                    </select>
+                  )}
+
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: "0.85rem",
+                      color: "var(--danger, #ef4444)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="deleteAction"
+                      checked={deleteDialog.action === "delete"}
+                      onChange={() => setDeleteDialog((d) => ({ ...d, action: "delete" }))}
+                    />
+                    {t("deleteEntries")}
+                  </label>
+                </div>
+              </div>
+            ) : (
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 16 }}>{t("noEntries")}</p>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <button
+                onClick={() => setDeleteDialog((d) => ({ ...d, open: false }))}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "0.85rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--border)",
+                  background: "var(--surface-hover)",
+                  color: "var(--text)",
+                  cursor: "pointer",
+                }}
+              >
+                {t("cancel") || "Cancel"}
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={
+                  deleteDialog.loading ||
+                  (deleteDialog.entryCount > 0 && deleteDialog.action === "transfer" && !deleteDialog.transferToId)
+                }
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "0.85rem",
+                  borderRadius: "var(--radius-md)",
+                  border: "none",
+                  background: "var(--danger, #ef4444)",
+                  color: "#fff",
+                  cursor: deleteDialog.loading ? "not-allowed" : "pointer",
+                  opacity: deleteDialog.loading ? 0.6 : 1,
+                  fontWeight: 600,
+                }}
+              >
+                {deleteDialog.loading ? "..." : t("deleteUser")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

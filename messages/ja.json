@@ -682,7 +682,17 @@
     "roleOverride": "ロール上書き",
     "inheritFromGroup": "グループから継承",
     "effectiveRole": "有効なロール",
-    "approvalStatus": "承認ステータス"
+    "approvalStatus": "承認ステータス",
+    "deleteUser": "ユーザー削除",
+    "deleteUserConfirm": "{name} を削除しますか？",
+    "userHasEntries": "このユーザーには {count} 件の記事と {comments} 件のコメントがあります。",
+    "transferEntries": "記事を他のユーザーに移行",
+    "deleteEntries": "すべての記事を削除",
+    "selectTransferTarget": "記事の移行先ユーザーを選択...",
+    "cannotDeleteSelf": "自分自身は削除できません",
+    "userDeleted": "ユーザーを削除しました",
+    "userDeleteFailed": "ユーザーの削除に失敗しました",
+    "noEntries": "このユーザーには記事がありません。"
   },
   "Webhooks": {
     "title": "Webhooks",

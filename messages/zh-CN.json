@@ -682,7 +682,17 @@
     "roleOverride": "角色覆盖",
     "inheritFromGroup": "继承分组角色",
     "effectiveRole": "生效角色",
-    "approvalStatus": "审核状态"
+    "approvalStatus": "审核状态",
+    "deleteUser": "删除用户",
+    "deleteUserConfirm": "确定要删除 {name} 吗？",
+    "userHasEntries": "此用户有 {count} 篇文章和 {comments} 条评论。",
+    "transferEntries": "将文章转移给其他用户",
+    "deleteEntries": "删除所有文章",
+    "selectTransferTarget": "选择要接收文章的用户...",
+    "cannotDeleteSelf": "无法删除自己",
+    "userDeleted": "用户已删除",
+    "userDeleteFailed": "删除用户失败",
+    "noEntries": "此用户没有文章。"
   },
   "Webhooks": {
     "title": "Webhooks",
