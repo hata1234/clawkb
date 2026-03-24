@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { icon14, thCell, tdCell, captionSecondary } from "@/styles/common";
 import {
@@ -201,12 +201,32 @@ function parseMarkdown(filename: string, text: string): ParsedEntry {
 
 /* ─── Component ─── */
 
+interface WritableCollection {
+  id: number;
+  name: string;
+  icon?: string;
+}
+
 export default function ImportClient() {
   const t = useTranslations("Import");
   const tc = useTranslations("Common");
   const [files, setFiles] = useState<File[]>([]);
   const [parsed, setParsed] = useState<ParsedEntry[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [collections, setCollections] = useState<WritableCollection[]>([]);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<number | null>(null);
+  const [collectionsLoaded, setCollectionsLoaded] = useState(false);
+
+  // Fetch writable collections on mount
+  useEffect(() => {
+    fetch("/api/collections/writable")
+      .then((r) => r.json())
+      .then((data) => {
+        setCollections(data.collections || []);
+        setCollectionsLoaded(true);
+      })
+      .catch(() => setCollectionsLoaded(true));
+  }, []);
   const [duplicateHandling, setDuplicateHandling] = useState<DuplicateHandling>("skip");
   const [defaultTags, setDefaultTags] = useState("");
   const [importing, setImporting] = useState(false);
@@ -301,6 +321,7 @@ export default function ImportClient() {
           body: JSON.stringify({
             entries: batch,
             defaultTags: tags,
+            defaultCollectionId: selectedCollectionId,
             duplicateHandling,
           }),
         });
@@ -321,7 +342,7 @@ export default function ImportClient() {
 
     setResults(combined);
     setImporting(false);
-  }, [parsed, defaultTags, duplicateHandling, t]);
+  }, [parsed, defaultTags, duplicateHandling, selectedCollectionId, t]);
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 20px" }}>
@@ -431,6 +452,35 @@ export default function ImportClient() {
                   <option value="skip">{t("skipDuplicates")}</option>
                   <option value="overwrite">{t("overwriteExisting")}</option>
                   <option value="create_new">{t("createNewAllowDuplicates")}</option>
+                </select>
+                <ChevronDown
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 14,
+                    height: 14,
+                    color: "var(--text-dim)",
+                    pointerEvents: "none",
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <label style={labelStyle}>{t("targetCollection")}</label>
+              <div style={{ position: "relative" }}>
+                <select
+                  value={selectedCollectionId ?? ""}
+                  onChange={(e) => setSelectedCollectionId(e.target.value ? Number(e.target.value) : null)}
+                  style={selectStyle}
+                >
+                  <option value="">{t("selectCollection")}</option>
+                  {collections.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.icon ? `${c.icon} ` : ""}{c.name}
+                    </option>
+                  ))}
                 </select>
                 <ChevronDown
                   style={{
@@ -673,10 +723,22 @@ export default function ImportClient() {
       {/* Actions */}
       <div style={{ display: "flex", gap: 12 }}>
         {parsed.length > 0 && !results && !importing && (
-          <button onClick={doImport} style={btnPrimary}>
+          <button
+            onClick={doImport}
+            disabled={!selectedCollectionId}
+            style={{
+              ...btnPrimary,
+              ...(!selectedCollectionId ? { opacity: 0.5, cursor: "not-allowed" } : {}),
+            }}
+          >
             <Upload style={{ width: 16, height: 16 }} />
             {t("importButton", { count: parsed.length })}
           </button>
+        )}
+        {parsed.length > 0 && !results && !importing && !selectedCollectionId && (
+          <span style={{ color: "var(--text-dim)", fontSize: "0.8rem", alignSelf: "center" }}>
+            {t("selectCollectionRequired")}
+          </span>
         )}
         {(parsed.length > 0 || results) && !importing && (
           <button onClick={resetState} style={btnSecondary}>

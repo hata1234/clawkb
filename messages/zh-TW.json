@@ -816,7 +816,10 @@
     "importDescription": "從 Markdown、JSON 或 CSV 檔案匯入條目。",
     "importEntries": "匯入條目",
     "tags": "標籤",
-    "type": "類型"
+    "type": "類型",
+    "targetCollection": "目標集合",
+    "selectCollection": "選擇一個集合...",
+    "selectCollectionRequired": "匯入前請先選擇目標集合"
   },
   "StatusBadge": {
     "new": "新建",

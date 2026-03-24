@@ -7,6 +7,7 @@ import { runEntryAfterCreateHooks, runEntryBeforeCreateHooks } from "@/lib/plugi
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { entryWithAuthorInclude } from "@/lib/entries";
+import { getAccessibleCollectionIds, getCollectionRole } from "@/lib/permissions";
 
 interface ImportEntry {
   title: string;
@@ -47,6 +48,21 @@ export async function POST(request: Request) {
 
   if (entries.length > 500) {
     return NextResponse.json({ error: "Maximum 500 entries per import" }, { status: 400 });
+  }
+
+  // Require collection selection and validate write permission
+  if (!defaultCollectionId) {
+    return NextResponse.json(
+      { error: "A target collection is required for import" },
+      { status: 400 },
+    );
+  }
+  const collectionRole = await getCollectionRole(principal.id, defaultCollectionId, principal.isAdmin);
+  if (!collectionRole || collectionRole === "viewer") {
+    return NextResponse.json(
+      { error: "You do not have write permission to the selected collection" },
+      { status: 403 },
+    );
   }
 
   const results = { created: 0, skipped: 0, overwritten: 0, errors: [] as string[] };

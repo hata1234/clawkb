@@ -816,7 +816,10 @@
     "importDescription": "Import entries from Markdown, JSON, or CSV files.",
     "importEntries": "Import Entries",
     "tags": "Tags",
-    "type": "Type"
+    "type": "Type",
+    "targetCollection": "Target Collection",
+    "selectCollection": "Select a collection...",
+    "selectCollectionRequired": "Please select a collection before importing"
   },
   "StatusBadge": {
     "new": "new",

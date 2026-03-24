@@ -816,7 +816,10 @@
     "importDescription": "Markdown、JSON、またはCSVファイルからエントリをインポートします。",
     "importEntries": "エントリをインポート",
     "tags": "タグ",
-    "type": "タイプ"
+    "type": "タイプ",
+    "targetCollection": "インポート先",
+    "selectCollection": "コレクションを選択...",
+    "selectCollectionRequired": "インポート前にコレクションを選択してください"
   },
   "StatusBadge": {
     "new": "新規",

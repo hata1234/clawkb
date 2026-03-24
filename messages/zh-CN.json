@@ -816,7 +816,10 @@
     "importDescription": "从 Markdown、JSON 或 CSV 文件导入条目。",
     "importEntries": "导入条目",
     "tags": "标签",
-    "type": "类型"
+    "type": "类型",
+    "targetCollection": "目标集合",
+    "selectCollection": "选择一个集合...",
+    "selectCollectionRequired": "导入前请先选择目标集合"
   },
   "StatusBadge": {
     "new": "新建",
