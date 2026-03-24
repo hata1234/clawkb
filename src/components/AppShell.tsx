@@ -13,7 +13,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isPublicPage = pathname === "/login" || pathname === "/register" || pathname.startsWith("/share/");
+  const isPublicPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/forgot-password" ||
+    pathname === "/reset-password" ||
+    pathname.startsWith("/share/");
 
   useEffect(() => {
     if (status === "unauthenticated" && !isPublicPage) {
