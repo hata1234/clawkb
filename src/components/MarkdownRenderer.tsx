@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeSlug from "rehype-slug";
 import remarkInternalLinks from "@/lib/remark-internal-links";
 import Link from "next/link";
 import { getContentTagComponent } from "@/lib/content-tag-registry";
@@ -34,7 +35,7 @@ export default function MarkdownRenderer({ content, resolvedTags }: Props) {
   if (tagMap.size === 0) {
     return (
       <div className="prose-kb">
-        <ReactMarkdown remarkPlugins={[remarkGfm, remarkInternalLinks]} components={markdownComponents}>
+        <ReactMarkdown remarkPlugins={[remarkGfm, remarkInternalLinks]} rehypePlugins={[rehypeSlug]} components={markdownComponents}>
           {content}
         </ReactMarkdown>
       </div>
@@ -67,6 +68,7 @@ export default function MarkdownRenderer({ content, resolvedTags }: Props) {
           <ReactMarkdown
             key={`md-${i}`}
             remarkPlugins={[remarkGfm, remarkInternalLinks]}
+            rehypePlugins={[rehypeSlug]}
             components={markdownComponents}
           >
             {segment}
@@ -79,6 +81,7 @@ export default function MarkdownRenderer({ content, resolvedTags }: Props) {
 
 const markdownComponents = {
   a: ({ href, children, ...props }: React.ComponentProps<"a">) => {
+    // Internal KB entry links
     if (href?.startsWith("/entries/")) {
       const className = (props as Record<string, unknown>).className as string | undefined;
       return (
@@ -91,6 +94,24 @@ const markdownComponents = {
         </Link>
       );
     }
+    // Anchor links (#section) — smooth scroll, no new tab
+    if (href?.startsWith("#")) {
+      return (
+        <a
+          href={href}
+          onClick={(e) => {
+            e.preventDefault();
+            const id = href.slice(1);
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          {...props}
+        >
+          {children}
+        </a>
+      );
+    }
+    // External links
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
         {children}

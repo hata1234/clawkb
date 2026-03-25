@@ -169,8 +169,8 @@ export async function POST(request: Request) {
   // Default type to "entry" if not specified
   const entryType = type || "entry";
 
-  if (!source || !title) {
-    return NextResponse.json({ error: "source and title are required" }, { status: 400 });
+  if (!title) {
+    return NextResponse.json({ error: "title is required" }, { status: 400 });
   }
 
   // Verify user has write permission on at least one of the submitted collectionIds
@@ -224,7 +224,7 @@ export async function POST(request: Request) {
   const entry = await prisma.entry.create({
     data: {
       type: entryType,
-      source,
+      source: source || "",
       title,
       summary: summary || null,
       content: content || null,
