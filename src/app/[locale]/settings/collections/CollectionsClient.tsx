@@ -71,7 +71,7 @@ const btnBase: React.CSSProperties = {
   transition: "all 0.15s ease",
 };
 
-const ROLES = ["admin", "editor", "viewer"] as const;
+const ROLES = ["admin", "approver", "reviewer", "editor", "viewer"] as const;
 
 function CollectionRow({
   node,

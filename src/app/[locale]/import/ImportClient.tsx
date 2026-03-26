@@ -243,6 +243,8 @@ export default function ImportClient() {
     setProgress(0);
   }, []);
 
+  const [docxConverting, setDocxConverting] = useState(false);
+
   const processFiles = useCallback(
     async (fileList: File[]) => {
       setParseError(null);
@@ -251,16 +253,22 @@ export default function ImportClient() {
       setFiles(fileList);
 
       const allEntries: ParsedEntry[] = [];
+      const docxFiles: File[] = [];
+
       for (const file of fileList) {
         try {
-          const text = await file.text();
           const ext = file.name.split(".").pop()?.toLowerCase();
 
-          if (ext === "json") {
+          if (ext === "docx" || ext === "doc") {
+            docxFiles.push(file);
+          } else if (ext === "json") {
+            const text = await file.text();
             allEntries.push(...parseJSON(text));
           } else if (ext === "csv") {
+            const text = await file.text();
             allEntries.push(...parseCSV(text));
           } else if (ext === "md" || ext === "markdown") {
+            const text = await file.text();
             allEntries.push(parseMarkdown(file.name, text));
           } else {
             setParseError(t("unsupportedFileType", { name: file.name }));
@@ -271,6 +279,34 @@ export default function ImportClient() {
           );
         }
       }
+
+      // Process .docx files via server-side pandoc conversion
+      if (docxFiles.length > 0) {
+        setDocxConverting(true);
+        try {
+          const formData = new FormData();
+          docxFiles.forEach((f) => formData.append("files", f));
+          const res = await fetch("/api/import/docx", { method: "POST", body: formData });
+          const data = await res.json();
+          if (!res.ok) {
+            setParseError(data.error || t("docxConversionFailed"));
+          } else {
+            if (data.documents) {
+              for (const doc of data.documents) {
+                allEntries.push({ title: doc.title, content: doc.content });
+              }
+            }
+            if (data.errors?.length > 0) {
+              setParseError(data.errors.join("; "));
+            }
+          }
+        } catch (err) {
+          setParseError(t("docxConversionFailed"));
+        } finally {
+          setDocxConverting(false);
+        }
+      }
+
       setParsed(allEntries);
     },
     [t],
@@ -280,7 +316,7 @@ export default function ImportClient() {
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
-      const droppedFiles = Array.from(e.dataTransfer.files).filter((f) => /\.(md|markdown|json|csv)$/i.test(f.name));
+      const droppedFiles = Array.from(e.dataTransfer.files).filter((f) => /\.(md|markdown|json|csv|docx?)$/i.test(f.name));
       if (droppedFiles.length > 0) processFiles(droppedFiles);
     },
     [processFiles],
@@ -381,10 +417,34 @@ export default function ImportClient() {
             ref={fileInputRef}
             type="file"
             multiple
-            accept=".md,.markdown,.json,.csv"
+            accept=".md,.markdown,.json,.csv,.docx,.doc"
             style={{ display: "none" }}
             onChange={handleFileSelect}
           />
+        </div>
+      )}
+
+      {/* DOCX converting */}
+      {docxConverting && (
+        <div
+          style={{
+            ...sectionStyle,
+            marginBottom: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <Loader2
+            style={{
+              width: 18,
+              height: 18,
+              color: "var(--accent)",
+              animation: "spin 1s linear infinite",
+              flexShrink: 0,
+            }}
+          />
+          <span style={{ color: "var(--text)", fontSize: "0.85rem" }}>{t("convertingDocx")}</span>
         </div>
       )}
 
@@ -410,7 +470,7 @@ export default function ImportClient() {
         <div style={{ marginBottom: 24, display: "flex", flexWrap: "wrap", gap: 8 }}>
           {files.map((f, i) => {
             const ext = f.name.split(".").pop()?.toLowerCase();
-            const Icon = ext === "json" ? FileCode : ext === "csv" ? FileSpreadsheet : FileText;
+            const Icon = ext === "json" ? FileCode : ext === "csv" ? FileSpreadsheet : ext === "docx" || ext === "doc" ? FileText : FileText;
             return (
               <span
                 key={i}

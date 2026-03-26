@@ -12,24 +12,37 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const entityType = searchParams.get("entityType") || undefined;
   const entityId = searchParams.get("entityId") ? parseInt(searchParams.get("entityId")!) : undefined;
-  const action = searchParams.get("action") || undefined;
+  const actionParam = searchParams.get("action") || undefined;
   const actorId = searchParams.get("actorId") ? parseInt(searchParams.get("actorId")!) : undefined;
-  const from = searchParams.get("from") || undefined;
-  const to = searchParams.get("to") || undefined;
+  const from = searchParams.get("from") || searchParams.get("startDate") || undefined;
+  const to = searchParams.get("to") || searchParams.get("endDate") || undefined;
+  const search = searchParams.get("search") || undefined;
   const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
-  const limit = Math.min(100, parseInt(searchParams.get("limit") || "50"));
+  const pageSize = searchParams.get("pageSize") ? parseInt(searchParams.get("pageSize")!) : undefined;
+  const limit = Math.min(10000, pageSize ?? parseInt(searchParams.get("limit") || "50"));
   const format = searchParams.get("format") || "json"; // json | csv
 
+  // Support comma-separated actions for multi-select
+  const actions = actionParam ? actionParam.split(",").filter(Boolean) : undefined;
+
   const where: Prisma.AuditEventWhereInput = {
-    ...(entityType && { entityType }),
+    ...(entityType && entityType !== "all" && { entityType }),
     ...(entityId && { entityId }),
-    ...(action && { action }),
+    ...(actions && actions.length === 1 && { action: actions[0] }),
+    ...(actions && actions.length > 1 && { action: { in: actions } }),
     ...(actorId && { actorId }),
     ...((from || to) && {
       createdAt: {
         ...(from && { gte: new Date(from) }),
         ...(to && { lte: new Date(to) }),
       },
+    }),
+    ...(search && {
+      OR: [
+        { entityId: { equals: isNaN(parseInt(search)) ? undefined : parseInt(search) } },
+        { changes: { path: [], string_contains: search } },
+        { metadata: { path: [], string_contains: search } },
+      ].filter((c) => Object.keys(c).length > 0),
     }),
   };
 
@@ -59,27 +72,38 @@ export async function GET(request: Request) {
   }));
 
   if (format === "csv") {
-    const header = "id,entityType,entityId,action,actorId,actor,changes,metadata,createdAt";
-    const rows = enriched.map((e) =>
-      [
-        e.id,
-        e.entityType,
-        e.entityId ?? "",
-        e.action,
-        e.actorId ?? "",
-        e.actor?.username ?? "",
-        e.changes ? JSON.stringify(e.changes).replace(/"/g, '""') : "",
-        e.metadata ? JSON.stringify(e.metadata).replace(/"/g, '""') : "",
+    const header = "timestamp,actor,action,entityType,entityId,changes_summary";
+    const rows = enriched.map((e) => {
+      const changes = e.changes as Record<string, unknown> | null;
+      let changesSummary = "";
+      if (changes && typeof changes === "object") {
+        const fromVal = changes.from ?? changes.old ?? changes.previous;
+        const toVal = changes.to ?? changes.new ?? changes.next;
+        if (fromVal !== undefined && toVal !== undefined) {
+          changesSummary = `${fromVal} → ${toVal}`;
+        } else {
+          changesSummary = Object.entries(changes)
+            .slice(0, 2)
+            .map(([k, v]) => `${k}: ${v}`)
+            .join("; ");
+        }
+      }
+      return [
         e.createdAt.toISOString(),
+        e.actor?.username ?? e.actorId?.toString() ?? "",
+        e.action,
+        e.entityType,
+        e.entityId?.toString() ?? "",
+        changesSummary,
       ]
-        .map((v) => `"${v}"`)
-        .join(","),
-    );
+        .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",");
+    });
     const csv = [header, ...rows].join("\n");
     return new Response(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="audit-${new Date().toISOString().slice(0, 10)}.csv"`,
+        "Content-Disposition": `attachment; filename="audit-trail-${new Date().toISOString().slice(0, 10)}.csv"`,
       },
     });
   }

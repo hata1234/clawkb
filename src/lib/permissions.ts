@@ -1,8 +1,8 @@
 import { prisma } from "./prisma";
 
-export type CollectionRole = "admin" | "editor" | "viewer";
+export type CollectionRole = "admin" | "approver" | "reviewer" | "editor" | "viewer";
 
-const RANK: Record<string, number> = { admin: 3, editor: 2, viewer: 1 };
+const RANK: Record<string, number> = { admin: 5, approver: 4, reviewer: 3, editor: 2, viewer: 1 };
 
 /**
  * Get user's effective role for a specific collection.
@@ -32,7 +32,11 @@ export async function getCollectionRole(
 
   if (roles.length === 0) return null;
 
-  return roles.reduce((best, r) => (RANK[r.role] > RANK[best.role] ? r : best)).role as CollectionRole;
+  const validRole = (r: string): r is CollectionRole =>
+    ["admin", "approver", "reviewer", "editor", "viewer"].includes(r);
+  return roles
+    .filter((r) => validRole(r.role))
+    .reduce((best, r) => (RANK[r.role] > RANK[best.role] ? r : best)).role as CollectionRole;
 }
 
 /**

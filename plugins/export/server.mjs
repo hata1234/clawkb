@@ -601,6 +601,64 @@ async function toPdf(entries, password) {
   return pdfBytes;
 }
 
+// ── compliance Watermark ───────────────────────────────────────────────────────────
+/**
+ * Apply compliance watermark + footer to PDF bytes.
+ * @param {ArrayBuffer|Uint8Array} pdfBytes
+ * @param {{ isControlled: boolean, username: string, docNumber: string|null, version: string|number|null }} opts
+ * @returns {Promise<Uint8Array>}
+ */
+async function addcomplianceWatermark(pdfBytes, { isControlled, username, docNumber, version }) {
+  const { PDFDocument, rgb, degrees, StandardFonts } = await import("pdf-lib-with-encrypt");
+  const pdfDoc = await PDFDocument.load(pdfBytes);
+  const pages = pdfDoc.getPages();
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+  const watermarkText = isControlled ? "CONTROLLED COPY" : "UNCONTROLLED COPY";
+  const watermarkColor = isControlled ? rgb(0.7, 0.7, 0.7) : rgb(1, 0.7, 0.7);
+  const watermarkOpacity = isControlled ? 0.15 : 0.12;
+
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  const printDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const footerText = `列印日期：${printDate} | 列印者：${username} | 文件編號：${docNumber || "N/A"} | 版次：${version || "1"}`;
+
+  for (const page of pages) {
+    const { width, height } = page.getSize();
+
+    // Diagonal watermark — draw multiple times across the page for tiling effect
+    const tilePositions = [
+      { x: width * 0.25, y: height * 0.35 },
+      { x: width * 0.25, y: height * 0.65 },
+      { x: width * 0.55, y: height * 0.2 },
+      { x: width * 0.55, y: height * 0.5 },
+      { x: width * 0.55, y: height * 0.8 },
+    ];
+    for (const { x, y } of tilePositions) {
+      page.drawText(watermarkText, {
+        x,
+        y,
+        size: 36,
+        font,
+        color: watermarkColor,
+        opacity: watermarkOpacity,
+        rotate: degrees(45),
+      });
+    }
+
+    // Footer
+    page.drawText(footerText, {
+      x: 30,
+      y: 14,
+      size: 7,
+      font,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+  }
+
+  return pdfDoc.save();
+}
+
 function makeResponse(mapped, format, filenameBase, fields) {
   const stamp = datestamp();
   const name = filenameBase || "clawkb-export";
@@ -670,7 +728,53 @@ export const api = {
 
         if (format === "pdf") {
           const password = searchParams.get("password") || undefined;
-          const pdfBytes = await toPdf(mapped, password);
+          let pdfBytes = await toPdf(mapped, password);
+
+          // ── compliance watermark for single-entry bulk export ──────────────────
+          // Only apply watermark when exporting exactly one entry and it has compliance lifecycle
+          if (entries.length === 1) {
+            const singleEntry = entries[0];
+            let complianceLifecycle = null;
+            try {
+              const lcRows = await context.prisma.$queryRawUnsafe(
+                `SELECT * FROM compliance_document_lifecycle WHERE entry_id = $1 LIMIT 1`,
+                singleEntry.id
+              );
+              if (Array.isArray(lcRows) && lcRows.length > 0) complianceLifecycle = lcRows[0];
+            } catch (e) {
+              console.warn("[export] compliance lifecycle check failed:", e.message);
+            }
+
+            if (complianceLifecycle) {
+              const isControlled = Boolean(complianceLifecycle.is_controlled);
+              const docNumber = singleEntry.doc_number || singleEntry.docNumber || null;
+              const version = singleEntry.version || singleEntry.metadata?.version || "1";
+              const username = context.principal?.username || context.principal?.displayName || "unknown";
+
+              try {
+                pdfBytes = await addcomplianceWatermark(pdfBytes, { isControlled, username, docNumber, version });
+              } catch (e) {
+                console.error("[export] compliance watermark failed:", e.message);
+              }
+
+              try {
+                await context.prisma.$queryRawUnsafe(
+                  `INSERT INTO audit_events ("entityType", "entityId", action, "actorId", changes, metadata, "createdAt")
+                   VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, NOW())`,
+                  "entry",
+                  String(singleEntry.id),
+                  "pdf_export",
+                  context.principal?.id ?? null,
+                  JSON.stringify({ isControlled }),
+                  JSON.stringify({ plugin: "clawcompliance", docNumber, watermark: isControlled ? "controlled" : "uncontrolled" })
+                );
+              } catch (e) {
+                console.error("[export] compliance audit log failed:", e.message);
+              }
+            }
+          }
+          // ────────────────────────────────────────────────────────────────
+
           return new Response(pdfBytes, {
             headers: {
               "Content-Type": "application/pdf",
@@ -726,7 +830,50 @@ export const api = {
 
         if (format === "pdf") {
           const password = searchParams.get("password") || undefined;
-          const pdfBytes = await toPdf(mapped, password);
+          let pdfBytes = await toPdf(mapped, password);
+
+          // ── compliance watermark + audit log ────────────────────────────────────
+          let complianceLifecycle = null;
+          try {
+            const lcRows = await context.prisma.$queryRawUnsafe(
+              `SELECT * FROM compliance_document_lifecycle WHERE entry_id = $1 LIMIT 1`,
+              entryId
+            );
+            if (Array.isArray(lcRows) && lcRows.length > 0) complianceLifecycle = lcRows[0];
+          } catch (e) {
+            console.warn("[export] compliance lifecycle check failed:", e.message);
+          }
+
+          if (complianceLifecycle) {
+            const isControlled = Boolean(complianceLifecycle.is_controlled);
+            const docNumber = entry.doc_number || entry.docNumber || null;
+            const version = entry.version || entry.metadata?.version || "1";
+            const username = context.principal?.username || context.principal?.displayName || "unknown";
+
+            try {
+              pdfBytes = await addcomplianceWatermark(pdfBytes, { isControlled, username, docNumber, version });
+            } catch (e) {
+              console.error("[export] compliance watermark failed:", e.message);
+            }
+
+            // Audit log
+            try {
+              await context.prisma.$queryRawUnsafe(
+                `INSERT INTO audit_events ("entityType", "entityId", action, "actorId", changes, metadata, "createdAt")
+                 VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, NOW())`,
+                "entry",
+                String(entryId),
+                "pdf_export",
+                context.principal?.id ?? null,
+                JSON.stringify({ isControlled }),
+                JSON.stringify({ plugin: "clawcompliance", docNumber, watermark: isControlled ? "controlled" : "uncontrolled" })
+              );
+            } catch (e) {
+              console.error("[export] compliance audit log failed:", e.message);
+            }
+          }
+          // ────────────────────────────────────────────────────────────────
+
           return new Response(pdfBytes, {
             headers: {
               "Content-Type": "application/pdf",

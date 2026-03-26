@@ -115,17 +115,59 @@ async function retrieveChunks(
     }));
 }
 
+async function enrichWithcomplianceMetadata(sources: RagSource[]): Promise<Map<number, Record<string, unknown>>> {
+  const entryIds = sources.map((s) => s.entryId);
+  if (entryIds.length === 0) return new Map();
+  try {
+    const { rows } = await pool.query(
+      `SELECT entry_id, document_number, document_level, status, effective_date,
+              review_due_date, review_cycle_days, revision, is_controlled,
+              last_review_date, review_count
+       FROM compliance_document_lifecycle WHERE entry_id = ANY($1::int[])`,
+      [entryIds],
+    );
+    const map = new Map<number, Record<string, unknown>>();
+    for (const r of rows) map.set(r.entry_id as number, r);
+    return map;
+  } catch {
+    // compliance plugin not installed or table doesn't exist — skip silently
+    return new Map();
+  }
+}
+
 function buildLLMMessages(
   systemPrompt: string,
   query: string,
   sources: RagSource[],
+  complianceMetadata?: Map<number, Record<string, unknown>>,
 ): Array<{ role: string; content: string }> {
   const contextBlock = sources
-    .map((s, i) => `[${i + 1}] Entry #${s.entryId} - "${s.title}" (${s.similarity}% match)\n${s.chunkText}`)
+    .map((s, i) => {
+      let header = `[${i + 1}] Entry #${s.entryId} - "${s.title}" (${s.similarity}% match)`;
+      const compliance = complianceMetadata?.get(s.entryId);
+      if (compliance) {
+        const parts: string[] = [];
+        if (compliance.document_number) parts.push(`Doc#: ${compliance.document_number}`);
+        if (compliance.document_level) parts.push(`Level: ${compliance.document_level}`);
+        if (compliance.status) parts.push(`Status: ${compliance.status}`);
+        if (compliance.revision) parts.push(`Rev: ${compliance.revision}`);
+        if (compliance.effective_date) parts.push(`Effective: ${String(compliance.effective_date).slice(0, 10)}`);
+        if (compliance.review_due_date) parts.push(`Review Due: ${String(compliance.review_due_date).slice(0, 10)}`);
+        if (compliance.is_controlled) parts.push("Controlled: Yes");
+        if (parts.length > 0) header += `\n[compliance: ${parts.join(" | ")}]`;
+      }
+      return `${header}\n${s.chunkText}`;
+    })
     .join("\n\n---\n\n");
 
+  // Augment system prompt if compliance documents are present
+  let finalPrompt = systemPrompt;
+  if (complianceMetadata && complianceMetadata.size > 0) {
+    finalPrompt += `\n\nSome documents are compliance-controlled with metadata (document number, level, status, revision, effective date, review due date). When answering about document versions, SOPs, or compliance:\n- Reference the document number (e.g. QP-001) and revision\n- Note the document status (draft/in_review/approved/published/obsolete)\n- Mention effective dates and review schedules when relevant\n- Distinguish between controlled and uncontrolled documents\n- For "latest version" questions, prioritize published status with the most recent effective date`;
+  }
+
   return [
-    { role: "system", content: systemPrompt },
+    { role: "system", content: finalPrompt },
     {
       role: "user",
       content: `Context from knowledge base:\n\n${contextBlock}\n\n---\n\nQuestion: ${query}`,
@@ -178,8 +220,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No relevant entries found" }, { status: 404 });
   }
 
+  // 2.5. Enrich with compliance metadata if available
+  const complianceMetadata = await enrichWithcomplianceMetadata(sources);
+
   // 3. Build LLM prompt
-  const messages = buildLLMMessages(ragConfig.systemPrompt, query, sources);
+  const messages = buildLLMMessages(ragConfig.systemPrompt, query, sources, complianceMetadata);
 
   // 4. Determine streaming mode
   const url = new URL(request.url);

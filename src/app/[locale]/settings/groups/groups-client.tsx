@@ -78,7 +78,7 @@ const btnDanger: React.CSSProperties = {
   fontSize: "0.82rem",
 };
 
-const ROLES = ["admin", "editor", "viewer"] as const;
+const ROLES = ["admin", "approver", "reviewer", "editor", "viewer"] as const;
 
 export default function GroupsClient() {
   const t = useTranslations("Groups");
