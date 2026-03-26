@@ -50,4 +50,4 @@ ecosystem.config.js
 
 # Plugin components (installed by external plugins, not part of core)
 src/components/plugins/
-ecosystem.compliance.config.js
+ecosystem.*.config.js
