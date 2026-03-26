@@ -22,7 +22,6 @@ import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
-import PluginLifecyclePanel from "@/components/PluginLifecyclePanel";
 import dynamic from "next/dynamic";
 const BpmnEditor = dynamic(() => import("@/components/BpmnEditor"), { ssr: false });
 
@@ -163,35 +162,49 @@ export default function EntryDetailPage() {
   const [editCollectionIds, setEditCollectionIds] = useState<number[]>([]);
   const [allCollections, setAllCollections] = useState<{ id: number; name: string; icon?: string | null }[]>([]);
 
-  // Plugin Lifecycle state
-  const [pluginLifecycle, setPluginLifecycle] = useState<Record<string, unknown> | null>(null);
-  const [pluginLoaded, setPluginLoaded] = useState(false);
+  // Plugin entry panels
+  const [pluginPanels, setPluginPanels] = useState<{ id: string; title: string; component: string; order?: number; enableButton?: { label: string; action: string } }[]>([]);
+  const [pluginPanelData, setPluginPanelData] = useState<Record<string, Record<string, unknown> | null>>({});
+  const [pluginPanelsLoaded, setPluginPanelsLoaded] = useState(false);
 
-  const fetchPluginLifecycle = useCallback(async (eid: number) => {
+  const fetchPluginPanels = useCallback(async () => {
     try {
-      const res = await fetch(`/api/plugins/private-plugin/lifecycle/${eid}`);
+      const res = await fetch("/api/plugins/entry-panels");
       if (res.ok) {
         const data = await res.json();
-        setPluginLifecycle(data.lifecycle || null);
+        setPluginPanels(data.panels || []);
       }
     } catch {
-      // Plugin plugin may not be active
+      // Plugin system may not be available
     } finally {
-      setPluginLoaded(true);
+      setPluginPanelsLoaded(true);
     }
   }, []);
 
-  const enablePluginControl = async () => {
-    if (!entry) return;
+  const fetchPanelData = useCallback(async (panel: { enableButton?: { label: string; action: string } }, eid: number) => {
+    if (!panel.enableButton) return;
     try {
-      const res = await fetch("/api/plugins/private-plugin/lifecycle", {
+      const res = await fetch(`${panel.enableButton.action}/${eid}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPluginPanelData(prev => ({ ...prev, [panel.enableButton!.action]: data.lifecycle || data.data || data }));
+      }
+    } catch {
+      // silent
+    }
+  }, []);
+
+  const enablePluginPanel = async (panel: { enableButton?: { label: string; action: string } }) => {
+    if (!entry || !panel.enableButton) return;
+    try {
+      const res = await fetch(panel.enableButton.action, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ entryId: entry.id }),
       });
       if (res.ok) {
-        fetchPluginLifecycle(entry.id);
-        fetchEntry(); // refresh entry to get updated docNumber
+        fetchPanelData(panel, entry.id);
+        fetchEntry();
       }
     } catch {
       // silent
@@ -275,8 +288,15 @@ export default function EntryDetailPage() {
     fetchEntry();
   }, [fetchEntry]);
   useEffect(() => {
-    if (params.id) fetchPluginLifecycle(Number(params.id));
-  }, [params.id, fetchPluginLifecycle]);
+    fetchPluginPanels();
+  }, [fetchPluginPanels]);
+  useEffect(() => {
+    if (params.id && pluginPanels.length > 0) {
+      for (const panel of pluginPanels) {
+        fetchPanelData(panel, Number(params.id));
+      }
+    }
+  }, [params.id, pluginPanels, fetchPanelData]);
   useEffect(() => {
     fetch(`/api/entries/${params.id}/comments`)
       .then((res) => (res.ok ? res.json() : { comments: [] }))
@@ -1009,46 +1029,63 @@ export default function EntryDetailPage() {
         ) : null}
       </div>
 
-      {/* Plugin Lifecycle Panel */}
-      {pluginLoaded && pluginLifecycle && entry && (
-        <PluginLifecyclePanel
-          entryId={entry.id}
-          entryStatus={entry.status}
-          lifecycle={pluginLifecycle as any}
-          onUpdate={() => {
-            fetchPluginLifecycle(entry.id);
-            fetchEntry();
-          }}
-        />
-      )}
-      {pluginLoaded && !pluginLifecycle && canEdit && (
-        <div style={{ marginBottom: 16, textAlign: "center" }}>
-          <button
-            onClick={enablePluginControl}
-            style={{
-              fontSize: "0.78rem",
-              color: "var(--text-dim)",
-              background: "none",
-              border: "1px dashed var(--border)",
-              borderRadius: "var(--radius-xl, 16px)",
-              padding: "10px 20px",
-              cursor: "pointer",
-              transition: "all 0.15s",
-              width: "100%",
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.borderColor = "var(--accent)";
-              (e.target as HTMLElement).style.color = "var(--accent)";
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.borderColor = "var(--border)";
-              (e.target as HTMLElement).style.color = "var(--text-dim)";
-            }}
-          >
-            📋 啟用品質管控
-          </button>
-        </div>
-      )}
+      {/* Plugin Entry Panels */}
+      {pluginPanelsLoaded && pluginPanels.map((panel) => {
+        const panelData = panel.enableButton ? pluginPanelData[panel.enableButton.action] : null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const DynamicPanel = dynamic(() => import(`@/components/${panel.component}`), { ssr: false }) as React.ComponentType<any>;
+
+        if (panelData) {
+          return (
+            <DynamicPanel
+              key={panel.id}
+              entryId={entry.id}
+              entryStatus={entry.status}
+              lifecycle={panelData}
+              entry={entry}
+              canEdit={canEdit}
+              onUpdate={() => {
+                if (panel.enableButton) fetchPanelData(panel, entry.id);
+                fetchEntry();
+              }}
+            />
+          );
+        }
+
+        // Show enable button if panel has enableButton config and no data exists
+        if (panel.enableButton && canEdit) {
+          return (
+            <div key={panel.id} style={{ marginBottom: 16, textAlign: "center" }}>
+              <button
+                onClick={() => enablePluginPanel(panel)}
+                style={{
+                  fontSize: "0.78rem",
+                  color: "var(--text-dim)",
+                  background: "none",
+                  border: "1px dashed var(--border)",
+                  borderRadius: "var(--radius-xl, 16px)",
+                  padding: "10px 20px",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  width: "100%",
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.borderColor = "var(--accent)";
+                  (e.target as HTMLElement).style.color = "var(--accent)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.borderColor = "var(--border)";
+                  (e.target as HTMLElement).style.color = "var(--text-dim)";
+                }}
+              >
+                {panel.enableButton.label}
+              </button>
+            </div>
+          );
+        }
+
+        return null;
+      })}
 
       {/* Images */}
       {entry.images && entry.images.length > 0 && (

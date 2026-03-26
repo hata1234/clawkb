@@ -737,7 +737,7 @@ function StorageTab({ settings, onToast }: { settings: AllSettings; onToast: (ms
         {field(t("accessKey"), "accessKey", { placeholder: "minioadmin" })}
         {field(t("secretKey"), "secretKey", { type: "password", placeholder: "••••••••" })}
         {field(t("bucket"), "bucket", { placeholder: "knowledge-hub" })}
-        {field(t("publicUrl"), "publicUrl", { placeholder: "https://minio.cellar.men/knowledge-hub" })}
+        {field(t("publicUrl"), "publicUrl", { placeholder: "https://s3.example.com/bucket" })}
       </div>
 
       {testResult && (

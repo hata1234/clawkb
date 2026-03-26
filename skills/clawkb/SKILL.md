@@ -260,7 +260,7 @@ curl -sS "$BASE_URL/api/entries/$ENTRY_ID/comments" \
 By default this skill provides **manual** ClawKB access — the agent must explicitly call the API to search. For **automatic** knowledge recall on every conversation, install the companion OpenClaw gateway plugin:
 
 ```bash
-openclaw plugins install @hata1234/clawkb-openclaw
+openclaw plugins install @clawkb/openclaw-plugin
 ```
 
 **What it does:**

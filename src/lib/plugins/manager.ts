@@ -18,6 +18,7 @@ import type {
   PluginContext,
   PluginDashboardWidget,
   PluginEntryCardElement,
+  PluginEntryPanel,
   PluginEntryRenderBlock,
   PluginManifest,
   PluginServerModule,
@@ -343,6 +344,20 @@ export async function getSettingsPanels(principal: AppPrincipal | null): Promise
     if (result?.length) items.push(...result);
   }
   return items;
+}
+
+/**
+ * Collect entry detail panels from all enabled plugins.
+ * These are dynamically loaded on the client via next/dynamic.
+ */
+export async function getEntryPanels(principal: AppPrincipal | null): Promise<PluginEntryPanel[]> {
+  const panels: PluginEntryPanel[] = [];
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.entry?.panels?.({ context: createPluginContext(principal) });
+    if (result?.length) panels.push(...result);
+  }
+  return panels.sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
 }
 
 /**

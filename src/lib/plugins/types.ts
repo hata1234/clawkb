@@ -98,6 +98,16 @@ export interface BeforeQueryContext {
   principal: AppPrincipal | null;
 }
 
+export interface PluginEntryPanel {
+  id: string;
+  title: string;
+  /** Component path relative to src/components/, e.g. "plugins/my-plugin/MyPanel" */
+  component: string;
+  order?: number;
+  /** Whether to show an "enable" button if no data exists */
+  enableButton?: { label: string; action: string };
+}
+
 export interface PluginSettingsPanel {
   id: string;
   title: string;
@@ -227,6 +237,10 @@ export interface PluginServerModule {
       principal: AppPrincipal | null;
       context: PluginContext;
     }) => Promise<void>;
+    /** Register entry detail panels (loaded dynamically on the client) */
+    panels?: (input: {
+      context: PluginContext;
+    }) => Promise<PluginEntryPanel[] | void>;
     render?: (input: {
       entry: Record<string, unknown>;
       context: PluginContext;

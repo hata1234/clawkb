@@ -47,3 +47,6 @@ next-env.d.ts
 
 # Local deployment config
 ecosystem.config.js
+
+# Plugin components (installed by external plugins, not part of core)
+src/components/plugins/

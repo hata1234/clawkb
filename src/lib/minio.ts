@@ -29,7 +29,7 @@ export const minioClient = new Minio.Client({
 
 export const BUCKET = process.env.S3_BUCKET ?? process.env.MINIO_BUCKET ?? "knowledge-hub";
 export const PUBLIC_URL =
-  process.env.S3_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL ?? "https://minio.cellar.men/knowledge-hub";
+  process.env.S3_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL ?? "";
 
 export async function uploadToMinio(buffer: Buffer, key: string, mimeType: string): Promise<string> {
   const { client, bucket, publicUrl } = await getMinioClient();

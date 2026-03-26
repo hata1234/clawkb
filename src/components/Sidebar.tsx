@@ -34,7 +34,19 @@ import { signOut } from "next-auth/react";
 import { useTheme } from "./ThemeProvider";
 import { Suspense } from "react";
 import CollectionTree from "./CollectionTree";
-import PluginDocumentTree from "./PluginDocumentTree";
+import dynamic from "next/dynamic";
+
+/**
+ * Dynamically load plugin sidebar components.
+ * These components live in src/components/plugins/ (gitignored) and are
+ * installed by external plugins. If the component doesn't exist, nothing renders.
+ */
+const PluginDocumentTree = dynamic(
+  () => import("@/components/plugins/private-plugin/PluginDocumentTree").catch(() => {
+    return { default: () => null };
+  }),
+  { ssr: false }
+);
 import NotificationBell from "./NotificationBell";
 
 const browseItems = [
@@ -240,7 +252,7 @@ export default function Sidebar({
           <CollectionTree collapsed={collapsed} />
         </Suspense>
 
-        {/* Plugin Document Taxonomy */}
+        {/* Plugin Document Taxonomy (e.g. Plugin) */}
         <PluginDocumentTree collapsed={collapsed} />
 
         {/* Settings */}

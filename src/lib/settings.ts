@@ -33,7 +33,7 @@ export const DEFAULT_STORAGE = {
   accessKey: process.env.S3_ACCESS_KEY ?? process.env.MINIO_ACCESS_KEY ?? "minioadmin",
   secretKey: process.env.S3_SECRET_KEY ?? process.env.MINIO_SECRET_KEY ?? "minioadmin",
   bucket: process.env.S3_BUCKET ?? process.env.MINIO_BUCKET ?? "knowledge-hub",
-  publicUrl: process.env.S3_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL ?? "https://minio.cellar.men/knowledge-hub",
+  publicUrl: process.env.S3_PUBLIC_URL ?? process.env.MINIO_PUBLIC_URL ?? "",
 };
 
 export const DEFAULT_AUTH = {
