@@ -43,3 +43,6 @@ data/fonts/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Private plugins (not open source)
+plugins/private-plugin/
