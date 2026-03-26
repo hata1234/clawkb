@@ -95,7 +95,7 @@ export async function listPlugins(): Promise<PluginRecord[]> {
   const dirs = await fs.readdir(PLUGINS_DIR, { withFileTypes: true });
   const plugins = await Promise.all(
     dirs
-      .filter((entry) => entry.isDirectory())
+      .filter((entry) => entry.isDirectory() || entry.isSymbolicLink())
       .map(async (entry) => {
         const dir = path.join(PLUGINS_DIR, entry.name);
         try {
