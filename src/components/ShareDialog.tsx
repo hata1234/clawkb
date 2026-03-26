@@ -489,7 +489,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
                           style={{
                             ...btnBase,
                             background: "var(--danger)",
-                            color: "#fff",
+                            color: "var(--accent-contrast)",
                             fontSize: "0.75rem",
                             padding: "5px 10px",
                           }}

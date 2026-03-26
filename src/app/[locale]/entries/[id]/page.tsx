@@ -704,7 +704,7 @@ export default function EntryDetailPage() {
             <button
               onClick={deleteEntry}
               disabled={deleting}
-              style={{ ...btnBase, background: "var(--danger)", color: "#fff" }}
+              style={{ ...btnBase, background: "var(--danger)", color: "var(--accent-contrast)" }}
             >
               {deleting && <Loader2 style={icon12} />} {t("moveToTrash")}
             </button>

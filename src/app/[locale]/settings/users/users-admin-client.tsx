@@ -541,7 +541,7 @@ export default function UsersAdminClient() {
                   borderRadius: "var(--radius-md)",
                   border: "none",
                   background: "var(--danger, #ef4444)",
-                  color: "#fff",
+                  color: "var(--accent-contrast)",
                   cursor: deleteDialog.loading ? "not-allowed" : "pointer",
                   opacity: deleteDialog.loading ? 0.6 : 1,
                   fontWeight: 600,

@@ -127,7 +127,7 @@ export default function NotificationBell({ collapsed }: { collapsed?: boolean })
               height: 16,
               borderRadius: 999,
               background: "var(--danger)",
-              color: "#fff",
+              color: "var(--accent-contrast)",
               fontSize: "0.6rem",
               fontWeight: 700,
               display: "flex",

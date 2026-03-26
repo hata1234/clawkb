@@ -283,7 +283,7 @@ export default function Sidebar({
                     marginLeft: 6,
                     fontSize: "0.65rem",
                     background: "var(--danger)",
-                    color: "#fff",
+                    color: "var(--accent-contrast)",
                     padding: "1px 6px",
                     borderRadius: 999,
                     fontWeight: 600,

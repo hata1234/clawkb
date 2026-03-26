@@ -71,7 +71,7 @@ export default function AppearanceClient() {
                 border: "2px solid var(--border)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                {mode === "dark" ? <Moon style={{ width: 16, height: 16, color: "#C9A96E" }} /> : <Sun style={{ width: 16, height: 16, color: "#EAB308" }} />}
+                {mode === "dark" ? <Moon style={{ width: 16, height: 16, color: "var(--accent)" }} /> : <Sun style={{ width: 16, height: 16, color: "var(--warning)" }} />}
               </div>
               <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text)" }}>
                 {t(mode === "dark" ? "dark" : "light")}

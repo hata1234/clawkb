@@ -175,7 +175,7 @@ export default function FloatingChat() {
           height: 56,
           borderRadius: "50%",
           background: "var(--accent, #C9A96E)",
-          color: "#fff",
+          color: "var(--accent-contrast)",
           border: "none",
           cursor: "pointer",
           display: "flex",

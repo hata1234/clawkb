@@ -112,7 +112,7 @@ export default function ImageUpload({ images, onChange, maxImages = 20 }: ImageU
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: "pointer",
-                  color: "#fff",
+                  color: "var(--accent-contrast)",
                 }}
               >
                 <X style={{ width: 14, height: 14 }} />
