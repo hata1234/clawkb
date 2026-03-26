@@ -51,3 +51,7 @@ ecosystem.config.js
 # Plugin components (installed by external plugins, not part of core)
 src/components/plugins/
 ecosystem.*.config.js
+
+# External plugin symlinks
+src/components/plugins/*/
+!src/components/plugins/.gitkeep
