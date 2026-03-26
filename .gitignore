@@ -45,4 +45,4 @@ data/fonts/
 next-env.d.ts
 
 # Private plugins (not open source)
-plugins/private-plugin/
+plugins/private-plugin
