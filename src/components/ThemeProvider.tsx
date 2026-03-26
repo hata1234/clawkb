@@ -63,6 +63,18 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     if (storedPreset === "craft" || storedPreset === "corporate" || storedPreset === "minimal") {
       setPresetState(storedPreset);
       loadPresetCSS(storedPreset);
+    } else {
+      // No user preference — check if a plugin provides a default theme
+      fetch("/api/plugins/branding")
+        .then((r) => r.ok ? r.json() : null)
+        .then((branding) => {
+          if (branding?.defaultTheme && !localStorage.getItem("clawkb-preset")) {
+            const pluginPreset = branding.defaultTheme as ThemePreset;
+            setPresetState(pluginPreset);
+            loadPresetCSS(pluginPreset);
+          }
+        })
+        .catch(() => {}); // ignore — craft default is fine
     }
 
     const storedDensity = localStorage.getItem("clawkb-density") as Density | null;
