@@ -7,6 +7,7 @@ import SessionProvider from "@/components/SessionProvider";
 import AppShell from "@/components/AppShell";
 import ThemeProvider from "@/components/ThemeProvider";
 import { ThemeScript } from "@/components/ThemeScript";
+import ThemePresetLoader from "@/components/ThemePresetLoader";
 
 type Props = {
   children: React.ReactNode;
@@ -51,6 +52,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <NextIntlClientProvider>
           <ThemeProvider>
             <SessionProvider>
+              <ThemePresetLoader />
               <AppShell>{children}</AppShell>
             </SessionProvider>
           </ThemeProvider>

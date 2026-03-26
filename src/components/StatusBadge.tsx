@@ -1,18 +1,20 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useStatuses } from "@/hooks/useStatuses";
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
-  new: { bg: "rgba(251,191,36,0.1)", text: "var(--status-new)", dot: "var(--status-new)" },
-  interested: { bg: "rgba(96,165,250,0.1)", text: "var(--status-interested)", dot: "var(--status-interested)" },
-  in_progress: { bg: "rgba(192,132,252,0.1)", text: "var(--status-in-progress)", dot: "var(--status-in-progress)" },
-  done: { bg: "rgba(74,222,128,0.1)", text: "var(--status-done)", dot: "var(--status-done)" },
-  archived: { bg: "rgba(113,113,122,0.1)", text: "var(--status-archived)", dot: "var(--status-archived)" },
-};
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 
 export default function StatusBadge({ status }: { status: string }) {
   const t = useTranslations("StatusBadge");
-  const style = STATUS_STYLES[status] || STATUS_STYLES.archived;
+  const { getColor } = useStatuses();
+  const color = getColor(status);
 
   return (
     <span
@@ -26,8 +28,8 @@ export default function StatusBadge({ status }: { status: string }) {
         padding: "4px 10px",
         borderRadius: 999,
         textTransform: "capitalize",
-        backgroundColor: style.bg,
-        color: style.text,
+        backgroundColor: hexToRgba(color, 0.1),
+        color,
         whiteSpace: "nowrap",
       }}
     >
@@ -37,11 +39,11 @@ export default function StatusBadge({ status }: { status: string }) {
           width: 6,
           height: 6,
           borderRadius: "50%",
-          backgroundColor: style.dot,
+          backgroundColor: color,
           flexShrink: 0,
         }}
       />
-      {t.has(status) ? t(status) : status.replace("_", " ")}
+      {t.has(status) ? t(status) : status.replace(/_/g, " ")}
     </span>
   );
 }

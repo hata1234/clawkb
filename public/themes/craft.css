@@ -1,0 +1,3 @@
+/* Craft Theme Preset (current ClawKB default — no-op) */
+/* This file exists for symmetry. The craft/editorial style is the built-in default in globals.css. */
+/* Plugins can reference "craft" as the theme name to indicate "use defaults". */

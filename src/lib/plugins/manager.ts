@@ -390,9 +390,12 @@ export async function getBranding(principal: AppPrincipal | null): Promise<Plugi
  */
 export async function getStatusDefinitions(principal: AppPrincipal | null): Promise<PluginStatusDef[]> {
   const defs: PluginStatusDef[] = [
-    // Built-in defaults
-    { key: "new", label: "New", color: "#6b7280" },
-    { key: "active", label: "Active", color: "#22c55e" },
+    // Built-in defaults (KB defaults)
+    { key: "new", label: "New", color: "#facc15" },
+    { key: "interested", label: "Interested", color: "#60a5fa" },
+    { key: "in_progress", label: "In Progress", color: "#c084fc" },
+    { key: "done", label: "Done", color: "#4ade80" },
+    { key: "dismissed", label: "Dismissed", color: "#71717a" },
     { key: "archived", label: "Archived", color: "#9ca3af" },
   ];
   for (const plugin of await getEnabledPlugins()) {
