@@ -14,6 +14,8 @@ export function ThemeScript() {
           "var t=localStorage.getItem('clawkb-theme');",
           "if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t)}",
           "else{document.documentElement.setAttribute('data-theme','dark')}",
+          "var d=localStorage.getItem('clawkb-density');",
+          "if(d==='compact'){document.documentElement.setAttribute('data-density','compact')}",
           "}catch(e){document.documentElement.setAttribute('data-theme','dark')}",
           "})()",
         ].join(""),

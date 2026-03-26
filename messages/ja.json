@@ -517,7 +517,8 @@
     "smtp": "SMTP / メール",
     "roles": "ロール",
     "groups": "グループ",
-    "notifications": "通知"
+    "notifications": "通知",
+    "appearance": "外観"
   },
   "AuthSettings": {
     "allowRegistration": "ユーザー登録を許可",
@@ -1070,5 +1071,18 @@
     "controlled": "管理対象",
     "uncontrolled": "管理対象外",
     "next12Months": "今後12ヶ月"
+  },
+  "Appearance": {
+    "colorMode": "カラーモード",
+    "dark": "ダーク",
+    "light": "ライト",
+    "themePreset": "テーマプリセット",
+    "presetCraft": "Craft",
+    "presetCorporate": "Corporate",
+    "presetMinimal": "Minimal",
+    "density": "表示密度",
+    "densityComfortable": "ゆったり",
+    "densityCompact": "コンパクト",
+    "previewHint": "すべての設定は即座に反映され、ブラウザに保存されます。"
   }
 }

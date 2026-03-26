@@ -52,6 +52,30 @@
   --status-in-progress: #C084FC;
   --status-done: #4ADE80;
   --status-archived: #71717A;
+
+  /* Density — comfortable (default) */
+  --density-gap-xs: 4px;
+  --density-gap-sm: 8px;
+  --density-gap-md: 12px;
+  --density-gap-lg: 16px;
+  --density-gap-xl: 24px;
+  --density-padding-card: 16px;
+  --density-padding-cell: 10px 12px;
+  --density-font-sm: 0.875rem;
+  --density-row-height: 44px;
+}
+
+/* ═══ Compact density ═══ */
+[data-density="compact"] {
+  --density-gap-xs: 2px;
+  --density-gap-sm: 4px;
+  --density-gap-md: 8px;
+  --density-gap-lg: 12px;
+  --density-gap-xl: 16px;
+  --density-padding-card: 10px;
+  --density-padding-cell: 6px 8px;
+  --density-font-sm: 0.8rem;
+  --density-row-height: 36px;
 }
 
 /* ═══ Light theme ═══ */

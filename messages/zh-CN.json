@@ -517,7 +517,8 @@
     "smtp": "SMTP / 邮件",
     "roles": "角色",
     "groups": "分组",
-    "notifications": "通知"
+    "notifications": "通知",
+    "appearance": "外观"
   },
   "AuthSettings": {
     "allowRegistration": "允许用户注册",
@@ -1070,5 +1071,18 @@
     "controlled": "受控",
     "uncontrolled": "非受控",
     "next12Months": "未来 12 个月"
+  },
+  "Appearance": {
+    "colorMode": "色彩模式",
+    "dark": "深色",
+    "light": "浅色",
+    "themePreset": "主题风格",
+    "presetCraft": "Craft",
+    "presetCorporate": "Corporate",
+    "presetMinimal": "Minimal",
+    "density": "密度",
+    "densityComfortable": "舒适",
+    "densityCompact": "紧凑",
+    "previewHint": "所有设置即时生效，保存在你的浏览器中。"
   }
 }

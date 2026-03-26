@@ -517,7 +517,8 @@
     "smtp": "SMTP / Email",
     "roles": "Roles",
     "groups": "Groups",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "appearance": "Appearance"
   },
   "AuthSettings": {
     "allowRegistration": "Allow user registration",
@@ -1070,5 +1071,18 @@
     "controlled": "Controlled",
     "uncontrolled": "Uncontrolled",
     "next12Months": "Next 12 Months"
+  },
+  "Appearance": {
+    "colorMode": "Color Mode",
+    "dark": "Dark",
+    "light": "Light",
+    "themePreset": "Theme Preset",
+    "presetCraft": "Craft",
+    "presetCorporate": "Corporate",
+    "presetMinimal": "Minimal",
+    "density": "Density",
+    "densityComfortable": "Comfortable",
+    "densityCompact": "Compact",
+    "previewHint": "All settings take effect immediately and are saved in your browser."
   }
 }
