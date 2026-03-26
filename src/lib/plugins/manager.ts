@@ -29,6 +29,23 @@ import type {
 
 const PLUGINS_DIR = path.join(process.cwd(), "plugins");
 
+/**
+ * External plugin directories loaded from CLAWKB_EXTERNAL_PLUGINS env var.
+ * Comma-separated absolute paths, e.g.:
+ *   CLAWKB_EXTERNAL_PLUGINS=/path/to/private-plugin/plugin,/path/to/another
+ *
+ * These are merged with built-in plugins at load time.
+ * No trace of external plugins appears in the open-source repo.
+ */
+function getExternalPluginDirs(): string[] {
+  const env = process.env.CLAWKB_EXTERNAL_PLUGINS;
+  if (!env) return [];
+  return env
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 // Track which plugins have had migrations checked this process lifecycle
 const _migrationsChecked = new Set<string>();
 
@@ -92,12 +109,20 @@ async function loadServerModule(dir: string): Promise<PluginServerModule | null>
 export async function listPlugins(): Promise<PluginRecord[]> {
   await ensurePluginsDir();
   const pluginSettings = await getSetting("plugins", DEFAULT_PLUGIN_SETTINGS);
+
+  // Built-in plugins (from repo plugins/ dir)
   const dirs = await fs.readdir(PLUGINS_DIR, { withFileTypes: true });
+  const builtInDirs = dirs
+    .filter((entry) => entry.isDirectory() || entry.isSymbolicLink())
+    .map((entry) => path.join(PLUGINS_DIR, entry.name));
+
+  // External plugins (from env var — private, no trace in repo)
+  const externalDirs = getExternalPluginDirs();
+
+  const allDirs = [...builtInDirs, ...externalDirs];
+
   const plugins = await Promise.all(
-    dirs
-      .filter((entry) => entry.isDirectory() || entry.isSymbolicLink())
-      .map(async (entry) => {
-        const dir = path.join(PLUGINS_DIR, entry.name);
+    allDirs.map(async (dir) => {
         try {
           const manifest = await readManifest(dir);
           return {

@@ -44,5 +44,6 @@ data/fonts/
 *.tsbuildinfo
 next-env.d.ts
 
-# Private plugins (not open source)
-plugins/private-plugin
+
+# Local deployment config
+ecosystem.config.js
