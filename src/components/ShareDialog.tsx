@@ -31,10 +31,10 @@ interface ShareDialogProps {
 
 const EXPIRY_OPTIONS = [
   { key: "noExpiry", value: 0 },
-  { key: "1hour", value: 1 },
-  { key: "24hours", value: 24 },
-  { key: "7days", value: 168 },
-  { key: "30days", value: 720 },
+  { key: "oneHour", value: 1 },
+  { key: "twentyFourHours", value: 24 },
+  { key: "sevenDays", value: 168 },
+  { key: "thirtyDays", value: 720 },
 ];
 
 // Extract [[entry:ID|title]] from content
@@ -258,7 +258,7 @@ export default function ShareDialog({ entryId, entryContent, onClose }: ShareDia
               >
                 {EXPIRY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
-                    {t(`expiry.${opt.key}`)}
+                    {t(opt.key)}
                   </option>
                 ))}
               </select>

@@ -97,6 +97,20 @@ export default function SharePage() {
       } else {
         const data = await res.json().catch(() => ({}));
         if (data.requiresPassword) {
+          // Try auto-verify with saved password from parent share
+          const saved = sessionStorage.getItem("clawkb-share-pw");
+          if (saved) {
+            const autoRes = await fetch(`/api/share/${token}/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ password: saved }),
+            });
+            if (autoRes.ok) {
+              setEntry(await autoRes.json());
+              setLoading(false);
+              return;
+            }
+          }
           setNeedsPassword(true);
         } else {
           setError(data.error || "This link is no longer available");
@@ -116,6 +130,7 @@ export default function SharePage() {
       body: JSON.stringify({ password }),
     });
     if (res.ok) {
+      sessionStorage.setItem("clawkb-share-pw", password);
       setEntry(await res.json());
       setNeedsPassword(false);
     } else {
