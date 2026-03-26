@@ -22,6 +22,7 @@ import MentionTextarea from "@/components/MentionTextarea";
 import RelatedEntries from "@/components/RelatedEntries";
 import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
+import PluginLifecyclePanel from "@/components/PluginLifecyclePanel";
 import dynamic from "next/dynamic";
 const BpmnEditor = dynamic(() => import("@/components/BpmnEditor"), { ssr: false });
 
@@ -162,6 +163,41 @@ export default function EntryDetailPage() {
   const [editCollectionIds, setEditCollectionIds] = useState<number[]>([]);
   const [allCollections, setAllCollections] = useState<{ id: number; name: string; icon?: string | null }[]>([]);
 
+  // Plugin Lifecycle state
+  const [pluginLifecycle, setPluginLifecycle] = useState<Record<string, unknown> | null>(null);
+  const [pluginLoaded, setPluginLoaded] = useState(false);
+
+  const fetchPluginLifecycle = useCallback(async (eid: number) => {
+    try {
+      const res = await fetch(`/api/plugins/private-plugin/lifecycle/${eid}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPluginLifecycle(data.lifecycle || null);
+      }
+    } catch {
+      // Plugin plugin may not be active
+    } finally {
+      setPluginLoaded(true);
+    }
+  }, []);
+
+  const enablePluginControl = async () => {
+    if (!entry) return;
+    try {
+      const res = await fetch("/api/plugins/private-plugin/lifecycle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entryId: entry.id }),
+      });
+      if (res.ok) {
+        fetchPluginLifecycle(entry.id);
+        fetchEntry(); // refresh entry to get updated docNumber
+      }
+    } catch {
+      // silent
+    }
+  };
+
   const exportEntry = (format: "json" | "csv" | "markdown" | "pdf") => {
     if (!entry) return;
     if (format === "pdf") {
@@ -238,6 +274,9 @@ export default function EntryDetailPage() {
   useEffect(() => {
     fetchEntry();
   }, [fetchEntry]);
+  useEffect(() => {
+    if (params.id) fetchPluginLifecycle(Number(params.id));
+  }, [params.id, fetchPluginLifecycle]);
   useEffect(() => {
     fetch(`/api/entries/${params.id}/comments`)
       .then((res) => (res.ok ? res.json() : { comments: [] }))
@@ -969,6 +1008,47 @@ export default function EntryDetailPage() {
           </div>
         ) : null}
       </div>
+
+      {/* Plugin Lifecycle Panel */}
+      {pluginLoaded && pluginLifecycle && entry && (
+        <PluginLifecyclePanel
+          entryId={entry.id}
+          entryStatus={entry.status}
+          lifecycle={pluginLifecycle as any}
+          onUpdate={() => {
+            fetchPluginLifecycle(entry.id);
+            fetchEntry();
+          }}
+        />
+      )}
+      {pluginLoaded && !pluginLifecycle && canEdit && (
+        <div style={{ marginBottom: 16, textAlign: "center" }}>
+          <button
+            onClick={enablePluginControl}
+            style={{
+              fontSize: "0.78rem",
+              color: "var(--text-dim)",
+              background: "none",
+              border: "1px dashed var(--border)",
+              borderRadius: "var(--radius-xl, 16px)",
+              padding: "10px 20px",
+              cursor: "pointer",
+              transition: "all 0.15s",
+              width: "100%",
+            }}
+            onMouseEnter={(e) => {
+              (e.target as HTMLElement).style.borderColor = "var(--accent)";
+              (e.target as HTMLElement).style.color = "var(--accent)";
+            }}
+            onMouseLeave={(e) => {
+              (e.target as HTMLElement).style.borderColor = "var(--border)";
+              (e.target as HTMLElement).style.color = "var(--text-dim)";
+            }}
+          >
+            📋 啟用品質管控
+          </button>
+        </div>
+      )}
 
       {/* Images */}
       {entry.images && entry.images.length > 0 && (

@@ -34,6 +34,7 @@ import { signOut } from "next-auth/react";
 import { useTheme } from "./ThemeProvider";
 import { Suspense } from "react";
 import CollectionTree from "./CollectionTree";
+import PluginDocumentTree from "./PluginDocumentTree";
 import NotificationBell from "./NotificationBell";
 
 const browseItems = [
@@ -238,6 +239,9 @@ export default function Sidebar({
         <Suspense fallback={null}>
           <CollectionTree collapsed={collapsed} />
         </Suspense>
+
+        {/* Plugin Document Taxonomy */}
+        <PluginDocumentTree collapsed={collapsed} />
 
         {/* Settings */}
         <Link
