@@ -9,6 +9,7 @@ import { uploadToMinio, getMinioClient } from "@/lib/minio";
 import { generateAndStoreEmbedding } from "@/lib/embedding";
 import { autoTagEntry } from "@/lib/auto-tag";
 import { DEFAULT_PLUGIN_SETTINGS, getAllSettings, getSetting, setSetting } from "@/lib/settings";
+import { runPluginMigrations } from "./migrator";
 import type { AppPrincipal } from "@/lib/auth";
 import type {
   PluginApiRoute,
@@ -27,6 +28,28 @@ import type {
 } from "./types";
 
 const PLUGINS_DIR = path.join(process.cwd(), "plugins");
+
+// Track which plugins have had migrations checked this process lifecycle
+const _migrationsChecked = new Set<string>();
+
+/**
+ * Ensure a plugin's schema migrations are up to date.
+ * Only runs once per plugin per process.
+ */
+async function ensureMigrations(pluginId: string, pluginDir: string): Promise<void> {
+  if (_migrationsChecked.has(pluginId)) return;
+  _migrationsChecked.add(pluginId);
+
+  try {
+    const count = await runPluginMigrations(pluginId, pluginDir);
+    if (count > 0) {
+      console.log(`[plugins] Applied ${count} migration(s) for ${pluginId}`);
+    }
+  } catch (err) {
+    console.error(`[plugins] Migration failed for ${pluginId}:`, err);
+    // Don't block plugin loading — log and continue
+  }
+}
 
 export interface PluginRecord {
   manifest: PluginManifest;
@@ -56,6 +79,10 @@ async function loadServerModule(dir: string): Promise<PluginServerModule | null>
     console.error("[plugins]", err);
     return null;
   }
+
+  // Auto-run pending schema migrations on first load
+  const pluginId = path.basename(dir);
+  await ensureMigrations(pluginId, dir);
 
   // Dynamic import with cache-busting to pick up file changes
   const mod = (await import(/* webpackIgnore: true */ pathToFileURL(file).href)) as PluginServerModule;
