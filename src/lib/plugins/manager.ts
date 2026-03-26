@@ -32,7 +32,7 @@ const PLUGINS_DIR = path.join(process.cwd(), "plugins");
 /**
  * External plugin directories loaded from CLAWKB_EXTERNAL_PLUGINS env var.
  * Comma-separated absolute paths, e.g.:
- *   CLAWKB_EXTERNAL_PLUGINS=/path/to/private-plugin/plugin,/path/to/another
+ *   CLAWKB_EXTERNAL_PLUGINS=/path/to/my-plugin,/path/to/another
  *
  * These are merged with built-in plugins at load time.
  * No trace of external plugins appears in the open-source repo.
