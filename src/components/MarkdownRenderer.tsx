@@ -101,9 +101,15 @@ const markdownComponents = {
           href={href}
           onClick={(e) => {
             e.preventDefault();
-            const id = href.slice(1);
-            const el = document.getElementById(id);
-            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            const raw = href.slice(1);
+            // Try both raw and decoded forms (browser may encode CJK in href)
+            const decoded = decodeURIComponent(raw);
+            const el = document.getElementById(raw) || document.getElementById(decoded)
+              || document.querySelector(`[id="${CSS.escape(raw)}"]`)
+              || document.querySelector(`[id="${CSS.escape(decoded)}"]`);
+            if (el) {
+              el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
           }}
           {...props}
         >

@@ -6,12 +6,17 @@ export type PluginHookName =
   | "entry.beforeUpdate"
   | "entry.afterUpdate"
   | "entry.beforeDelete"
+  | "entry.beforeStatusChange"
+  | "entry.afterStatusChange"
+  | "entry.beforeQuery"
   | "entry.render"
   | "entry.serialize"
   | "entry.afterQuery"
   | "content.tags"
   | "entryCard.render"
   | "sidebar.register"
+  | "dashboard.register"
+  | "branding.register"
   | "api.register"
   | "settings.register";
 
@@ -29,6 +34,68 @@ export interface PluginSidebarItem {
   id: string;
   label: string;
   href: string;
+  icon?: string;
+  badge?: string | number;
+  order?: number;
+}
+
+/** Dashboard widget registered by a plugin */
+export interface PluginDashboardWidget {
+  id: string;
+  title: string;
+  /** Width hint: 1 = quarter, 2 = half, 3 = three-quarter, 4 = full */
+  width?: 1 | 2 | 3 | 4;
+  order?: number;
+  /** Client component name in the widget registry */
+  component: string;
+  props?: Record<string, unknown>;
+}
+
+/** Branding overrides registered by a plugin */
+export interface PluginBranding {
+  /** Product name displayed in nav/title */
+  productName?: string;
+  /** Logo URL or path */
+  logoUrl?: string;
+  /** Favicon URL */
+  faviconUrl?: string;
+  /** Default theme preset to apply */
+  defaultTheme?: string;
+  /** Custom landing page component name */
+  landingComponent?: string;
+}
+
+/** Status definition registered by a plugin */
+export interface PluginStatusDef {
+  /** Status key, e.g. "in_review", "approved" */
+  key: string;
+  /** Human-readable label */
+  label: string;
+  /** Display color (hex or CSS color name) */
+  color?: string;
+  /** Icon name */
+  icon?: string;
+  /** Allowed transitions from this status */
+  allowedTransitions?: string[];
+}
+
+/** Status change context passed to hooks */
+export interface StatusChangeContext {
+  entry: Record<string, unknown>;
+  fromStatus: string;
+  toStatus: string;
+  /** Optional reason/comment for the status change */
+  reason?: string;
+}
+
+/** Query filter context passed to beforeQuery hook */
+export interface BeforeQueryContext {
+  /** The Prisma where clause being built */
+  where: Record<string, unknown>;
+  /** Additional AND conditions plugins can inject */
+  andConditions: Record<string, unknown>[];
+  /** The requesting principal */
+  principal: AppPrincipal | null;
 }
 
 export interface PluginSettingsPanel {
@@ -137,6 +204,29 @@ export interface PluginServerModule {
       context: PluginContext;
     }) => Promise<void>;
     beforeDelete?: (input: { entry: Record<string, unknown>; context: PluginContext }) => Promise<void>;
+    /** Called before an entry's status changes. Return false to block the transition. */
+    beforeStatusChange?: (input: {
+      entry: Record<string, unknown>;
+      fromStatus: string;
+      toStatus: string;
+      reason?: string;
+      context: PluginContext;
+    }) => Promise<boolean | void>;
+    /** Called after an entry's status has changed. */
+    afterStatusChange?: (input: {
+      entry: Record<string, unknown>;
+      fromStatus: string;
+      toStatus: string;
+      reason?: string;
+      context: PluginContext;
+    }) => Promise<void>;
+    /** Called before a query is executed. Plugin can inject WHERE conditions (e.g. workspace_id). */
+    beforeQuery?: (input: {
+      where: Record<string, unknown>;
+      andConditions: Record<string, unknown>[];
+      principal: AppPrincipal | null;
+      context: PluginContext;
+    }) => Promise<void>;
     render?: (input: {
       entry: Record<string, unknown>;
       context: PluginContext;
@@ -166,6 +256,18 @@ export interface PluginServerModule {
   };
   settings?: {
     register?: (input: { context: PluginContext }) => Promise<PluginSettingsPanel[] | void>;
+  };
+  dashboard?: {
+    /** Register dashboard widgets */
+    register?: (input: { context: PluginContext }) => Promise<PluginDashboardWidget[] | void>;
+  };
+  branding?: {
+    /** Register branding overrides (last plugin wins for each field) */
+    register?: (input: { context: PluginContext }) => Promise<PluginBranding | void>;
+  };
+  status?: {
+    /** Register custom status definitions (extends the default statuses) */
+    register?: (input: { context: PluginContext }) => Promise<PluginStatusDef[] | void>;
   };
   api?: {
     routes?: PluginApiRoute[];

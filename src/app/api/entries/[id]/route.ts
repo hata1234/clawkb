@@ -6,8 +6,10 @@ import { entryWithAuthorInclude, serializeEntry } from "@/lib/entries";
 import {
   getEntryRenderBlocks,
   resolveContentTags,
+  runEntryAfterStatusChangeHooks,
   runEntryAfterUpdateHooks,
   runEntryBeforeDeleteHooks,
+  runEntryBeforeStatusChangeHooks,
   runEntryBeforeUpdateHooks,
   runEntrySerializeHooks,
 } from "@/lib/plugins/manager";
@@ -16,6 +18,7 @@ import { generateAndStoreChunks } from "@/lib/embedding";
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { dispatchNotification } from "@/lib/notifications";
+import { auditLog, computeChanges } from "@/lib/audit";
 
 interface EntryImageInput {
   url: string;
@@ -141,6 +144,24 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     bpmnXml,
   } = hookedBody;
 
+  // Status change hook — let plugins validate/block the transition
+  const isStatusChanging = status !== undefined && status !== existing.status;
+  if (isStatusChanging) {
+    const allowed = await runEntryBeforeStatusChangeHooks(
+      existing as unknown as Record<string, unknown>,
+      existing.status,
+      status,
+      principal,
+      (body as Record<string, unknown>).statusChangeReason as string | undefined,
+    );
+    if (!allowed) {
+      return NextResponse.json(
+        { error: `Status transition from "${existing.status}" to "${status}" is not allowed` },
+        { status: 403 },
+      );
+    }
+  }
+
   // Remove images if requested
   if (removeImageIds && removeImageIds.length > 0) {
     await prisma.entryImage.deleteMany({
@@ -222,6 +243,31 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     principal,
   ).catch(() => {});
 
+  // Fire afterStatusChange if status actually changed
+  if (isStatusChanging) {
+    runEntryAfterStatusChangeHooks(
+      entry as unknown as Record<string, unknown>,
+      existing.status,
+      status!,
+      principal,
+      (body as Record<string, unknown>).statusChangeReason as string | undefined,
+    ).catch(() => {});
+  }
+
+  // Audit trail
+  const auditChanges = computeChanges(
+    { title: existing.title, status: existing.status, type: existing.type, source: existing.source, content: existing.content ? "[content]" : null, summary: existing.summary },
+    { title: entry.title, status: entry.status, type: entry.type, source: entry.source, content: entry.content ? "[content]" : null, summary: entry.summary },
+    ["title", "status", "type", "source", "content", "summary"],
+  );
+  auditLog({
+    entityType: "entry",
+    entityId: entry.id,
+    action: isStatusChanging ? "status_change" : "update",
+    actorId: principal.id,
+    changes: auditChanges,
+    metadata: isStatusChanging ? { fromStatus: existing.status, toStatus: status } : undefined,
+  }).catch(() => {});
   logActivity("entry.updated", principal.id, entry.id, { title: entry.title }).catch(() => {});
   dispatchWebhookEvent("entry.updated", { id: entry.id, title: entry.title, type: entry.type, source: entry.source });
 
@@ -256,6 +302,13 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     data: { deletedAt: new Date(), deletedBy: principal.id },
   });
 
+  auditLog({
+    entityType: "entry",
+    entityId: parseInt(id),
+    action: "delete",
+    actorId: principal.id,
+    metadata: { title: entry.title },
+  }).catch(() => {});
   logActivity("entry.deleted", principal.id, parseInt(id), { title: entry.title }).catch(() => {});
   dispatchWebhookEvent("entry.deleted", { id: parseInt(id), title: entry.title });
 

@@ -10,11 +10,13 @@ import {
   runEntryAfterCreateHooks,
   runEntryAfterQueryHooks,
   runEntryBeforeCreateHooks,
+  runEntryBeforeQueryHooks,
   runEntrySerializeHooks,
 } from "@/lib/plugins/manager";
 import { logActivity } from "@/lib/activity";
 import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { generateDocNumber } from "@/lib/doc-number";
+import { auditLog } from "@/lib/audit";
 
 interface EntryImageInput {
   url: string;
@@ -97,6 +99,9 @@ export async function GET(request: Request) {
       collections: { some: { id: { in: accessibleIds } } },
     });
   }
+
+  // Let plugins inject additional WHERE conditions (e.g. workspace_id for multi-tenant)
+  await runEntryBeforeQueryHooks({}, andConditions, principal);
 
   const where: Prisma.EntryWhereInput = {
     ...(!includeDeleted && { deletedAt: null }),
@@ -290,6 +295,13 @@ export async function POST(request: Request) {
     principal,
   ).catch(() => {});
 
+  auditLog({
+    entityType: "entry",
+    entityId: finalEntry.id,
+    action: "create",
+    actorId: principal.id,
+    metadata: { title: finalEntry.title, type: finalEntry.type, source: finalEntry.source },
+  }).catch(() => {});
   logActivity("entry.created", principal.id, finalEntry.id, { title: finalEntry.title }).catch(() => {});
   dispatchWebhookEvent("entry.created", {
     id: finalEntry.id,

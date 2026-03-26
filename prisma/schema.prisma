@@ -335,3 +335,34 @@ model WebhookDelivery {
   @@index([createdAt])
   @@map("webhook_deliveries")
 }
+
+/// Plugin-managed backlinks table (created by backlinks plugin via raw SQL)
+model EntryBacklink {
+  id            Int      @id @default(autoincrement())
+  sourceEntryId Int      @map("source_entry_id")
+  targetEntryId Int      @map("target_entry_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([sourceEntryId, targetEntryId])
+  @@index([targetEntryId], map: "idx_backlinks_target")
+  @@index([sourceEntryId], map: "idx_backlinks_source")
+  @@map("entry_backlinks")
+}
+
+/// Append-only audit trail for compliance (0.3.1)
+model AuditEvent {
+  id         Int      @id @default(autoincrement())
+  entityType String   /// e.g. "entry", "user", "collection", "workflow"
+  entityId   Int?     /// ID of the affected entity (null for system events)
+  action     String   /// e.g. "create", "update", "delete", "status_change", "sign", "print", "login"
+  actorId    Int?     /// User ID who performed the action (null for system actions)
+  changes    Json?    /// JSONB diff: { field: { old, new } }
+  metadata   Json?    /// Extra context (IP, user agent, plugin ID, reason, etc.)
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_events")
+}

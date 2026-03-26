@@ -12,14 +12,17 @@ import { DEFAULT_PLUGIN_SETTINGS, getAllSettings, getSetting, setSetting } from 
 import type { AppPrincipal } from "@/lib/auth";
 import type {
   PluginApiRoute,
+  PluginBranding,
   PluginContentTagDef,
   PluginContext,
+  PluginDashboardWidget,
   PluginEntryCardElement,
   PluginEntryRenderBlock,
   PluginManifest,
   PluginServerModule,
   PluginSettingsPanel,
   PluginSidebarItem,
+  PluginStatusDef,
   ResolvedContentTag,
 } from "./types";
 
@@ -288,6 +291,116 @@ export async function getSettingsPanels(principal: AppPrincipal | null): Promise
     if (result?.length) items.push(...result);
   }
   return items;
+}
+
+/**
+ * Run beforeStatusChange hooks. Returns false if any plugin blocks the transition.
+ */
+export async function runEntryBeforeStatusChangeHooks(
+  entry: Record<string, unknown>,
+  fromStatus: string,
+  toStatus: string,
+  principal: AppPrincipal | null,
+  reason?: string,
+): Promise<boolean> {
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.entry?.beforeStatusChange?.({
+      entry,
+      fromStatus,
+      toStatus,
+      reason,
+      context: createPluginContext(principal),
+    });
+    if (result === false) return false;
+  }
+  return true;
+}
+
+/**
+ * Run afterStatusChange hooks (fire-and-forget).
+ */
+export async function runEntryAfterStatusChangeHooks(
+  entry: Record<string, unknown>,
+  fromStatus: string,
+  toStatus: string,
+  principal: AppPrincipal | null,
+  reason?: string,
+): Promise<void> {
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    await mod?.entry?.afterStatusChange?.({
+      entry,
+      fromStatus,
+      toStatus,
+      reason,
+      context: createPluginContext(principal),
+    });
+  }
+}
+
+/**
+ * Run beforeQuery hooks. Plugins can push additional conditions into andConditions array.
+ * Used by @clawkb/cloud to inject workspace_id filtering.
+ */
+export async function runEntryBeforeQueryHooks(
+  where: Record<string, unknown>,
+  andConditions: Record<string, unknown>[],
+  principal: AppPrincipal | null,
+): Promise<void> {
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    await mod?.entry?.beforeQuery?.({
+      where,
+      andConditions,
+      principal,
+      context: createPluginContext(principal),
+    });
+  }
+}
+
+/**
+ * Collect dashboard widgets from all enabled plugins.
+ */
+export async function getDashboardWidgets(principal: AppPrincipal | null): Promise<PluginDashboardWidget[]> {
+  const widgets: PluginDashboardWidget[] = [];
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.dashboard?.register?.({ context: createPluginContext(principal) });
+    if (result?.length) widgets.push(...result);
+  }
+  return widgets.sort((a, b) => (a.order ?? 100) - (b.order ?? 100));
+}
+
+/**
+ * Collect branding overrides from all enabled plugins (last plugin wins per field).
+ */
+export async function getBranding(principal: AppPrincipal | null): Promise<PluginBranding> {
+  const merged: PluginBranding = {};
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.branding?.register?.({ context: createPluginContext(principal) });
+    if (result) Object.assign(merged, result);
+  }
+  return merged;
+}
+
+/**
+ * Collect all custom status definitions from enabled plugins.
+ */
+export async function getStatusDefinitions(principal: AppPrincipal | null): Promise<PluginStatusDef[]> {
+  const defs: PluginStatusDef[] = [
+    // Built-in defaults
+    { key: "new", label: "New", color: "#6b7280" },
+    { key: "active", label: "Active", color: "#22c55e" },
+    { key: "archived", label: "Archived", color: "#9ca3af" },
+  ];
+  for (const plugin of await getEnabledPlugins()) {
+    const mod = await loadServerModule(plugin.dir);
+    const result = await mod?.status?.register?.({ context: createPluginContext(principal) });
+    if (result?.length) defs.push(...result);
+  }
+  return defs;
 }
 
 /** Collect all content tag definitions from enabled plugins */
