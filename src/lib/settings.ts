@@ -59,9 +59,9 @@ export const DEFAULT_SMTP = {
 };
 
 export const DEFAULT_RAG = {
-  provider: "spark-vllm" as "openai" | "ollama" | "spark-vllm" | "disabled",
-  baseUrl: process.env.RAG_BASE_URL || "http://localhost:8888/v1",
-  model: process.env.RAG_MODEL || "Qwen/Qwen3.5-35B-A3B-FP8",
+  provider: "openai" as "openai" | "openclaw" | "ollama" | "disabled",
+  baseUrl: process.env.RAG_BASE_URL || "https://api.openai.com/v1",
+  model: process.env.RAG_MODEL || "gpt-4o-mini",
   apiKey: "",
   topK: 5,
   maxTokens: 1024,
@@ -107,7 +107,7 @@ export interface SmtpConfig {
   enabled: boolean;
 }
 export interface RagConfig {
-  provider: "openai" | "ollama" | "spark-vllm" | "disabled";
+  provider: "openai" | "openclaw" | "ollama" | "disabled";
   baseUrl: string;
   model: string;
   apiKey: string;

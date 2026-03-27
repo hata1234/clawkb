@@ -1041,6 +1041,7 @@ export default function EntryDetailPage() {
               key={panel.id}
               entryId={entry.id}
               entryStatus={entry.status}
+              entryTitle={entry.title}
               lifecycle={panelData}
               entry={entry}
               canEdit={canEdit}

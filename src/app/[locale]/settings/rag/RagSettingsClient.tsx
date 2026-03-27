@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Check, X, Loader2, Bot, Wifi, WifiOff } from "lucide-react";
+import { Check, X, Loader2, Bot, Wifi, WifiOff, RefreshCw, ChevronDown } from "lucide-react";
 import type { RagConfig } from "@/lib/settings";
 import {
   settingsCard as card,
@@ -12,6 +12,26 @@ import {
   settingsBtnGhost as btnGhost,
   settingsSectionTitle as sectionTitle,
 } from "@/lib/settings-styles";
+
+type Provider = "openai" | "openclaw" | "ollama" | "disabled";
+
+const PROVIDER_DEFAULTS: Record<Exclude<Provider, "disabled">, { baseUrl: string; model: string }> = {
+  openai: { baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" },
+  openclaw: { baseUrl: "http://localhost:3000/v1", model: "" },
+  ollama: { baseUrl: "http://localhost:11434", model: "" },
+};
+
+const PROVIDER_LABELS: Record<Provider, string> = {
+  openai: "OpenAI",
+  openclaw: "OpenClaw",
+  ollama: "Ollama",
+  disabled: "Disabled",
+};
+
+interface ModelOption {
+  id: string;
+  name: string;
+}
 
 async function saveSetting(key: string, value: unknown): Promise<boolean> {
   const res = await fetch("/api/settings", {
@@ -52,16 +72,87 @@ function Toast({ msg, ok }: { msg: string; ok: boolean }) {
 export default function RagSettingsClient({ initialSettings }: { initialSettings: RagConfig }) {
   const t = useTranslations("RagSettings");
   const tc = useTranslations("Common");
-  const [cfg, setCfg] = useState<RagConfig>(initialSettings);
+
+  // Migrate old "spark-vllm" provider to "openai" (OpenAI-compatible)
+  const migratedInitial: RagConfig = {
+    ...initialSettings,
+    provider: initialSettings.provider === ("spark-vllm" as string) ? "openai" : initialSettings.provider,
+  };
+
+  const [cfg, setCfg] = useState<RagConfig>(migratedInitial);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [models, setModels] = useState<ModelOption[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [modelError, setModelError] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const showToast = useCallback((msg: string, ok: boolean) => {
     setToast({ msg, ok });
     setTimeout(() => setToast(null), 3000);
   }, []);
+
+  // Fetch models when provider/baseUrl/apiKey changes
+  const fetchModels = useCallback(async (provider: string, baseUrl: string, apiKey: string) => {
+    if (provider === "disabled" || !baseUrl) {
+      setModels([]);
+      return;
+    }
+    setLoadingModels(true);
+    setModelError(null);
+    try {
+      const params = new URLSearchParams({ baseUrl, apiKey, provider });
+      const res = await fetch(`/api/rag/models?${params}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setModelError(data.error || `HTTP ${res.status}`);
+        setModels([]);
+        return;
+      }
+      const data = await res.json();
+      setModels(data.models || []);
+    } catch (err) {
+      setModelError(err instanceof Error ? err.message : "Failed to fetch models");
+      setModels([]);
+    } finally {
+      setLoadingModels(false);
+    }
+  }, []);
+
+  // Auto-fetch models on mount if provider is active
+  useEffect(() => {
+    if (cfg.provider !== "disabled" && cfg.baseUrl) {
+      fetchModels(cfg.provider, cfg.baseUrl, cfg.apiKey);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function switchProvider(p: Provider) {
+    if (p === "disabled") {
+      setCfg((c) => ({ ...c, provider: p }));
+      setModels([]);
+      return;
+    }
+    const defaults = PROVIDER_DEFAULTS[p];
+    const newCfg = {
+      ...cfg,
+      provider: p,
+      baseUrl: defaults.baseUrl,
+      model: defaults.model,
+      apiKey: p === "openai" ? cfg.apiKey : "", // preserve API key when switching to OpenAI
+    };
+    setCfg(newCfg);
+    fetchModels(p, defaults.baseUrl, newCfg.apiKey);
+  }
+
+  function resetToDefaults() {
+    if (cfg.provider === "disabled") return;
+    const defaults = PROVIDER_DEFAULTS[cfg.provider];
+    setCfg((c) => ({ ...c, baseUrl: defaults.baseUrl, model: defaults.model }));
+    fetchModels(cfg.provider, defaults.baseUrl, cfg.apiKey);
+  }
 
   async function save() {
     setSaving(true);
@@ -81,7 +172,7 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
       const res = await fetch(testUrl, { headers });
       setTestResult(
         res.ok
-          ? { ok: true, message: t("connectedTo", { provider: cfg.provider, status: res.status }) }
+          ? { ok: true, message: t("connectedTo", { provider: PROVIDER_LABELS[cfg.provider], status: res.status }) }
           : { ok: false, message: t("connectionFailed", { status: res.status, statusText: res.statusText }) },
       );
     } catch (err) {
@@ -90,6 +181,8 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
       setTesting(false);
     }
   }
+
+  const filteredModels = models;
 
   return (
     <div>
@@ -106,10 +199,10 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
         <div style={{ marginBottom: 20 }}>
           <label style={labelStyle}>{t("provider")}</label>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {(["spark-vllm", "openai", "ollama", "disabled"] as const).map((p) => (
+            {(["openai", "openclaw", "ollama", "disabled"] as const).map((p) => (
               <button
                 key={p}
-                onClick={() => setCfg((c) => ({ ...c, provider: p }))}
+                onClick={() => switchProvider(p)}
                 style={{
                   padding: "8px 16px",
                   borderRadius: "var(--radius-md)",
@@ -119,36 +212,244 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
                   fontSize: "0.875rem",
                   fontWeight: 500,
                   cursor: "pointer",
+                  transition: "all 0.15s ease",
                 }}
               >
-                {p === "spark-vllm" ? "Spark vLLM" : p.charAt(0).toUpperCase() + p.slice(1)}
+                {PROVIDER_LABELS[p]}
               </button>
             ))}
           </div>
+          {cfg.provider === "openclaw" && (
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: 6 }}>
+              Routes through your OpenClaw gateway. Supports all configured models (local + cloud).
+            </p>
+          )}
         </div>
 
         {cfg.provider !== "disabled" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+            {/* Base URL + Reset */}
             <div>
-              <label style={labelStyle}>{t("baseUrl")}</label>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <label style={labelStyle}>{t("baseUrl")}</label>
+                <button
+                  onClick={resetToDefaults}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    fontSize: "0.7rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "2px 4px",
+                  }}
+                  title="Reset to defaults"
+                >
+                  <RefreshCw style={{ width: 11, height: 11 }} />
+                  Reset
+                </button>
+              </div>
               <input
                 value={cfg.baseUrl}
                 onChange={(e) => setCfg((c) => ({ ...c, baseUrl: e.target.value }))}
                 style={inputStyle}
-                placeholder="http://localhost:8888/v1"
+                placeholder={PROVIDER_DEFAULTS[cfg.provider]?.baseUrl || ""}
               />
             </div>
-            <div>
-              <label style={labelStyle}>{t("model")}</label>
-              <input
-                value={cfg.model}
-                onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
-                style={inputStyle}
-                placeholder="Qwen/Qwen3.5-35B-A3B-FP8"
-              />
+
+            {/* Model — dropdown with fetch */}
+            <div style={{ position: "relative" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <label style={labelStyle}>{t("model")}</label>
+                <button
+                  onClick={() => fetchModels(cfg.provider, cfg.baseUrl, cfg.apiKey)}
+                  disabled={loadingModels}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--text-muted)",
+                    fontSize: "0.7rem",
+                    cursor: loadingModels ? "wait" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: "2px 4px",
+                  }}
+                  title="Refresh model list"
+                >
+                  {loadingModels ? (
+                    <Loader2 style={{ width: 11, height: 11 }} className="spin" />
+                  ) : (
+                    <RefreshCw style={{ width: 11, height: 11 }} />
+                  )}
+                  Fetch Models
+                </button>
+              </div>
+
+              {/* Model selector */}
+              <div
+                style={{ position: "relative" }}
+                onBlur={(e) => {
+                  // Close dropdown if focus leaves this container
+                  if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(() => setShowDropdown(false), 150);
+                  }
+                }}
+              >
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  style={{
+                    ...inputStyle,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    width: "100%",
+                    color: cfg.model ? "var(--text)" : "var(--text-dim)",
+                  }}
+                >
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                    {cfg.model || "Select a model..."}
+                  </span>
+                  <ChevronDown
+                    style={{
+                      width: 14,
+                      height: 14,
+                      flexShrink: 0,
+                      transform: showDropdown ? "rotate(180deg)" : "none",
+                      transition: "transform 0.15s ease",
+                    }}
+                  />
+                </button>
+
+                {showDropdown && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      right: 0,
+                      zIndex: 50,
+                      marginTop: 4,
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "var(--radius-md)",
+                      boxShadow: "var(--shadow-lg)",
+                      maxHeight: 280,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {/* Manual input option */}
+                    <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--border)" }}>
+                      <input
+                        autoFocus
+                        value={cfg.model}
+                        onChange={(e) => setCfg((c) => ({ ...c, model: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") setShowDropdown(false);
+                        }}
+                        style={{
+                          ...inputStyle,
+                          marginBottom: 0,
+                          fontSize: "0.8rem",
+                        }}
+                        placeholder="Type model name or select below..."
+                      />
+                    </div>
+
+                    {loadingModels && (
+                      <div
+                        style={{
+                          padding: "16px",
+                          textAlign: "center",
+                          color: "var(--text-muted)",
+                          fontSize: "0.8rem",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <Loader2 style={{ width: 14, height: 14 }} className="spin" />
+                        Loading models...
+                      </div>
+                    )}
+
+                    {modelError && (
+                      <div
+                        style={{
+                          padding: "12px",
+                          color: "var(--danger)",
+                          fontSize: "0.78rem",
+                        }}
+                      >
+                        {modelError}
+                      </div>
+                    )}
+
+                    {!loadingModels && !modelError && filteredModels.length === 0 && (
+                      <div
+                        style={{
+                          padding: "12px",
+                          color: "var(--text-muted)",
+                          fontSize: "0.78rem",
+                          textAlign: "center",
+                        }}
+                      >
+                        No models found. Check connection or type manually.
+                      </div>
+                    )}
+
+                    {filteredModels.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          setCfg((c) => ({ ...c, model: m.id }));
+                          setShowDropdown(false);
+                        }}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          padding: "8px 12px",
+                          background: cfg.model === m.id ? "var(--accent-muted)" : "transparent",
+                          border: "none",
+                          borderBottom: "1px solid var(--border)",
+                          color: cfg.model === m.id ? "var(--accent)" : "var(--text)",
+                          fontSize: "0.82rem",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (cfg.model !== m.id) e.currentTarget.style.background = "var(--surface-hover)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = cfg.model === m.id ? "var(--accent-muted)" : "transparent";
+                        }}
+                      >
+                        {m.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* API Key */}
             <div>
-              <label style={labelStyle}>{t("apiKeyOptional")}</label>
+              <label style={labelStyle}>
+                {t("apiKeyOptional")}
+                {cfg.provider === "openclaw" && (
+                  <span style={{ fontWeight: 400, color: "var(--text-muted)", marginLeft: 6 }}>
+                    (usually not needed)
+                  </span>
+                )}
+              </label>
               <input
                 type="password"
                 value={cfg.apiKey}
@@ -158,6 +459,7 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
                 autoComplete="off"
               />
             </div>
+
             <div style={{ display: "flex", gap: 12 }}>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle}>{t("topK")}</label>

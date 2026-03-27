@@ -249,9 +249,12 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
 
   return (
     <div className="collection-tree sidebar-group">
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         className={`sidebar-link sidebar-group-toggle ${activeCollectionId ? "active" : ""}`}
         onClick={() => setTreeOpen(!treeOpen)}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setTreeOpen(!treeOpen); }}
       >
         <Folder className="sidebar-link-icon" />
         <span className="sidebar-link-label">{t("title")}</span>
@@ -264,6 +267,14 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
               setCreateParentId(null);
               if (!treeOpen) setTreeOpen(true);
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                setShowCreate(!showCreate);
+                setCreateParentId(null);
+                if (!treeOpen) setTreeOpen(true);
+              }
+            }}
             title={t("newCollection")}
           >
             <Plus style={{ width: 14, height: 14 }} />
@@ -273,7 +284,7 @@ export default function CollectionTree({ collapsed }: { collapsed: boolean }) {
           className="sidebar-group-chevron"
           style={{ transform: treeOpen ? "rotate(0deg)" : "rotate(-90deg)" }}
         />
-      </button>
+      </div>
 
       {treeOpen && (
         <div className="collection-tree-content">

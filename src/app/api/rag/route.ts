@@ -163,7 +163,7 @@ function buildLLMMessages(
   // Augment system prompt if managed documents are present
   let finalPrompt = systemPrompt;
   if (pluginMetadata && pluginMetadata.size > 0) {
-    finalPrompt += `\n\nSome documents are plugin-managed with metadata (document number, level, status, revision, effective date, review due date). When answering about document versions, SOPs, or compliance:\n- Reference the document number (e.g. QP-001) and revision\n- Note the document status (draft/in_review/approved/published/obsolete)\n- Mention effective dates and review schedules when relevant\n- Distinguish between controlled and uncontrolled documents\n- For "latest version" questions, prioritize published status with the most recent effective date`;
+    finalPrompt += `\n\nSome documents have plugin-managed metadata (document number, level, status, revision, effective date, review due date). When referencing these documents:\n- Include the document number and revision when available\n- Note the document status\n- Mention effective dates and review schedules when relevant\n- For "latest version" questions, prioritize published status with the most recent effective date`;
   }
 
   return [
@@ -252,8 +252,6 @@ export async function POST(request: Request) {
           messages,
           stream,
           max_tokens: ragConfig.maxTokens,
-          // Disable thinking/reasoning for RAG — we want content in the content field
-          ...(ragConfig.provider === "spark-vllm" && { chat_template_kwargs: { enable_thinking: false } }),
         };
 
   if (!stream) {
