@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
-import { canManageUsers, getRequestPrincipal } from "@/lib/auth";
+import { canManageUsers, getRequestPrincipal, issueUserToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { serializeUser, userWithGroupInclude } from "@/lib/users";
 import { logActivity } from "@/lib/activity";
@@ -134,7 +134,30 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.bio !== undefined) data.bio = String(body.bio || "").trim() || null;
   if (body.password) data.passwordHash = await bcrypt.hash(String(body.password), 12);
 
+  // Check if we're approving an agent — need the old state first
+  const existingUser = await prisma.user.findUnique({ where: { id: userId } });
+  const isApproval =
+    existingUser &&
+    existingUser.agent &&
+    existingUser.approvalStatus !== "approved" &&
+    data.approvalStatus === "approved";
+
   await prisma.user.update({ where: { id: userId }, data });
+
+  // If approving an agent, auto-issue a token
+  let agentToken: string | null = null;
+  if (isApproval) {
+    // Check if the agent already has a token
+    const existingTokenCount = await prisma.apiToken.count({ where: { userId } });
+    if (existingTokenCount === 0) {
+      const tokenResult = await issueUserToken(
+        userId,
+        `${existingUser.displayName || existingUser.username} token`,
+        "agent"
+      );
+      agentToken = tokenResult.token;
+    }
+  }
 
   // Update group memberships if provided
   if (body.groupIds !== undefined) {
@@ -152,5 +175,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     include: userWithGroupInclude,
   });
 
-  return NextResponse.json({ user: serializeUser(user!) });
+  return NextResponse.json({
+    user: serializeUser(user!),
+    ...(agentToken && { agentToken }),
+  });
 }

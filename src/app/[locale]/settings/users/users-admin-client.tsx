@@ -88,7 +88,15 @@ export default function UsersAdminClient() {
     const data = await res.json();
     if (res.ok) {
       setUsers((current) => current.map((user) => (user.id === userId ? data.user : user)));
-      setMessage(t("userUpdated"));
+      if (data.agentToken) {
+        // Show agent token in a copyable prompt — only shown once at approval time
+        const copied = await navigator.clipboard.writeText(data.agentToken).then(() => true).catch(() => false);
+        setMessage(
+          `✅ Agent approved! API Token (shown once, ${copied ? "copied to clipboard" : "copy it now"}):\n${data.agentToken}`
+        );
+      } else {
+        setMessage(t("userUpdated"));
+      }
     } else {
       setMessage(data.error || t("userUpdateFailed"));
     }
@@ -396,7 +404,7 @@ export default function UsersAdminClient() {
         </div>
       </div>
 
-      {message && <div style={{ color: "var(--accent)", fontSize: "0.85rem" }}>{message}</div>}
+      {message && <div style={{ color: "var(--accent)", fontSize: "0.85rem", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>{message}</div>}
 
       {/* Delete User Dialog */}
       {deleteDialog.open && deleteDialog.user && (
