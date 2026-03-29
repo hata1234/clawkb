@@ -653,7 +653,8 @@
     "ragAiAssistant": "RAG / AI 助理",
     "ragDescription": "设置 AI 问答功能的 LLM 提供者。使用 OpenAI 兼容的 chat completions API。",
     "ragDisabledMessage": "RAG 已停用。AI 问答功能将不可用。",
-    "ragSettingsSaved": "RAG 设置已保存"
+    "ragSettingsSaved": "RAG 设置已保存",
+    "connectedTo": "已连接至 {provider}（HTTP {status}）"
   },
   "Users": {
     "createUser": "创建用户",

@@ -17,7 +17,7 @@ type Provider = "openai" | "openclaw" | "ollama" | "disabled";
 
 const PROVIDER_DEFAULTS: Record<Exclude<Provider, "disabled">, { baseUrl: string; model: string }> = {
   openai: { baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" },
-  openclaw: { baseUrl: "http://localhost:3000/v1", model: "" },
+  openclaw: { baseUrl: "http://localhost:18789/v1", model: "" },
   ollama: { baseUrl: "http://localhost:11434", model: "" },
 };
 
@@ -165,15 +165,17 @@ export default function RagSettingsClient({ initialSettings }: { initialSettings
     setTesting(true);
     setTestResult(null);
     try {
-      const baseUrl = cfg.baseUrl.replace(/\/$/, "");
-      const testUrl = cfg.provider === "ollama" ? `${baseUrl.replace(/\/v1\/?$/, "")}/api/tags` : `${baseUrl}/models`;
-      const headers: Record<string, string> = {};
-      if (cfg.apiKey) headers["Authorization"] = `Bearer ${cfg.apiKey}`;
-      const res = await fetch(testUrl, { headers });
+      // Use server-side proxy to avoid CORS issues with internal LLM endpoints
+      const res = await fetch("/api/rag/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: cfg.provider, baseUrl: cfg.baseUrl, apiKey: cfg.apiKey }),
+      });
+      const data = await res.json();
       setTestResult(
-        res.ok
-          ? { ok: true, message: t("connectedTo", { provider: PROVIDER_LABELS[cfg.provider], status: res.status }) }
-          : { ok: false, message: t("connectionFailed", { status: res.status, statusText: res.statusText }) },
+        data.ok
+          ? { ok: true, message: t("connectedTo", { provider: PROVIDER_LABELS[cfg.provider], status: 200 }) }
+          : { ok: false, message: data.error || t("connectionFailed", { status: data.status ?? "?", statusText: data.statusText ?? "" }) },
       );
     } catch (err) {
       setTestResult({ ok: false, message: t("networkError") });

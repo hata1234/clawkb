@@ -653,7 +653,8 @@
     "ragAiAssistant": "RAG / AI Assistant",
     "ragDescription": "Configure the LLM provider for the Ask AI feature. Uses OpenAI-compatible chat completions API.",
     "ragDisabledMessage": "RAG is disabled. The Ask AI feature won't be available.",
-    "ragSettingsSaved": "RAG settings saved"
+    "ragSettingsSaved": "RAG settings saved",
+    "connectedTo": "Connected to {provider} (HTTP {status})"
   },
   "Users": {
     "createUser": "Create User",

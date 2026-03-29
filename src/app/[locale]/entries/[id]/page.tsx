@@ -24,6 +24,7 @@ import RevisionHistory from "@/components/RevisionHistory";
 import StatusBadge from "@/components/StatusBadge";
 import dynamic from "next/dynamic";
 const BpmnEditor = dynamic(() => import("@/components/BpmnEditor"), { ssr: false });
+const RichEditor = dynamic(() => import("@/components/RichEditor"), { ssr: false });
 
 import { STATUS_OPTIONS, formatDate } from "@/lib/utils";
 import { useSettings } from "@/lib/useSettings";
@@ -1336,19 +1337,10 @@ export default function EntryDetailPage() {
             {t("content")}
           </h2>
           {editing ? (
-            <MentionTextarea
-              name="editContent"
+            <RichEditor
               value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              rows={20}
+              onChange={setEditContent}
               placeholder={t("contentPlaceholder")}
-              style={{
-                ...inputStyle,
-                resize: "vertical",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.8rem",
-                minHeight: 300,
-              }}
             />
           ) : (
             <div className="prose-kb">

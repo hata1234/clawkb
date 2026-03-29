@@ -653,7 +653,8 @@
     "ragAiAssistant": "RAG / AIアシスタント",
     "ragDescription": "AI質問機能のLLMプロバイダを設定します。OpenAI互換のchat completions APIを使用します。",
     "ragDisabledMessage": "RAGが無効です。AI質問機能は利用できません。",
-    "ragSettingsSaved": "RAG設定を保存しました"
+    "ragSettingsSaved": "RAG設定を保存しました",
+    "connectedTo": "{provider} に接続済み（HTTP {status}）"
   },
   "Users": {
     "createUser": "ユーザーを作成",

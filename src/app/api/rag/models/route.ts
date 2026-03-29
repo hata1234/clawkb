@@ -51,6 +51,23 @@ export async function GET(request: Request) {
         id: m.name,
         name: m.name,
       }));
+
+      // Append well-known Ollama Cloud models (require subscription)
+      const cloudModels = [
+        "qwen3.5:cloud",
+        "qwen3.5:397b-cloud",
+        "kimi-k2.5:cloud",
+        "glm-5:cloud",
+        "minimax-m2.7:cloud",
+        "nemotron-3-super:cloud",
+        "gpt-oss:120b-cloud",
+      ];
+      const localIds = new Set(models.map((m) => m.id));
+      for (const cm of cloudModels) {
+        if (!localIds.has(cm)) {
+          models.push({ id: cm, name: `${cm} (subscription required)` });
+        }
+      }
     } else {
       // OpenAI-compatible returns { data: [{ id, ... }] }
       models = (data.data || []).map((m: { id: string; owned_by?: string }) => ({

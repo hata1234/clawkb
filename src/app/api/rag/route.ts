@@ -244,6 +244,9 @@ export async function POST(request: Request) {
     headers["Authorization"] = `Bearer ${ragConfig.apiKey}`;
   }
 
+  const isVllmCompatible = ragConfig.provider === "openai" &&
+    !ragConfig.baseUrl.includes("api.openai.com");
+
   const llmBody =
     ragConfig.provider === "ollama"
       ? { model: ragConfig.model, messages, stream, options: { num_predict: ragConfig.maxTokens } }
@@ -252,6 +255,10 @@ export async function POST(request: Request) {
           messages,
           stream,
           max_tokens: ragConfig.maxTokens,
+          // vLLM with thinking-capable models: must disable thinking or content returns null
+          ...(isVllmCompatible || ragConfig.provider === "openclaw"
+            ? { chat_template_kwargs: { enable_thinking: false } }
+            : {}),
         };
 
   if (!stream) {
