@@ -1,5 +1,3 @@
-Loaded Prisma config from prisma.config.ts.
-
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- CreateSchema
@@ -14,9 +12,7 @@ CREATE TABLE "User" (
     "passwordHash" TEXT NOT NULL,
     "avatarUrl" TEXT,
     "bio" TEXT,
-    "role" TEXT NOT NULL DEFAULT 'viewer',
-    "roleId" INTEGER,
-    "groupId" INTEGER,
+    "is_admin" BOOLEAN NOT NULL DEFAULT false,
     "approvalStatus" TEXT NOT NULL DEFAULT 'approved',
     "emailVerifiedAt" TIMESTAMP(3),
     "emailVerificationToken" TEXT,
@@ -33,36 +29,37 @@ CREATE TABLE "User" (
 );
 
 -- CreateTable
-CREATE TABLE "roles" (
-    "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT,
-    "builtIn" BOOLEAN NOT NULL DEFAULT false,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "groups" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "roleId" INTEGER,
+    "built_in" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "can_create_collections" BOOLEAN NOT NULL DEFAULT false,
+    "can_use_rag" BOOLEAN NOT NULL DEFAULT false,
+    "can_export" BOOLEAN NOT NULL DEFAULT false,
+    "can_manage_webhooks" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "groups_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "permissions" (
-    "id" SERIAL NOT NULL,
-    "roleId" INTEGER NOT NULL,
-    "action" TEXT NOT NULL,
-    "scope" TEXT NOT NULL,
-    "scopeId" INTEGER,
+CREATE TABLE "user_groups" (
+    "user_id" INTEGER NOT NULL,
+    "group_id" INTEGER NOT NULL,
 
-    CONSTRAINT "permissions_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "user_groups_pkey" PRIMARY KEY ("user_id","group_id")
+);
+
+-- CreateTable
+CREATE TABLE "group_collection_roles" (
+    "id" SERIAL NOT NULL,
+    "group_id" INTEGER NOT NULL,
+    "collection_id" INTEGER NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'viewer',
+
+    CONSTRAINT "group_collection_roles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -187,6 +184,7 @@ CREATE TABLE "collections" (
     "color" TEXT,
     "parentId" INTEGER,
     "sortOrder" INTEGER NOT NULL DEFAULT 0,
+    "built_in" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "doc_prefix" TEXT,
@@ -294,6 +292,30 @@ CREATE TABLE "webhook_deliveries" (
 );
 
 -- CreateTable
+CREATE TABLE "entry_backlinks" (
+    "id" SERIAL NOT NULL,
+    "source_entry_id" INTEGER NOT NULL,
+    "target_entry_id" INTEGER NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "entry_backlinks_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "audit_events" (
+    "id" SERIAL NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" INTEGER,
+    "action" TEXT NOT NULL,
+    "actorId" INTEGER,
+    "changes" JSONB,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "audit_events_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_EntryTags" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL,
@@ -322,13 +344,13 @@ CREATE UNIQUE INDEX "User_emailVerificationToken_key" ON "User"("emailVerificati
 CREATE UNIQUE INDEX "User_resetPasswordToken_key" ON "User"("resetPasswordToken");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "roles_name_key" ON "roles"("name");
-
--- CreateIndex
 CREATE UNIQUE INDEX "groups_name_key" ON "groups"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "permissions_roleId_action_scope_scopeId_key" ON "permissions"("roleId", "action", "scope", "scopeId");
+CREATE INDEX "group_collection_roles_collection_id_idx" ON "group_collection_roles"("collection_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "group_collection_roles_group_id_collection_id_key" ON "group_collection_roles"("group_id", "collection_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Entry_doc_number_key" ON "Entry"("doc_number");
@@ -391,25 +413,46 @@ CREATE INDEX "webhook_deliveries_webhookId_idx" ON "webhook_deliveries"("webhook
 CREATE INDEX "webhook_deliveries_createdAt_idx" ON "webhook_deliveries"("createdAt");
 
 -- CreateIndex
+CREATE INDEX "idx_backlinks_target" ON "entry_backlinks"("target_entry_id");
+
+-- CreateIndex
+CREATE INDEX "idx_backlinks_source" ON "entry_backlinks"("source_entry_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "entry_backlinks_source_entry_id_target_entry_id_key" ON "entry_backlinks"("source_entry_id", "target_entry_id");
+
+-- CreateIndex
+CREATE INDEX "audit_events_entityType_entityId_idx" ON "audit_events"("entityType", "entityId");
+
+-- CreateIndex
+CREATE INDEX "audit_events_actorId_idx" ON "audit_events"("actorId");
+
+-- CreateIndex
+CREATE INDEX "audit_events_action_idx" ON "audit_events"("action");
+
+-- CreateIndex
+CREATE INDEX "audit_events_createdAt_idx" ON "audit_events"("createdAt");
+
+-- CreateIndex
 CREATE INDEX "_EntryTags_B_index" ON "_EntryTags"("B");
 
 -- CreateIndex
 CREATE INDEX "_EntryCollections_B_index" ON "_EntryCollections"("B");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "groups"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "groups" ADD CONSTRAINT "groups_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "user_groups" ADD CONSTRAINT "user_groups_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "permissions" ADD CONSTRAINT "permissions_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_groups" ADD CONSTRAINT "user_groups_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "group_collection_roles" ADD CONSTRAINT "group_collection_roles_group_id_fkey" FOREIGN KEY ("group_id") REFERENCES "groups"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "group_collection_roles" ADD CONSTRAINT "group_collection_roles_collection_id_fkey" FOREIGN KEY ("collection_id") REFERENCES "collections"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Entry" ADD CONSTRAINT "Entry_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
