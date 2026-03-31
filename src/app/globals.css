@@ -148,6 +148,25 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ═══ Form elements — theme-aware color-scheme ═══ */
+:root select,
+:root select option,
+:root input,
+:root textarea {
+  background-color: var(--background);
+  color: var(--text);
+}
+[data-theme="dark"] select,
+[data-theme="dark"] input,
+[data-theme="dark"] textarea {
+  color-scheme: dark;
+}
+[data-theme="light"] select,
+[data-theme="light"] input,
+[data-theme="light"] textarea {
+  color-scheme: light;
+}
+
 /* ═══ Scrollbar ═══ */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }

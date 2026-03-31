@@ -1570,7 +1570,12 @@ export default function EntryDetailPage() {
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        select { color-scheme: dark; }
+        [data-theme="dark"] select { color-scheme: dark; }
+        [data-theme="light"] select { color-scheme: light; }
+        select, select option {
+          background-color: var(--background);
+          color: var(--text);
+        }
         input:focus, textarea:focus, select:focus {
           border-color: var(--accent) !important;
           box-shadow: 0 0 0 2px rgba(201,169,110,0.15);

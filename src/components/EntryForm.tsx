@@ -542,8 +542,19 @@ export default function EntryForm({ initialData, mode }: EntryFormProps) {
             grid-template-columns: 1fr 1fr;
           }
         }
-        form select, form input, form textarea {
+        [data-theme="dark"] form select,
+        [data-theme="dark"] form input,
+        [data-theme="dark"] form textarea {
           color-scheme: dark;
+        }
+        [data-theme="light"] form select,
+        [data-theme="light"] form input,
+        [data-theme="light"] form textarea {
+          color-scheme: light;
+        }
+        form select, form select option {
+          background-color: var(--background);
+          color: var(--text);
         }
         form select:focus, form input:focus, form textarea:focus {
           border-color: var(--accent) !important;
