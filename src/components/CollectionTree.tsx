@@ -51,8 +51,10 @@ function CollectionNode({
   const hasChildren = node.children.length > 0;
   const isActive = activeCollectionId === node.id;
 
+  const isRoot = depth === 0;
+
   return (
-    <div>
+    <div className={isRoot ? "collection-root-group" : ""}>
       <div
         className={`collection-node ${isActive ? "active" : ""}`}
         style={{ paddingLeft: sidebarCollapsed ? 8 : 8 + depth * 16 }}
@@ -387,6 +389,11 @@ const collectionStyles = `
     display: flex;
     flex-direction: column;
     gap: 1px;
+  }
+  .collection-root-group + .collection-root-group {
+    margin-top: 2px;
+    padding-top: 3px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
   }
   .collection-node {
     display: flex;
