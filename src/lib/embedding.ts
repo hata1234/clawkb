@@ -26,14 +26,19 @@ async function generateEmbeddingOllama(text: string, ollamaUrl: string, model: s
   }
 }
 
+function openAIEndpoint(baseUrl: string): string {
+  const normalized = baseUrl.replace(/\/+$/, "");
+  return normalized.endsWith("/v1") ? `${normalized}/embeddings` : `${normalized}/v1/embeddings`;
+}
+
 async function generateEmbeddingOpenAI(
   text: string,
   apiKey: string,
   model: string,
-  baseUrl: string = "https://api.openai.com",
+  baseUrl: string = "https://api.openai.com/v1",
 ): Promise<number[] | null> {
   try {
-    const res = await fetch(`${baseUrl}/v1/embeddings`, {
+    const res = await fetch(openAIEndpoint(baseUrl), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -65,7 +70,7 @@ export async function generateEmbedding(text: string): Promise<number[] | null> 
       console.error("OpenAI embedding: no API key configured");
       return null;
     }
-    const baseUrl = config.openaiBaseUrl ?? "https://api.openai.com";
+    const baseUrl = config.openaiBaseUrl ?? DEFAULT_EMBEDDING.openaiBaseUrl ?? "https://api.openai.com/v1";
     return generateEmbeddingOpenAI(text, key, model, baseUrl);
   }
 

@@ -22,8 +22,9 @@ export const DEFAULT_EMBEDDING = {
   provider: "ollama" as "ollama" | "openai" | "disabled",
   ollamaUrl: process.env.OLLAMA_URL ?? "http://localhost:11434",
   ollamaModel: "bge-m3",
-  openaiApiKey: "",
-  openaiModel: "text-embedding-3-small",
+  openaiApiKey: process.env.OPENAI_API_KEY ?? "",
+  openaiModel: process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-small",
+  openaiBaseUrl: process.env.OPENAI_BASE_URL ?? process.env.OPENAI_EMBEDDING_BASE_URL ?? "https://api.openai.com/v1",
 };
 
 export const DEFAULT_STORAGE = {

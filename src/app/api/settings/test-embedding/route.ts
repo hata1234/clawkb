@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   if (!principal) return jsonError("Unauthorized", 401);
   if (!canManageSettings(principal)) return jsonError("Forbidden: admin only", 403);
 
-  const { provider, ollamaUrl, ollamaModel, openaiApiKey, openaiModel } = await request.json();
+  const { provider, ollamaUrl, ollamaModel, openaiApiKey, openaiModel, openaiBaseUrl } = await request.json();
 
   try {
     if (provider === "ollama") {
@@ -26,7 +26,9 @@ export async function POST(request: NextRequest) {
 
     if (provider === "openai") {
       const model = openaiModel ?? "text-embedding-3-small";
-      const res = await fetch("https://api.openai.com/v1/embeddings", {
+      const baseUrl = (openaiBaseUrl || "https://api.openai.com/v1").replace(/\/+$/, "");
+      const endpoint = baseUrl.endsWith("/v1") ? `${baseUrl}/embeddings` : `${baseUrl}/v1/embeddings`;
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

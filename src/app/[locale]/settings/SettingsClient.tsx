@@ -309,7 +309,8 @@ function EmbeddingTab({ settings, onToast }: { settings: AllSettings; onToast: (
     cfg.ollamaUrl !== savedCfg.ollamaUrl ||
     cfg.ollamaModel !== savedCfg.ollamaModel ||
     cfg.openaiApiKey !== savedCfg.openaiApiKey ||
-    cfg.openaiModel !== savedCfg.openaiModel;
+    cfg.openaiModel !== savedCfg.openaiModel ||
+    cfg.openaiBaseUrl !== savedCfg.openaiBaseUrl;
 
   // Fetch embedding status on mount
   useEffect(() => {
@@ -437,6 +438,15 @@ function EmbeddingTab({ settings, onToast }: { settings: AllSettings; onToast: (
                 style={inputStyle}
                 placeholder="sk-..."
                 autoComplete="off"
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>{t("baseUrl")}</label>
+              <input
+                value={cfg.openaiBaseUrl ?? ""}
+                onChange={(e) => setCfg((c) => ({ ...c, openaiBaseUrl: e.target.value }))}
+                style={inputStyle}
+                placeholder="https://api.openai.com/v1"
               />
             </div>
             <div>
